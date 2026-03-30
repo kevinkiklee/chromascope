@@ -1,7 +1,13 @@
 import Link from 'next/link';
 import { ScrollReveal } from '@/components/scroll-reveal';
 import { AnimatedVectorscope } from '@/components/animated-vectorscope';
-import { ProductScreenshot } from '@/components/product-screenshot';
+import {
+  HeroIllustration,
+  ColorSpacesIllustration,
+  DensityModesIllustration,
+  HarmonyIllustration,
+  BannerIllustration,
+} from '@/components/illustrations';
 
 const valueProps = [
   {
@@ -18,33 +24,6 @@ const valueProps = [
     icon: '🔍',
     title: 'Catch problems before your client does',
     desc: 'Skin tone line, harmony zones, and density heatmaps reveal color issues invisible to the naked eye.',
-  },
-];
-
-const featureBlocks = [
-  {
-    eyebrow: 'Color Spaces',
-    title: 'Six professional color spaces',
-    desc: 'YCbCr BT.601 & BT.709, CIE LUV, HSL, and more. Switch instantly to match your grading workflow.',
-    tags: ['YCbCr 601', 'YCbCr 709', 'CIE LUV', 'HSL'],
-    screenshotAlt: 'Chromascope color space selector in Photoshop',
-    screenshotPlaceholder: 'Color Spaces screenshot',
-  },
-  {
-    eyebrow: 'Density Modes',
-    title: 'Three ways to visualize density',
-    desc: 'Scatter, Heatmap, and Bloom. Each reveals different characteristics of your image\'s color distribution.',
-    tags: ['Scatter', 'Heatmap', 'Bloom'],
-    screenshotAlt: 'Chromascope density mode comparison',
-    screenshotPlaceholder: 'Density Modes screenshot',
-  },
-  {
-    eyebrow: 'Color Harmony',
-    title: 'Seven harmony zone overlays',
-    desc: 'Complementary, analogous, triadic, and more. See how your colors relate at a glance.',
-    tags: ['Complementary', 'Analogous', 'Triadic', 'Split-Complementary'],
-    screenshotAlt: 'Chromascope harmony overlay on vectorscope',
-    screenshotPlaceholder: 'Harmony Overlays screenshot',
   },
 ];
 
@@ -92,13 +71,9 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* Product screenshot + animated accent */}
+            {/* Hero illustration */}
             <div className="animate-hero animate-delay-300 flex-1 max-w-md relative">
-              <ProductScreenshot
-                alt="Chromascope panel in Photoshop showing vectorscope analysis"
-                placeholder="Photoshop panel screenshot"
-                className="min-h-[280px] md:min-h-[340px]"
-              />
+              <HeroIllustration />
               <div className="absolute -top-3 -right-3 md:-top-5 md:-right-5">
                 <AnimatedVectorscope size={72} className="opacity-70" />
               </div>
@@ -141,50 +116,86 @@ export default function HomePage() {
           </div>
 
           <div className="flex flex-col gap-24">
-            {featureBlocks.map((f, i) => {
-              const imageLeft = i % 2 === 0;
-              return (
-                <ScrollReveal
-                  key={f.eyebrow}
-                  animation={imageLeft ? 'left' : 'right'}
-                >
-                  <div className={`flex flex-col md:flex-row items-center gap-12 ${!imageLeft ? 'md:flex-row-reverse' : ''}`}>
-                    {/* Screenshot */}
-                    <div className="flex-1 w-full">
-                      <ProductScreenshot
-                        alt={f.screenshotAlt}
-                        placeholder={f.screenshotPlaceholder}
-                        className="min-h-[200px] md:min-h-[260px]"
-                      />
-                    </div>
-                    {/* Text */}
-                    <div className="flex-1">
-                      <div className="text-xs font-semibold uppercase tracking-[0.14em] text-violet-400 mb-3">
-                        {f.eyebrow}
-                      </div>
-                      <h3 className="text-2xl font-bold tracking-tight text-zinc-100 mb-3">
-                        {f.title}
-                      </h3>
-                      <p className="text-zinc-400 leading-relaxed mb-5">
-                        {f.desc}
-                      </p>
-                      {f.tags && (
-                        <div className="flex flex-wrap gap-2">
-                          {f.tags.map((tag) => (
-                            <span
-                              key={tag}
-                              className="bg-violet-500/10 text-violet-300 text-xs px-3 py-1 rounded-md border border-violet-500/15"
-                            >
-                              {tag}
-                            </span>
-                          ))}
-                        </div>
-                      )}
-                    </div>
+            {/* Color Spaces — image left */}
+            <ScrollReveal animation="left">
+              <div className="flex flex-col md:flex-row items-center gap-12">
+                <div className="flex-1 w-full">
+                  <ColorSpacesIllustration />
+                </div>
+                <div className="flex-1">
+                  <div className="text-xs font-semibold uppercase tracking-[0.14em] text-violet-400 mb-3">
+                    Color Spaces
                   </div>
-                </ScrollReveal>
-              );
-            })}
+                  <h3 className="text-2xl font-bold tracking-tight text-zinc-100 mb-3">
+                    Six professional color spaces
+                  </h3>
+                  <p className="text-zinc-400 leading-relaxed mb-5">
+                    YCbCr BT.601 &amp; BT.709, CIE LUV, HSL, and more. Switch instantly to match your grading workflow.
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {['YCbCr 601', 'YCbCr 709', 'CIE LUV', 'HSL'].map((tag) => (
+                      <span key={tag} className="bg-violet-500/10 text-violet-300 text-xs px-3 py-1 rounded-md border border-violet-500/15">
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </ScrollReveal>
+
+            {/* Density Modes — image right */}
+            <ScrollReveal animation="right">
+              <div className="flex flex-col md:flex-row-reverse items-center gap-12">
+                <div className="flex-1 w-full">
+                  <DensityModesIllustration />
+                </div>
+                <div className="flex-1">
+                  <div className="text-xs font-semibold uppercase tracking-[0.14em] text-violet-400 mb-3">
+                    Density Modes
+                  </div>
+                  <h3 className="text-2xl font-bold tracking-tight text-zinc-100 mb-3">
+                    Three ways to visualize density
+                  </h3>
+                  <p className="text-zinc-400 leading-relaxed mb-5">
+                    Scatter, Heatmap, and Bloom. Each reveals different characteristics of your image&apos;s color distribution.
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {['Scatter', 'Heatmap', 'Bloom'].map((tag) => (
+                      <span key={tag} className="bg-violet-500/10 text-violet-300 text-xs px-3 py-1 rounded-md border border-violet-500/15">
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </ScrollReveal>
+
+            {/* Color Harmony — image left */}
+            <ScrollReveal animation="left">
+              <div className="flex flex-col md:flex-row items-center gap-12">
+                <div className="flex-1 w-full">
+                  <HarmonyIllustration />
+                </div>
+                <div className="flex-1">
+                  <div className="text-xs font-semibold uppercase tracking-[0.14em] text-violet-400 mb-3">
+                    Color Harmony
+                  </div>
+                  <h3 className="text-2xl font-bold tracking-tight text-zinc-100 mb-3">
+                    Seven harmony zone overlays
+                  </h3>
+                  <p className="text-zinc-400 leading-relaxed mb-5">
+                    Complementary, analogous, triadic, and more. See how your colors relate at a glance.
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {['Complementary', 'Analogous', 'Triadic', 'Split-Complementary'].map((tag) => (
+                      <span key={tag} className="bg-violet-500/10 text-violet-300 text-xs px-3 py-1 rounded-md border border-violet-500/15">
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </ScrollReveal>
           </div>
         </div>
       </section>
@@ -205,16 +216,12 @@ export default function HomePage() {
 
           <ScrollReveal animation="scale">
             <div className="relative max-w-4xl mx-auto">
-              <ProductScreenshot
-                alt="Chromascope panel open in Photoshop, analyzing a photograph with vectorscope overlay"
-                placeholder="Full-width product screenshot"
-                className="min-h-[300px] md:min-h-[400px]"
-              />
+              <BannerIllustration />
               {/* Annotation callouts */}
-              <div className="absolute top-4 right-4 md:top-6 md:right-6 bg-violet-500/10 border border-violet-500/25 rounded-md px-3 py-1.5 text-xs text-violet-300 backdrop-blur-sm">
+              <div className="absolute top-12 right-4 md:top-14 md:right-6 bg-violet-500/10 border border-violet-500/25 rounded-md px-3 py-1.5 text-xs text-violet-300 backdrop-blur-sm">
                 ← YCbCr BT.709
               </div>
-              <div className="absolute bottom-4 left-4 md:bottom-6 md:left-6 bg-violet-500/10 border border-violet-500/25 rounded-md px-3 py-1.5 text-xs text-violet-300 backdrop-blur-sm">
+              <div className="absolute bottom-12 left-4 md:bottom-14 md:left-6 bg-violet-500/10 border border-violet-500/25 rounded-md px-3 py-1.5 text-xs text-violet-300 backdrop-blur-sm">
                 Heatmap density →
               </div>
             </div>
@@ -306,7 +313,6 @@ export default function HomePage() {
 
       {/* ── Section 6: Final CTA ── */}
       <section className="relative py-28 px-6 overflow-hidden">
-        {/* Background decorative vectorscope */}
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
           <AnimatedVectorscope size={400} className="opacity-[0.03]" />
         </div>
