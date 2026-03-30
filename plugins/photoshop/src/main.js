@@ -22,7 +22,7 @@ async function refresh() {
       statusBar.textContent = "No document open";
     }
   } catch (err) {
-    console.error("Vectorscope refresh error:", err);
+    console.error("ChromaScope refresh error:", err);
     statusBar.textContent = "Error: " + (err.message || "unknown");
   } finally {
     isRefreshing = false;
@@ -49,7 +49,7 @@ const entrypoints = require("uxp").entrypoints;
 
 entrypoints.setup({
   panels: {
-    vectorscopePanel: {
+    chromascopePanel: {
       show() {
         init();
       },

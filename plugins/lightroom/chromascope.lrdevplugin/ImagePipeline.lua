@@ -1,4 +1,4 @@
--- plugins/lightroom/vectorscope.lrdevplugin/ImagePipeline.lua
+-- plugins/lightroom/chromascope.lrdevplugin/ImagePipeline.lua  (ChromaScope)
 
 local LrApplication   = import "LrApplication"
 local LrTasks         = import "LrTasks"
@@ -33,7 +33,7 @@ local function requestThumbnail(photo, width, height, callback)
     end
 
     local tmpDir  = LrPathUtils.getStandardFilePath("temp")
-    local tmpFile = LrPathUtils.child(tmpDir, "vectorscope_thumb.jpg")
+    local tmpFile = LrPathUtils.child(tmpDir, "chromascope_thumb.jpg")
 
     local f = io.open(tmpFile, "wb")
     if not f then
@@ -108,3 +108,5 @@ function ImagePipeline.refresh(props)
     )
   end)
 end
+
+return ImagePipeline

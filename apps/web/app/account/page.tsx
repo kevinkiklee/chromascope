@@ -21,57 +21,91 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
   const data = await getLicenseData(key);
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-100">
-      <nav className="border-b border-zinc-800 px-6 py-4">
-        <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <Link href="/" className="font-bold text-lg tracking-tight">Vectorscope</Link>
-          <div className="flex items-center gap-6 text-sm text-zinc-400">
-            <Link href="/features" className="hover:text-zinc-100 transition-colors">Features</Link>
-            <Link href="/pricing" className="hover:text-zinc-100 transition-colors">Pricing</Link>
-            <Link href="/download" className="hover:text-zinc-100 transition-colors">Download</Link>
-            <Link href="/docs" className="hover:text-zinc-100 transition-colors">Docs</Link>
+    <div className="min-h-screen">
+      {/* Header */}
+      <header className="relative py-20 px-6 text-center overflow-hidden">
+        <div className="absolute top-[-60px] left-1/2 -translate-x-1/2 w-[500px] h-[250px] bg-[radial-gradient(ellipse,rgba(139,92,246,0.07)_0%,transparent_70%)] pointer-events-none" />
+        <div className="relative max-w-2xl mx-auto">
+          <div className="gradient-badge text-xs font-semibold uppercase tracking-[0.14em] mb-4">
+            Account
           </div>
+          <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-4">
+            Your License
+          </h1>
+          <p className="text-zinc-400 text-lg">View your license details and manage activations.</p>
         </div>
-      </nav>
+      </header>
 
-      <main className="py-20 px-6 max-w-2xl mx-auto">
-        <h1 className="text-3xl font-bold mb-8">Account</h1>
-
+      <main className="py-8 px-6 max-w-2xl mx-auto">
         {!key || !data ? (
           <LicenseLookupForm />
         ) : (
-          <div className="space-y-6">
-            <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6">
-              <h2 className="font-semibold mb-4">License</h2>
-              <dl className="space-y-2 text-sm">
-                <Row label="Key"><code className="font-mono text-indigo-300">{data.key}</code></Row>
-                <Row label="Email">{data.email}</Row>
-                <Row label="Tier"><span className="capitalize">{data.tier.replace('_', ' + ')}</span></Row>
-                <Row label="Status">{data.is_active ? '✓ Active' : '✗ Inactive'}</Row>
+          <div className="space-y-5">
+            {/* License details */}
+            <div className="card-glass rounded-xl p-7">
+              <div className="flex items-center gap-3 mb-5">
+                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500/10 to-indigo-500/10 border border-white/[0.06] flex items-center justify-center text-sm text-violet-400">
+                  ◎
+                </div>
+                <h2 className="font-semibold text-zinc-200">License</h2>
+              </div>
+              <dl className="space-y-3 text-sm">
+                <Row label="Key">
+                  <code className="font-mono text-violet-300 text-[13px]">{data.key}</code>
+                </Row>
+                <Row label="Email">
+                  <span className="text-zinc-300">{data.email}</span>
+                </Row>
+                <Row label="Tier">
+                  <span className="capitalize text-zinc-300">{data.tier.replace('_', ' + ')}</span>
+                </Row>
+                <Row label="Status">
+                  {data.is_active ? (
+                    <span className="text-emerald-400">&#10003; Active</span>
+                  ) : (
+                    <span className="text-zinc-500">&#10007; Inactive</span>
+                  )}
+                </Row>
                 {data.expires_at && (
-                  <Row label="Expires">{new Date(data.expires_at).toLocaleDateString()}</Row>
+                  <Row label="Expires">
+                    <span className="text-zinc-300">{new Date(data.expires_at).toLocaleDateString()}</span>
+                  </Row>
                 )}
               </dl>
               {data.stripe_customer_id && (
                 <a
                   href={`/api/billing-portal?customer=${data.stripe_customer_id}`}
-                  className="inline-block mt-4 text-sm text-indigo-400 hover:text-indigo-300 underline"
+                  className="inline-flex items-center gap-1.5 mt-5 text-sm text-violet-400 hover:text-violet-300 transition-colors"
                 >
-                  Manage billing →
+                  Manage billing
+                  <span className="text-xs">&rarr;</span>
                 </a>
               )}
             </div>
 
-            <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6">
-              <h2 className="font-semibold mb-4">Machine Activations ({(data.activations ?? []).length} / 3)</h2>
+            {/* Activations */}
+            <div className="card-glass rounded-xl p-7">
+              <div className="flex items-center gap-3 mb-5">
+                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-500/10 to-blue-500/10 border border-white/[0.06] flex items-center justify-center text-sm text-cyan-400">
+                  ⊞
+                </div>
+                <h2 className="font-semibold text-zinc-200">
+                  Machine Activations
+                  <span className="text-zinc-600 font-normal ml-2 text-sm">
+                    {(data.activations ?? []).length} / 3
+                  </span>
+                </h2>
+              </div>
               {(data.activations ?? []).length === 0 ? (
-                <p className="text-zinc-500 text-sm">No machines activated yet.</p>
+                <p className="text-zinc-600 text-sm">No machines activated yet.</p>
               ) : (
-                <ul className="space-y-2">
+                <ul className="space-y-3">
                   {(data.activations as Array<{ machine_id: string; platform: string; activated_at: string }>).map((a) => (
-                    <li key={a.machine_id} className="flex items-center justify-between text-sm">
-                      <span className="font-mono text-zinc-300">{a.machine_id}</span>
-                      <span className="text-zinc-500">{a.platform} · {new Date(a.activated_at).toLocaleDateString()}</span>
+                    <li key={a.machine_id} className="flex items-center justify-between text-sm py-2.5 px-4 rounded-lg bg-white/[0.02] border border-white/[0.04]">
+                      <span className="font-mono text-zinc-300 text-[13px]">{a.machine_id}</span>
+                      <span className="text-zinc-600 text-xs">
+                        {a.platform} &middot; {new Date(a.activated_at).toLocaleDateString()}
+                      </span>
                     </li>
                   ))}
                 </ul>
@@ -86,27 +120,27 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
 
 function Row({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div className="flex gap-4">
-      <dt className="w-24 text-zinc-500 shrink-0">{label}</dt>
-      <dd className="text-zinc-200">{children}</dd>
+    <div className="flex gap-4 items-baseline">
+      <dt className="w-20 text-zinc-600 shrink-0 text-xs uppercase tracking-wider">{label}</dt>
+      <dd>{children}</dd>
     </div>
   );
 }
 
 function LicenseLookupForm() {
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6">
-      <p className="text-zinc-400 text-sm mb-4">Enter your license key to view your account details.</p>
+    <div className="card-glass rounded-xl p-7">
+      <p className="text-zinc-500 text-sm mb-5">Enter your license key to view your account details.</p>
       <form method="get" className="flex gap-3">
         <input
           name="key"
           type="text"
-          placeholder="VECT-XXXX-XXXX-XXXX-XXXX"
-          className="flex-1 bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:border-indigo-500"
+          placeholder="CHRM-XXXX-XXXX-XXXX-XXXX"
+          className="flex-1 bg-zinc-900/60 border border-white/[0.08] rounded-lg px-4 py-2.5 text-sm font-mono placeholder-zinc-700"
         />
         <button
           type="submit"
-          className="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-lg text-sm font-medium"
+          className="btn-primary text-white px-5 py-2.5 rounded-lg text-sm font-medium"
         >
           Look up
         </button>

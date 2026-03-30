@@ -1,9 +1,7 @@
 // packages/core/src/interaction/scope-interaction.ts
 
 import { canvasToPolar, type PolarCoord } from "./hit-test.js";
-import { isPointInZone } from "../overlays/harmony-zones.js";
 import { sendToHost } from "../protocol.js";
-import type { HarmonyZone } from "../types.js";
 
 export interface InteractionCallbacks {
   onHover: (polar: PolarCoord | null) => void;
@@ -14,7 +12,6 @@ export interface InteractionCallbacks {
 export function attachScopeInteraction(
   canvas: HTMLCanvasElement,
   size: () => number,
-  getZones: () => HarmonyZone[],
   callbacks: InteractionCallbacks,
 ): () => void {
   let isDragging = false;

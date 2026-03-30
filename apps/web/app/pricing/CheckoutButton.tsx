@@ -1,6 +1,14 @@
 'use client';
 
-export default function CheckoutButton({ priceId, label }: { priceId: string; label: string }) {
+export default function CheckoutButton({
+  priceId,
+  label,
+  highlight = false,
+}: {
+  priceId: string;
+  label: string;
+  highlight?: boolean;
+}) {
   async function handleClick() {
     const res = await fetch('/api/stripe/checkout', {
       method: 'POST',
@@ -16,7 +24,9 @@ export default function CheckoutButton({ priceId, label }: { priceId: string; la
   return (
     <button
       onClick={handleClick}
-      className="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2.5 rounded-lg text-sm font-medium transition-colors w-full"
+      className={`w-full text-center py-2.5 rounded-lg text-sm font-medium transition-all ${
+        highlight ? 'btn-primary text-white' : 'btn-ghost text-zinc-300'
+      }`}
     >
       {label}
     </button>

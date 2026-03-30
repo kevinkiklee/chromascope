@@ -3,8 +3,6 @@ import { constructWebhookEvent } from '@/lib/stripe';
 import { createPaidLicense } from '@/lib/license';
 import { sql } from '@/lib/db';
 
-export const config = { api: { bodyParser: false } };
-
 export async function POST(req: NextRequest) {
   const payload = await req.text();
   const sig = req.headers.get('stripe-signature') ?? '';

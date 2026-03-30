@@ -1,4 +1,4 @@
--- plugins/lightroom/vectorscope.lrdevplugin/VectorscopeDialog.lua
+-- plugins/lightroom/chromascope.lrdevplugin/ChromaScopeDialog.lua
 
 local LrView          = import "LrView"
 local LrDialogs       = import "LrDialogs"
@@ -6,15 +6,12 @@ local LrBinding       = import "LrBinding"
 local LrColor         = import "LrColor"
 local LrTasks         = import "LrTasks"
 local LrDevelopController = import "LrDevelopController"
-local LrApplication   = import "LrApplication"
-local catalog         = import "LrApplication" -- replaced below
 
 local ImagePipeline = require "ImagePipeline"
-local EditBridge    = require "EditBridge"
 
-VectorscopeDialog = {}
+ChromaScopeDialog = {}
 
-function VectorscopeDialog.show(context)
+function ChromaScopeDialog.show(context)
   local f    = LrView.osFactory()
   local bind = LrView.bind
 
@@ -64,7 +61,7 @@ function VectorscopeDialog.show(context)
   local result = LrDialogs.presentFloatingDialog(
     _PLUGIN,
     {
-      title    = "Vectorscope",
+      title    = "ChromaScope",
       contents = contents,
       onShow   = function()
         props.statusText = "Ready"

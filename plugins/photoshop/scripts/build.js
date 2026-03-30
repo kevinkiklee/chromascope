@@ -9,7 +9,7 @@ if (fs.existsSync(coreSource)) {
   fs.copyFileSync(coreSource, coreDest);
   console.log("Copied core build → plugins/photoshop/core/index.html");
 } else {
-  console.error("Core build not found! Run 'turbo run build --filter=@vectorscope/core' first.");
+  console.error("Core build not found! Run 'turbo run build --filter=@chromascope/core' first.");
   process.exit(1);
 }
 

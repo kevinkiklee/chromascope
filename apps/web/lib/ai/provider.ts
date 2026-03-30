@@ -9,7 +9,7 @@ export interface ModelOptions {
 export interface AnalysisResult<T = unknown> {
   data: T
   model: string
-  usage: { promptTokens: number; completionTokens: number }
+  usage: { inputTokens: number; outputTokens: number }
 }
 
 export interface ModelProvider {

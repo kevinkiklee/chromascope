@@ -1,6 +1,6 @@
 // packages/core/src/protocol.ts
 
-import type { ColorSpaceId, DensityModeId, HarmonyConfig, VectorscopeSettings } from "./types.js";
+import type { ColorSpaceId, DensityModeId, HarmonyConfig, ChromaScopeSettings } from "./types.js";
 
 // --- Messages from Host → WebView ---
 

@@ -20,7 +20,7 @@ Respond ONLY with a valid JSON object matching the provided schema.
 `.trim()
 
 export const NATURAL_LANGUAGE_PROMPT = `
-You are a professional colorist assistant. You will receive the current vectorscope state
+You are a professional colorist assistant. You will receive the current chromascope state
 (active color space, current adjustments, selected harmony) and a plain-English instruction
 from the user. Translate the instruction into precise adjustment deltas for the active edit
 mode. Adjustments should be conservative and non-destructive — prefer small targeted changes.
@@ -40,6 +40,6 @@ export const PALETTE_EXTRACT_PROMPT = `
 You are a professional colorist. Analyze the downsampled image and extract the dominant
 color palette. For each dominant color provide its hex value, a descriptive label, its
 approximate coverage percentage, and a suggested grading direction (warm/cool/neutral).
-Also suggest up to three vectorscope overlay preset names that complement the palette.
+Also suggest up to three chromascope overlay preset names that complement the palette.
 Respond ONLY with a valid JSON object matching the provided schema.
 `.trim()

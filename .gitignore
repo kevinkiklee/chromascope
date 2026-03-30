@@ -5,3 +5,8 @@ build/
 .turbo/
 *.tsbuildinfo
 .env*.local
+.vercel
+.next/
+target/
+plugins/lightroom/chromascope.lrdevplugin/bin/*/decode
+plugins/lightroom/chromascope.lrdevplugin/core/

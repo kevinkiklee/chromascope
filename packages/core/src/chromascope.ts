@@ -4,14 +4,14 @@ import type {
   HarmonyZone,
   MappedPoint,
   PixelData,
-  VectorscopeSettings,
+  ChromaScopeSettings,
 } from "./types.js";
 import { createColorSpaceMapper } from "./color-spaces/index.js";
 import { createDensityRenderer } from "./renderers/index.js";
 import { renderGraticule } from "./graticule.js";
 import { getHarmonyZones, renderHarmonyOverlay, renderSkinToneLine } from "./overlays/index.js";
 
-const DEFAULT_SETTINGS: VectorscopeSettings = {
+const DEFAULT_SETTINGS: ChromaScopeSettings = {
   colorSpace: "ycbcr",
   densityMode: "scatter",
   logScale: false,
@@ -23,8 +23,8 @@ const DEFAULT_SETTINGS: VectorscopeSettings = {
   },
 };
 
-export class Vectorscope {
-  settings: VectorscopeSettings;
+export class ChromaScope {
+  settings: ChromaScopeSettings;
   mappedPoints: MappedPoint[] = [];
   harmonyZones: HarmonyZone[] = [];
 
@@ -33,14 +33,14 @@ export class Vectorscope {
   private pixels: PixelData | null = null;
   private graticuleCacheSize = 0;
 
-  constructor(settings?: Partial<VectorscopeSettings>) {
+  constructor(settings?: Partial<ChromaScopeSettings>) {
     this.settings = { ...DEFAULT_SETTINGS, ...settings };
     this.mapper = createColorSpaceMapper(this.settings.colorSpace);
     this.renderer = createDensityRenderer(this.settings.densityMode);
     this.harmonyZones = getHarmonyZones(this.settings.harmony);
   }
 
-  updateSettings(partial: Partial<VectorscopeSettings>): void {
+  updateSettings(partial: Partial<ChromaScopeSettings>): void {
     const prev = { ...this.settings };
     Object.assign(this.settings, partial);
 

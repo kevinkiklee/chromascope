@@ -6,7 +6,7 @@ import { validateLicense } from '@/lib/license'
 import { checkRateLimit } from '@/lib/ai/rate-limit'
 import { NATURAL_LANGUAGE_PROMPT } from '@/lib/ai/prompts'
 
-const VectorscopeStateSchema = z.object({
+const ChromaScopeStateSchema = z.object({
   colorSpace: z.enum(['YCbCr', 'CIE_LUV', 'HSL']),
   editMode: z.string(),
   currentAdjustments: z.record(z.number()),
@@ -14,7 +14,7 @@ const VectorscopeStateSchema = z.object({
 })
 
 const RequestSchema = z.object({
-  state: VectorscopeStateSchema,
+  state: ChromaScopeStateSchema,
   prompt: z.string().min(1),
   apiKey: z.string().min(1),
 })

@@ -1,14 +1,14 @@
 {
-  "name": "@vectorscope/decode",
+  "name": "@chromascope/decode",
   "version": "0.1.0",
   "private": true,
   "scripts": {
     "build": "cargo build",
     "build:release": "cargo build --release",
     "build:all-platforms": "echo 'Cross-compilation requires cargo-cross; run manually per platform'",
-    "copy:macos-arm64": "cp target/release/decode ../../plugins/lightroom/vectorscope.lrdevplugin/bin/macos-arm64/decode",
-    "copy:macos-x64": "cp target/release/decode ../../plugins/lightroom/vectorscope.lrdevplugin/bin/macos-x64/decode",
-    "copy:win-x64": "cp target/release/decode.exe ../../plugins/lightroom/vectorscope.lrdevplugin/bin/win-x64/decode.exe",
+    "copy:macos-arm64": "cp target/release/decode ../../plugins/lightroom/chromascope.lrdevplugin/bin/macos-arm64/decode",
+    "copy:macos-x64": "cp target/release/decode ../../plugins/lightroom/chromascope.lrdevplugin/bin/macos-x64/decode",
+    "copy:win-x64": "cp target/release/decode.exe ../../plugins/lightroom/chromascope.lrdevplugin/bin/win-x64/decode.exe",
     "test": "cargo test --release"
   }
 }

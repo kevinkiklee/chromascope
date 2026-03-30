@@ -3,9 +3,9 @@ import { sql } from './db';
 const MAX_ACTIVATIONS = 3;
 
 export function generateLicenseKey(): string {
-  // Format: VECT-XXXX-XXXX-XXXX (uppercase hex segments)
+  // Format: CHRM-XXXX-XXXX-XXXX (uppercase hex segments)
   const uuid = crypto.randomUUID().replace(/-/g, '').toUpperCase();
-  return `VECT-${uuid.slice(0, 4)}-${uuid.slice(4, 8)}-${uuid.slice(8, 12)}-${uuid.slice(12, 16)}`;
+  return `CHRM-${uuid.slice(0, 4)}-${uuid.slice(4, 8)}-${uuid.slice(8, 12)}-${uuid.slice(12, 16)}`;
 }
 
 export interface LicenseRecord {
@@ -48,20 +48,20 @@ export interface ValidationResult {
   valid: boolean;
   tier?: string;
   expires_at?: string | null;
-  features?: string[];
+  features: string[];
   error?: string;
 }
 
-export async function validateLicense(key: string, machineId: string): Promise<ValidationResult> {
+export async function validateLicense(key: string, machineId?: string): Promise<ValidationResult> {
   const rows = await sql`
     SELECT * FROM licenses WHERE key = ${key} AND is_active = TRUE LIMIT 1
   `;
-  if (rows.length === 0) return { valid: false, error: 'License not found or inactive' };
+  if (rows.length === 0) return { valid: false, features: [], error: 'License not found or inactive' };
 
   const license = rows[0] as LicenseRecord;
 
   if (license.expires_at && new Date(license.expires_at) < new Date()) {
-    return { valid: false, error: 'License expired' };
+    return { valid: false, features: [], error: 'License expired' };
   }
 
   const features = tierFeatures(license.tier);
@@ -120,6 +120,6 @@ export async function deactivateLicense(key: string, machineId: string): Promise
 
 function tierFeatures(tier: string): string[] {
   const base = ['color_spaces', 'density_modes', 'graticule', 'photoshop', 'lightroom'];
-  if (tier === 'pro_ai') return [...base, 'ai_analysis'];
+  if (tier === 'pro_ai') return [...base, 'ai'];
   return base;
 }

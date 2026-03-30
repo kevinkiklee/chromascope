@@ -16,9 +16,9 @@ Research conducted 2026-03-29 from Adobe LrC 15.2 SDK (Build: "202602111402-ec41
 return {
   LrSdkVersion = 15.0,
   LrSdkMinimumVersion = 6.0,
-  LrToolkitIdentifier = "com.example.vectorscope",
-  LrPluginName = "Vectorscope",
-  LrLibraryMenuItems = {{ title = "Vectorscope", file = "ShowVectorscope.lua" }},
+  LrToolkitIdentifier = "com.example.chromascope",
+  LrPluginName = "ChromaScope",
+  LrLibraryMenuItems = {{ title = "ChromaScope", file = "ShowChromaScope.lua" }},
   VERSION = { major=1, minor=0, revision=0, build=1 }
 }
 ```
@@ -42,7 +42,7 @@ Closest mechanisms:
 - **`photo:getRawMetadata(key)`** — File metadata (dimensions, path, color space).
 
 ### Workarounds for Pixel Access
-1. Use `requestJpegThumbnail` + external binary to decode JPEG → compute vectorscope
+1. Use `requestJpegThumbnail` + external binary to decode JPEG → compute chromascope
 2. Export rendition to temp file + external binary to process
 3. Use `LrShell` or `LrTasks.execute()` to invoke external tools
 
@@ -58,16 +58,16 @@ Closest mechanisms:
 - **Display**: `static_text`, `picture` (static image file), `catalog_photo` (thumbnail), `color_well`
 - **Data binding**: `LrView.bind()` for two-way binding to `LrObservableTable`
 
-### Vectorscope Display Strategy
+### ChromaScope Display Strategy
 The `picture` control can display an image file:
 ```lua
-viewFactory:picture { value = "/path/to/vectorscope.png" }
+viewFactory:picture { value = "/path/to/chromascope.png" }
 ```
-Generate the vectorscope image externally, display via `picture`, refresh on changes.
+Generate the chromascope image externally, display via `picture`, refresh on changes.
 
 ### Dialogs
 - `LrDialogs.presentModalDialog(args)` — Modal dialog
-- `LrDialogs.presentFloatingDialog(args)` — Modeless floating window (best for vectorscope)
+- `LrDialogs.presentFloatingDialog(args)` — Modeless floating window (best for chromascope)
 
 ---
 
@@ -107,7 +107,7 @@ Generate the vectorscope image externally, display via `picture`, refresh on cha
 
 ---
 
-## 6. Recommended Architecture for LrC Vectorscope
+## 6. Recommended Architecture for LrC ChromaScope
 
 Given the severe limitations, the only viable approach:
 
@@ -115,7 +115,7 @@ Given the severe limitations, the only viable approach:
 2. **External binary** (compiled C/C++/Rust) that:
    - Receives image path or JPEG data
    - Decodes the image
-   - Computes vectorscope visualization
+   - Computes chromascope visualization
    - Renders to PNG file
 3. **`picture` control** in floating dialog displays the PNG
 4. **`addAdjustmentChangeObserver`** triggers re-export + re-render

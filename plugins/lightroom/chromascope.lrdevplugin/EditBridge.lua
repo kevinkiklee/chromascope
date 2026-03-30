@@ -1,4 +1,4 @@
--- plugins/lightroom/vectorscope.lrdevplugin/EditBridge.lua
+-- plugins/lightroom/chromascope.lrdevplugin/EditBridge.lua  (ChromaScope)
 
 local LrDevelopController = import "LrDevelopController"
 local LrTasks             = import "LrTasks"
@@ -33,7 +33,7 @@ local COLOR_GRADING_MAP = {
                  luma = "GlobalLuma" },
 }
 
--- Apply a single edit command from the vectorscope WebView.
+-- Apply a single edit command from the chromascope WebView.
 function EditBridge.applyEdit(command)
   LrTasks.startAsyncTask(function()
     if command.type == "hsl" then

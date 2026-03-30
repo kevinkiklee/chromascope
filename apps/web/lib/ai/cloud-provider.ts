@@ -38,8 +38,8 @@ export class CloudProvider implements ModelProvider {
       data: result.output as T,
       model: result.response?.modelId ?? MODEL,
       usage: {
-        promptTokens: result.usage?.promptTokens ?? 0,
-        completionTokens: result.usage?.completionTokens ?? 0,
+        inputTokens: result.usage?.inputTokens ?? 0,
+        outputTokens: result.usage?.outputTokens ?? 0,
       },
     }
   }

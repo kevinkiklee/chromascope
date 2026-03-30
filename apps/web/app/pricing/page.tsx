@@ -56,51 +56,44 @@ const TIERS = [
 
 export default function PricingPage() {
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-100">
-      <nav className="border-b border-zinc-800 px-6 py-4">
-        <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <Link href="/" className="font-bold text-lg tracking-tight">Vectorscope</Link>
-          <div className="flex items-center gap-6 text-sm text-zinc-400">
-            <Link href="/features" className="hover:text-zinc-100 transition-colors">Features</Link>
-            <Link href="/pricing" className="text-zinc-100">Pricing</Link>
-            <Link href="/download" className="hover:text-zinc-100 transition-colors">Download</Link>
-            <Link href="/docs" className="hover:text-zinc-100 transition-colors">Docs</Link>
-            <Link href="/download" className="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-1.5 rounded-md transition-colors">
-              Get Started
-            </Link>
+    <div className="min-h-screen">
+      {/* Header */}
+      <header className="relative py-20 px-6 text-center overflow-hidden">
+        <div className="absolute top-[-60px] left-1/2 -translate-x-1/2 w-[500px] h-[250px] bg-[radial-gradient(ellipse,rgba(139,92,246,0.07)_0%,transparent_70%)] pointer-events-none" />
+        <div className="relative max-w-2xl mx-auto">
+          <div className="gradient-badge text-xs font-semibold uppercase tracking-[0.14em] mb-4">
+            Pricing
           </div>
-        </div>
-      </nav>
-
-      <header className="py-20 px-6 text-center border-b border-zinc-800">
-        <div className="max-w-2xl mx-auto">
-          <h1 className="text-4xl font-bold mb-4">Pricing</h1>
+          <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-4">
+            Simple, transparent pricing
+          </h1>
           <p className="text-zinc-400 text-lg">Start free for 14 days. No credit card required.</p>
         </div>
       </header>
 
+      {/* Tiers */}
       <section className="py-16 px-6">
-        <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-5">
           {TIERS.map((tier) => (
             <div
               key={tier.name}
-              className={`rounded-xl p-8 border flex flex-col ${
-                tier.highlight
-                  ? 'border-indigo-500 bg-indigo-950/40'
-                  : 'border-zinc-800 bg-zinc-900'
+              className={`rounded-xl p-7 flex flex-col ${
+                tier.highlight ? 'card-glass-highlight glow-violet-sm' : 'card-glass'
               }`}
             >
               {tier.highlight && (
-                <span className="text-xs font-semibold text-indigo-400 uppercase tracking-widest mb-3">Most Popular</span>
+                <span className="gradient-badge text-[11px] font-semibold uppercase tracking-widest mb-3">
+                  Most Popular
+                </span>
               )}
-              <h2 className="text-xl font-bold mb-1">{tier.name}</h2>
-              <div className="text-3xl font-bold mb-1">{tier.price}</div>
-              <div className="text-zinc-500 text-sm mb-3">{tier.period}</div>
-              <p className="text-zinc-400 text-sm mb-6">{tier.description}</p>
-              <ul className="text-sm text-zinc-400 space-y-2 mb-8 flex-1">
+              <h2 className="text-lg font-semibold mb-1 text-zinc-200">{tier.name}</h2>
+              <div className="text-3xl font-bold mb-0.5">{tier.price}</div>
+              <div className="text-zinc-600 text-sm mb-3">{tier.period}</div>
+              <p className="text-zinc-500 text-sm mb-6">{tier.description}</p>
+              <ul className="text-sm text-zinc-400 space-y-2.5 mb-8 flex-1">
                 {tier.bullets.map((b) => (
-                  <li key={b} className="flex gap-2">
-                    <span className="text-indigo-400">✓</span>
+                  <li key={b} className="flex gap-2.5">
+                    <span className="text-violet-400/80">&#10003;</span>
                     {b}
                   </li>
                 ))}
@@ -108,15 +101,28 @@ export default function PricingPage() {
               {tier.ctaHref ? (
                 <Link
                   href={tier.ctaHref}
-                  className="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2.5 rounded-lg text-sm font-medium transition-colors text-center"
+                  className={`text-center py-2.5 rounded-lg text-sm font-medium transition-all ${
+                    tier.highlight ? 'btn-primary text-white' : 'btn-ghost text-zinc-300'
+                  }`}
                 >
                   {tier.cta}
                 </Link>
               ) : (
-                <CheckoutButton priceId={tier.priceId!} label={tier.cta} />
+                <CheckoutButton priceId={tier.priceId!} label={tier.cta} highlight={tier.highlight} />
               )}
             </div>
           ))}
+        </div>
+      </section>
+
+      {/* FAQ-style note */}
+      <section className="py-12 px-6 border-t border-white/[0.06]">
+        <div className="max-w-2xl mx-auto text-center">
+          <p className="text-zinc-500 text-sm leading-relaxed">
+            All licenses include up to 3 machine activations. Trial licenses expire after 14 days.
+            Pro licenses never expire. Pro + AI requires an active annual subscription.
+            Need help? Check the <Link href="/docs#license-faq" className="text-violet-400 hover:text-violet-300 transition-colors">License FAQ</Link>.
+          </p>
         </div>
       </section>
     </div>

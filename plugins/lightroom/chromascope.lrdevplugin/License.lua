@@ -1,4 +1,4 @@
--- plugins/lightroom/vectorscope.lrdevplugin/License.lua
+-- plugins/lightroom/chromascope.lrdevplugin/License.lua  (ChromaScope)
 -- Stub: always returns a valid license until real validation is implemented.
 
 License = {}

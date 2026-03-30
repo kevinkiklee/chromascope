@@ -22,7 +22,7 @@ async function applyHSL(params) {
         },
       },
     ], { synchronousExecution: true });
-  }, { commandName: "Vectorscope HSL Adjustment" });
+  }, { commandName: "ChromaScope HSL Adjustment" });
 }
 
 async function applyColorBalance(params) {
@@ -49,7 +49,7 @@ async function applyColorBalance(params) {
 
   await core.executeAsModal(async () => {
     await action.batchPlay([descriptor], { synchronousExecution: true });
-  }, { commandName: "Vectorscope Color Balance" });
+  }, { commandName: "ChromaScope Color Balance" });
 }
 
 async function applyCurves(params) {
@@ -79,7 +79,7 @@ async function applyCurves(params) {
         },
       },
     ], { synchronousExecution: true });
-  }, { commandName: "Vectorscope Curves Adjustment" });
+  }, { commandName: "ChromaScope Curves Adjustment" });
 }
 
 async function handleEditCommand(editMsg) {

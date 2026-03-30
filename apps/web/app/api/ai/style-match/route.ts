@@ -76,7 +76,7 @@ export async function POST(req: NextRequest) {
     ...(result.output as z.infer<typeof ResponseSchema>),
     _meta: {
       model: result.response?.modelId ?? MODEL,
-      usage: { promptTokens: result.usage?.promptTokens, completionTokens: result.usage?.completionTokens },
+      usage: { inputTokens: result.usage?.inputTokens, outputTokens: result.usage?.outputTokens },
       remaining: rateLimit.remaining,
     },
   })

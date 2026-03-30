@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { Vectorscope } from "../src/vectorscope.js";
+import { ChromaScope } from "../src/chromascope.js";
 
 // Mock a minimal canvas element
 function createMockCanvas(size: number) {
@@ -41,15 +41,15 @@ function createMockCanvas(size: number) {
   return ctx;
 }
 
-describe("Vectorscope", () => {
+describe("ChromaScope", () => {
   it("constructs with default settings", () => {
-    const scope = new Vectorscope();
+    const scope = new ChromaScope();
     expect(scope.settings.colorSpace).toBe("ycbcr");
     expect(scope.settings.densityMode).toBe("scatter");
   });
 
   it("accepts custom initial settings", () => {
-    const scope = new Vectorscope({
+    const scope = new ChromaScope({
       colorSpace: "hsl",
       densityMode: "heatmap",
       logScale: true,
@@ -59,14 +59,14 @@ describe("Vectorscope", () => {
   });
 
   it("updates settings", () => {
-    const scope = new Vectorscope();
+    const scope = new ChromaScope();
     scope.updateSettings({ colorSpace: "cieluv" });
     expect(scope.settings.colorSpace).toBe("cieluv");
     expect(scope.settings.densityMode).toBe("scatter"); // unchanged
   });
 
   it("processes pixel data and maps points", () => {
-    const scope = new Vectorscope();
+    const scope = new ChromaScope();
     // 2x2 image: red, green, blue, white
     const data = new Uint8Array([
       255, 0, 0,     // red
@@ -84,7 +84,7 @@ describe("Vectorscope", () => {
   });
 
   it("renders without error when given a canvas context", () => {
-    const scope = new Vectorscope();
+    const scope = new ChromaScope();
     const ctx = createMockCanvas(300);
 
     const data = new Uint8Array([255, 0, 0, 0, 255, 0, 0, 0, 255]);
@@ -94,7 +94,7 @@ describe("Vectorscope", () => {
   });
 
   it("re-maps points when color space changes", () => {
-    const scope = new Vectorscope();
+    const scope = new ChromaScope();
     const data = new Uint8Array([255, 0, 0]);
     scope.setPixels({ data, width: 1, height: 1, colorProfile: "sRGB" });
 
@@ -108,12 +108,12 @@ describe("Vectorscope", () => {
   });
 
   it("initializes with no harmony zones by default", () => {
-    const scope = new Vectorscope();
+    const scope = new ChromaScope();
     expect(scope.harmonyZones.length).toBe(0);
   });
 
   it("computes harmony zones when scheme is set", () => {
-    const scope = new Vectorscope({
+    const scope = new ChromaScope({
       harmony: {
         scheme: "triadic",
         rotation: 0,
@@ -125,7 +125,7 @@ describe("Vectorscope", () => {
   });
 
   it("recomputes zones when harmony settings change", () => {
-    const scope = new Vectorscope();
+    const scope = new ChromaScope();
     expect(scope.harmonyZones.length).toBe(0);
 
     scope.updateSettings({
@@ -140,7 +140,7 @@ describe("Vectorscope", () => {
   });
 
   it("renders with harmony overlay without error", () => {
-    const scope = new Vectorscope({
+    const scope = new ChromaScope({
       harmony: {
         scheme: "analogous",
         rotation: Math.PI / 4,

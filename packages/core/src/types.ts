@@ -1,6 +1,6 @@
 // packages/core/src/types.ts
 
-/** A pixel mapped to vectorscope coordinates */
+/** A pixel mapped to chromascope coordinates */
 export interface MappedPoint {
   /** X position on scope (-1 to 1, center is 0) */
   x: number;
@@ -38,7 +38,7 @@ export type HarmonySchemeId =
   | "tetradic"
   | "analogous";
 
-/** A single angular zone on the vectorscope circle */
+/** A single angular zone on the chromascope circle */
 export interface HarmonyZone {
   /** Center angle in radians (0 = right, counter-clockwise) */
   centerAngle: number;
@@ -60,7 +60,7 @@ export interface HarmonyConfig {
   pullStrengths: number[];
 }
 
-export interface VectorscopeSettings {
+export interface ChromaScopeSettings {
   colorSpace: ColorSpaceId;
   densityMode: DensityModeId;
   logScale: boolean;

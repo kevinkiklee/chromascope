@@ -21,8 +21,8 @@ A single plugin can declare multiple entry points of mixed types.
 ```json
 {
   "manifestVersion": 5,
-  "id": "com.example.vectorscope",
-  "name": "Vectorscope",
+  "id": "com.example.chromascope",
+  "name": "ChromaScope",
   "version": "1.0.0",
   "main": "index.html",
   "host": {
@@ -32,8 +32,8 @@ A single plugin can declare multiple entry points of mixed types.
   "entrypoints": [
     {
       "type": "panel",
-      "id": "vectorscopePanel",
-      "label": { "default": "Vectorscope" },
+      "id": "chromascopePanel",
+      "label": { "default": "ChromaScope" },
       "minimumSize": { "width": 230, "height": 230 },
       "preferredDockedSize": { "width": 300, "height": 350 },
       "preferredFloatingSize": { "width": 400, "height": 450 },
@@ -77,7 +77,7 @@ A single plugin can declare multiple entry points of mixed types.
 
 ## 2. Pixel/Image Data Access (Imaging API)
 
-This is the most critical API for building a vectorscope. Access via:
+This is the most critical API for building a chromascope. Access via:
 
 ```javascript
 const imaging = require("photoshop").imaging;
@@ -187,7 +187,7 @@ let color = await document.sampleColor({ x: 100, y: 100 });
 - **SVG**: Inline SVG for vector graphics
 - **WebView**: Available with `requiredPermissions.webview.allow: "yes"` and domain whitelist
 
-### What Does NOT Work (Critical for Vectorscope)
+### What Does NOT Work (Critical for ChromaScope)
 
 - **HTML5 Canvas (`<canvas>`)**: NOT SUPPORTED in UXP
 - **WebGL**: NOT SUPPORTED (no browser engine)
@@ -199,17 +199,17 @@ let color = await document.sampleColor({ x: 100, y: 100 });
 - **data attributes**: Not supported
 - **font-face**: Not supported
 
-### Vectorscope Rendering Strategy
+### ChromaScope Rendering Strategy
 
-Since `<canvas>` is NOT available, the vectorscope visualization must use one of:
+Since `<canvas>` is NOT available, the chromascope visualization must use one of:
 
-1. **SVG rendering**: Build the vectorscope plot as SVG elements (circles, paths, rects). This is the most viable approach for real-time-ish updates in UXP.
+1. **SVG rendering**: Build the chromascope plot as SVG elements (circles, paths, rects). This is the most viable approach for real-time-ish updates in UXP.
 
 2. **`<img>` with generated JPEG/PNG**: Use `imaging.createImageDataFromBuffer()` to build the plot as raw pixels in JavaScript, then `imaging.encodeImageData()` to convert to base64 JPEG, and set as `<img src>`. This is a "software renderer" approach.
 
 3. **WebView with Canvas**: If a WebView is allowed, you could embed an HTML page with full Canvas 2D/WebGL support inside the WebView, and communicate pixel data to it. This adds complexity but enables high-performance rendering.
 
-4. **Hybrid plugin with native rendering**: Use C++ to render the vectorscope natively and pass the result back to the JS UI.
+4. **Hybrid plugin with native rendering**: Use C++ to render the chromascope natively and pass the result back to the JS UI.
 
 ---
 
@@ -225,12 +225,12 @@ await action.addNotificationListener(
   ['open', 'close', 'save', 'select', 'set', 'make', 'delete'],
   (eventName, descriptor) => {
     console.log(`Event: ${eventName}`, descriptor);
-    // Trigger vectorscope refresh here
+    // Trigger chromascope refresh here
   }
 );
 ```
 
-Key action events for vectorscope:
+Key action events for chromascope:
 - `open` / `close`: Document opened/closed
 - `select`: Layer selection changed
 - `set`: Property changes (includes many edit operations)
@@ -244,7 +244,7 @@ Key action events for vectorscope:
 const core = require('photoshop').core;
 
 core.addNotificationListener('UI', [{ event: 'userIdle' }], (event, descriptor) => {
-  // Good place to refresh vectorscope after user stops editing
+  // Good place to refresh chromascope after user stops editing
 });
 ```
 
@@ -278,10 +278,10 @@ await action.addNotificationListener(
 
 Hybrid plugins combine JavaScript UXP code with native C++ dynamic libraries (.dylib on macOS, .dll on Windows), similar to Node.js C++ addons. The C++ code runs natively with full system access.
 
-### Use Cases for Vectorscope
+### Use Cases for ChromaScope
 
 - **High-performance pixel processing**: Process millions of pixels in C++ instead of JavaScript
-- **Custom rendering**: Render the vectorscope visualization natively and pass image data back
+- **Custom rendering**: Render the chromascope visualization natively and pass image data back
 - **Direct file system access**: Relaxed sandbox (no storage API required)
 - **Photoshop C++ SDK access**: Use `PIUXPSuite` for advanced operations
 
@@ -297,7 +297,7 @@ export SPErr PSDLLMain(const char* selector, SPBasicSuite* basicSuite, PIActionD
 **C++ to JS:**
 ```cpp
 // C++ side: send message to UXP plugin
-sPSUXPSuite->SendUXPMessage(pluginRef, "com.example.vectorscope", descriptor);
+sPSUXPSuite->SendUXPMessage(pluginRef, "com.example.chromascope", descriptor);
 ```
 
 ```javascript
@@ -347,7 +347,7 @@ async function analyzeDocument() {
     });
 
     const pixels = await result.imageData.getData();
-    // Process pixels for vectorscope...
+    // Process pixels for chromascope...
 
     result.imageData.dispose();
   }, { commandName: "Analyze Image" });
@@ -367,7 +367,7 @@ Key points:
 ## 7. Key Limitations and Constraints
 
 ### Rendering Limitations (Most Critical)
-- **No HTML5 Canvas**: The biggest limitation for a vectorscope. Must use SVG, generated images, or WebView workaround.
+- **No HTML5 Canvas**: The biggest limitation for a chromascope. Must use SVG, generated images, or WebView workaround.
 - **No WebGL**: No GPU-accelerated rendering in the plugin panel.
 - **No CSS float**: Must use flexbox.
 
@@ -409,15 +409,15 @@ Key points:
 | **Plugin Types** | Panel, Command | Export, Publish, Metadata, Web Gallery, Filter |
 | **File Access** | Sandboxed with permissions; hybrid plugins have full access | Full Lua file I/O |
 
-### Key Advantage for Vectorscope
+### Key Advantage for ChromaScope
 
-Photoshop UXP can directly read pixel data from the active document or any layer using `imaging.getPixels()`. This is the fundamental requirement for a vectorscope -- you need access to actual pixel color values to plot them on a chrominance diagram.
+Photoshop UXP can directly read pixel data from the active document or any layer using `imaging.getPixels()`. This is the fundamental requirement for a chromascope -- you need access to actual pixel color values to plot them on a chrominance diagram.
 
-Lightroom Classic SDK has **no equivalent capability**. LrC plugins cannot read pixel data from images. The closest workaround would be to export a rendered JPEG/TIFF via `LrExportRendition`, read the file bytes, and decode the image in Lua (which has no built-in image decoding). This makes a native LrC vectorscope plugin essentially impractical without external tools.
+Lightroom Classic SDK has **no equivalent capability**. LrC plugins cannot read pixel data from images. The closest workaround would be to export a rendered JPEG/TIFF via `LrExportRendition`, read the file bytes, and decode the image in Lua (which has no built-in image decoding). This makes a native LrC chromascope plugin essentially impractical without external tools.
 
 ---
 
-## 9. Recommended Architecture for Vectorscope Plugin
+## 9. Recommended Architecture for ChromaScope Plugin
 
 Based on this research, the recommended approach:
 
@@ -426,7 +426,7 @@ Based on this research, the recommended approach:
 1. **Panel plugin** with HTML/CSS/JS UI
 2. **Imaging API** to read downscaled pixel data (`targetSize` for performance)
 3. **JavaScript pixel processing** to compute chrominance distribution
-4. **SVG rendering** for the vectorscope plot (dynamically generated SVG elements)
+4. **SVG rendering** for the chromascope plot (dynamically generated SVG elements)
 5. **Event listeners** to auto-refresh on document/layer changes
 6. **userIdle** core event for deferred refresh (avoid refreshing on every keystroke)
 
@@ -441,6 +441,6 @@ Based on this research, the recommended approach:
 
 1. **Hybrid plugin** with C++ native module
 2. C++ handles pixel processing (color space conversion, histogram binning)
-3. C++ renders vectorscope to raw pixel buffer
+3. C++ renders chromascope to raw pixel buffer
 4. Pass rendered image to JS via messaging, display as `<img>` with base64 encoding
 5. Most complex to build and distribute, but best performance for large images

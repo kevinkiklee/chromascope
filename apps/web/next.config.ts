@@ -1,9 +1,5 @@
 import type { NextConfig } from 'next';
 
-const nextConfig: NextConfig = {
-  experimental: {
-    // Enable server actions if needed later
-  },
-};
+const nextConfig: NextConfig = {};
 
 export default nextConfig;
