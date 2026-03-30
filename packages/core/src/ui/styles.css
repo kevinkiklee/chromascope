@@ -66,3 +66,29 @@
   border-color: #5a8fd5;
   color: #fff;
 }
+
+.vs-slider-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.vs-slider-row label {
+  flex: 0 0 80px;
+  color: #999;
+  font-size: 11px;
+}
+
+.vs-slider-row input[type="range"] {
+  flex: 1;
+  accent-color: #5a8fd5;
+}
+
+.vs-slider-row .vs-slider-value {
+  flex: 0 0 36px;
+  text-align: right;
+  color: #aaa;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}

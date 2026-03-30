@@ -1,4 +1,9 @@
-import type { VectorscopeSettings, ColorSpaceId, DensityModeId } from "../types.js";
+import type {
+  VectorscopeSettings,
+  ColorSpaceId,
+  DensityModeId,
+  HarmonySchemeId,
+} from "../types.js";
 
 export interface ControlsCallbacks {
   onSettingsChange: (partial: Partial<VectorscopeSettings>) => void;
@@ -16,10 +21,15 @@ const DENSITY_MODES: Array<{ id: DensityModeId; label: string }> = [
   { id: "bloom", label: "Bloom" },
 ];
 
-/**
- * Renders the settings controls into the given container element.
- * Returns an update function to sync UI when settings change externally.
- */
+const HARMONY_SCHEMES: Array<{ id: HarmonySchemeId | "none"; label: string }> = [
+  { id: "none", label: "None" },
+  { id: "complementary", label: "Comp" },
+  { id: "splitComplementary", label: "Split" },
+  { id: "triadic", label: "Triad" },
+  { id: "tetradic", label: "Tetra" },
+  { id: "analogous", label: "Analog" },
+];
+
 export function createControls(
   container: HTMLElement,
   initialSettings: VectorscopeSettings,
@@ -42,7 +52,6 @@ export function createControls(
       btn.dataset.id = item.id;
       btn.addEventListener("click", () => {
         onChange(item.id);
-        // Update active state
         for (const b of group.querySelectorAll(".vs-btn")) {
           b.classList.toggle("active", (b as HTMLElement).dataset.id === item.id);
         }
@@ -53,14 +62,51 @@ export function createControls(
     return group;
   }
 
-  // Build DOM
+  function renderSlider(
+    label: string,
+    min: number,
+    max: number,
+    step: number,
+    value: number,
+    formatValue: (v: number) => string,
+    onChange: (v: number) => void,
+  ): HTMLElement {
+    const row = document.createElement("div");
+    row.className = "vs-slider-row";
+
+    const lbl = document.createElement("label");
+    lbl.textContent = label;
+    row.appendChild(lbl);
+
+    const input = document.createElement("input");
+    input.type = "range";
+    input.min = String(min);
+    input.max = String(max);
+    input.step = String(step);
+    input.value = String(value);
+    row.appendChild(input);
+
+    const display = document.createElement("span");
+    display.className = "vs-slider-value";
+    display.textContent = formatValue(value);
+    row.appendChild(display);
+
+    input.addEventListener("input", () => {
+      const v = parseFloat(input.value);
+      display.textContent = formatValue(v);
+      onChange(v);
+    });
+
+    return row;
+  }
+
   container.innerHTML = "";
 
-  // Color Space group
-  const csGroup = document.createElement("details");
-  csGroup.className = "vs-control-group";
-  csGroup.open = true;
-  csGroup.innerHTML = "<summary>Display</summary>";
+  // --- Display group ---
+  const displayGroup = document.createElement("details");
+  displayGroup.className = "vs-control-group";
+  displayGroup.open = true;
+  displayGroup.innerHTML = "<summary>Display</summary>";
 
   const csRow = document.createElement("div");
   csRow.className = "vs-control-row";
@@ -73,9 +119,8 @@ export function createControls(
       callbacks.onSettingsChange({ colorSpace: id });
     }),
   );
-  csGroup.appendChild(csRow);
+  displayGroup.appendChild(csRow);
 
-  // Density mode row
   const dmRow = document.createElement("div");
   dmRow.className = "vs-control-row";
   const dmLabel = document.createElement("label");
@@ -87,14 +132,61 @@ export function createControls(
       callbacks.onSettingsChange({ densityMode: id });
     }),
   );
-  csGroup.appendChild(dmRow);
+  displayGroup.appendChild(dmRow);
 
-  container.appendChild(csGroup);
+  container.appendChild(displayGroup);
+
+  // --- Harmony group ---
+  const harmonyGroup = document.createElement("details");
+  harmonyGroup.className = "vs-control-group";
+  harmonyGroup.open = true;
+  harmonyGroup.innerHTML = "<summary>Harmony</summary>";
+
+  const schemeRow = document.createElement("div");
+  schemeRow.className = "vs-control-row";
+  const schemeLabel = document.createElement("label");
+  schemeLabel.textContent = "Scheme";
+  schemeRow.appendChild(schemeLabel);
+  schemeRow.appendChild(
+    renderButtonGroup(
+      HARMONY_SCHEMES,
+      current.harmony.scheme ?? "none",
+      (id) => {
+        const scheme = id === "none" ? null : (id as HarmonySchemeId);
+        current.harmony = { ...current.harmony, scheme };
+        callbacks.onSettingsChange({ harmony: current.harmony });
+      },
+    ),
+  );
+  harmonyGroup.appendChild(schemeRow);
+
+  harmonyGroup.appendChild(
+    renderSlider("Rotation", 0, 360, 1,
+      Math.round((current.harmony.rotation * 180) / Math.PI),
+      (v) => `${v}°`,
+      (v) => {
+        current.harmony = { ...current.harmony, rotation: (v * Math.PI) / 180 };
+        callbacks.onSettingsChange({ harmony: current.harmony });
+      },
+    ),
+  );
+
+  harmonyGroup.appendChild(
+    renderSlider("Zone Width", 0.2, 3.0, 0.1,
+      current.harmony.zoneWidth,
+      (v) => v.toFixed(1),
+      (v) => {
+        current.harmony = { ...current.harmony, zoneWidth: v };
+        callbacks.onSettingsChange({ harmony: current.harmony });
+      },
+    ),
+  );
+
+  container.appendChild(harmonyGroup);
 
   return {
     update(settings: VectorscopeSettings) {
       current = { ...settings };
-      // Re-render if needed (for external settings changes)
     },
   };
 }
