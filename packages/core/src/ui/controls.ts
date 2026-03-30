@@ -1,12 +1,12 @@
 import type {
-  ChromaScopeSettings,
+  ChromascopeSettings,
   ColorSpaceId,
   DensityModeId,
   HarmonySchemeId,
 } from "../types.js";
 
 export interface ControlsCallbacks {
-  onSettingsChange: (partial: Partial<ChromaScopeSettings>) => void;
+  onSettingsChange: (partial: Partial<ChromascopeSettings>) => void;
 }
 
 const COLOR_SPACES: Array<{ id: ColorSpaceId; label: string }> = [
@@ -32,9 +32,9 @@ const HARMONY_SCHEMES: Array<{ id: HarmonySchemeId | "none"; label: string }> = 
 
 export function createControls(
   container: HTMLElement,
-  initialSettings: ChromaScopeSettings,
+  initialSettings: ChromascopeSettings,
   callbacks: ControlsCallbacks,
-): { update: (settings: ChromaScopeSettings) => void } {
+): { update: (settings: ChromascopeSettings) => void } {
   let current = { ...initialSettings };
 
   function renderButtonGroup<T extends string>(
@@ -185,7 +185,7 @@ export function createControls(
   container.appendChild(harmonyGroup);
 
   return {
-    update(settings: ChromaScopeSettings) {
+    update(settings: ChromascopeSettings) {
       current = { ...settings };
     },
   };

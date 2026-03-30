@@ -6,7 +6,7 @@ import { Footer } from '@/components/footer';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'ChromaScope — Professional Color Analysis',
+  title: 'Chromascope — Professional Color Analysis',
   description: 'Chrominance vectorscope plugin for Adobe Photoshop and Lightroom Classic. Analyze, grade, and perfect your color.',
 };
 

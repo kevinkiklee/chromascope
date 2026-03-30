@@ -1,77 +1,141 @@
--- plugins/lightroom/chromascope.lrdevplugin/ChromaScopeDialog.lua
+-- plugins/lightroom/chromascope.lrdevplugin/ChromascopeDialog.lua
 
-local LrView          = import "LrView"
-local LrDialogs       = import "LrDialogs"
-local LrBinding       = import "LrBinding"
-local LrColor         = import "LrColor"
-local LrTasks         = import "LrTasks"
+local LrView      = import "LrView"
+local LrDialogs   = import "LrDialogs"
+local LrBinding   = import "LrBinding"
+local LrColor     = import "LrColor"
+local LrTasks     = import "LrTasks"
 local LrDevelopController = import "LrDevelopController"
 
 local ImagePipeline = require "ImagePipeline"
 
-ChromaScopeDialog = {}
+ChromascopeDialog = {}
 
-function ChromaScopeDialog.show(context)
+function ChromascopeDialog.show(context)
   local f    = LrView.osFactory()
   local bind = LrView.bind
 
-  -- Shared state table
   local props = LrBinding.makePropertyTable(context)
-  props.statusText = "Loading…"
-  props.scopeImage = nil   -- LrPhoto thumbnail data (placeholder)
+  props.status    = "Starting…"
+  props.imagePath = nil
+  props.scheme    = "none"
+  props.rotation  = 0
 
-  -- Start the refresh loop
   local stopRefresh = false
+
+  -- FAST PATH: overlay changes (scheme/rotation) — just composite, ~3ms
+  props:addObserver("scheme", function()
+    LrTasks.startAsyncTask(function()
+      ImagePipeline.applyOverlay(props)
+    end)
+  end)
+
+  props:addObserver("rotation", function()
+    LrTasks.startAsyncTask(function()
+      ImagePipeline.applyOverlay(props)
+    end)
+  end)
+
+  -- SLOW PATH: initial render + develop changes — full decode + render
   LrTasks.startAsyncTask(function()
+    ImagePipeline.ensurePlaceholder(props)
+    ImagePipeline.refresh(props)
     while not stopRefresh do
-      ImagePipeline.refresh(props)
-      LrTasks.sleep(0.5)   -- poll every 500 ms; also driven by observer
+      LrTasks.sleep(3)
+      if not stopRefresh then
+        ImagePipeline.refresh(props)
+      end
     end
   end)
 
-  -- Register develop adjustment observer
-  LrDevelopController.addAdjustmentChangeObserver(context, props, function(observedProps)
+  LrDevelopController.addAdjustmentChangeObserver(context, props, function()
     LrTasks.startAsyncTask(function()
       ImagePipeline.refresh(props)
     end)
   end)
 
-  -- Dialog contents
   local contents = f:column {
+    bind_to_object = props,
     spacing = f:control_spacing(),
-    fill    = 1,
 
-    -- Scope display area (WebView placeholder — picture control for now)
     f:picture {
-      value  = bind "scopeImage",
-      width  = 512,
-      height = 512,
+      value       = bind "imagePath",
+      width       = 256,
+      height      = 256,
       frame_color = LrColor(0, 0, 0),
     },
 
-    -- Status bar
+    f:row {
+      spacing = f:label_spacing(),
+      f:static_text {
+        title = "Harmony",
+        width = 52,
+        font  = "<system/small>",
+        text_color = LrColor(0.5, 0.5, 0.5),
+      },
+      f:popup_menu {
+        value = bind "scheme",
+        width = 130,
+        font  = "<system/small>",
+        items = {
+          { title = "None",                value = "none" },
+          { title = "Complementary",       value = "complementary" },
+          { title = "Split Complementary", value = "splitComplementary" },
+          { title = "Triadic",             value = "triadic" },
+          { title = "Tetradic",            value = "tetradic" },
+          { title = "Analogous",           value = "analogous" },
+        },
+      },
+    },
+
+    f:row {
+      spacing = f:label_spacing(),
+      f:static_text {
+        title = "Rotation",
+        width = 52,
+        font  = "<system/small>",
+        text_color = LrColor(0.5, 0.5, 0.5),
+      },
+      f:slider {
+        value = bind "rotation",
+        min   = 0,
+        max   = 359,
+        integral = true,
+        width = 120,
+      },
+      f:static_text {
+        title = bind { key = "rotation", transform = function(v) return string.format("%d", v or 0) end },
+        width = 26,
+        font  = "<system/small>",
+        text_color = LrColor(0.5, 0.5, 0.5),
+      },
+      f:static_text {
+        title = "°",
+        font  = "<system/small>",
+        text_color = LrColor(0.5, 0.5, 0.5),
+      },
+    },
+
     f:static_text {
-      title      = bind "statusText",
+      title = bind "status",
+      width = 256,
+      truncation = "middle",
+      font  = "<system/small>",
       text_color = LrColor(0.6, 0.6, 0.6),
-      font       = "<system/small>",
     },
   }
 
-  -- Present as floating (non-modal) dialog
-  local result = LrDialogs.presentFloatingDialog(
+  LrDialogs.presentFloatingDialog(
     _PLUGIN,
     {
-      title    = "ChromaScope",
+      title    = "Chromascope",
       contents = contents,
-      onShow   = function()
-        props.statusText = "Ready"
-      end,
       onClose  = function()
         stopRefresh = true
       end,
-      resizable = true,
+      resizable = false,
     }
   )
-
-  return result
 end
+
+return ChromascopeDialog

@@ -1,4 +1,4 @@
-# ChromaScope -- Initial Setup Guide
+# Chromascope -- Initial Setup Guide
 
 ## Prerequisites
 

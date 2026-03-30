@@ -60,7 +60,7 @@ export interface HarmonyConfig {
   pullStrengths: number[];
 }
 
-export interface ChromaScopeSettings {
+export interface ChromascopeSettings {
   colorSpace: ColorSpaceId;
   densityMode: DensityModeId;
   logScale: boolean;

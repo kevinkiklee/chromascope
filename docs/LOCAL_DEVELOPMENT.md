@@ -1,6 +1,6 @@
 # Local Development Guide
 
-How to set up, run, and test ChromaScope locally.
+How to set up, run, and test Chromascope locally.
 
 ## Prerequisites
 
@@ -113,7 +113,7 @@ npm run dev           # Watch mode (rebuilds on change)
 2. Build the plugin: `cd plugins/photoshop && npm run build`
 3. In Photoshop, go to **Plugins > Development > Load Plugin...**
 4. Select `plugins/photoshop/manifest.json`
-5. The panel appears under **Plugins > ChromaScope**
+5. The panel appears under **Plugins > Chromascope**
 
 **Key files**:
 - `manifest.json` -- UXP plugin manifest

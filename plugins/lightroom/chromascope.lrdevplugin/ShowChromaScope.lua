@@ -1,21 +1,18 @@
--- plugins/lightroom/chromascope.lrdevplugin/ShowChromaScope.lua
+-- plugins/lightroom/chromascope.lrdevplugin/ShowChromascope.lua
 
 local LrFunctionContext = import "LrFunctionContext"
 local LrDialogs        = import "LrDialogs"
 local LrTasks          = import "LrTasks"
 
-require "ChromaScopeDialog"
+require "ChromascopeDialog"
 require "License"
 
 LrTasks.startAsyncTask(function()
-  LrFunctionContext.callWithContext("ShowChromaScope", function(context)
-    -- License check (stub: always valid)
+  LrFunctionContext.callWithContext("ShowChromascope", function(context)
     if not License.isValid() then
-      LrDialogs.message("ChromaScope", "License invalid.", "critical")
+      LrDialogs.message("Chromascope", "License invalid.", "critical")
       return
     end
-
-    -- Open the floating dialog; blocks until the dialog is closed.
-    ChromaScopeDialog.show(context)
+    ChromascopeDialog.show(context)
   end)
 end)

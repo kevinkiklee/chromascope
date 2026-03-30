@@ -25,7 +25,7 @@ export function NavBar() {
             }}
           />
           <span className="font-bold text-lg tracking-tight gradient-text-subtle">
-            ChromaScope
+            Chromascope
           </span>
         </Link>
 

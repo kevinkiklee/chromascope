@@ -9,7 +9,7 @@ const sections = [
   {
     id: 'getting-started',
     title: 'Getting Started',
-    content: `Open the ChromaScope panel in Photoshop (Window → Plugins → ChromaScope) or Lightroom Classic (Window → Panels → ChromaScope). The panel activates automatically when you open a document or select a photo. Use the toolbar to switch color spaces and density modes.`,
+    content: `Open the Chromascope panel in Photoshop (Window → Plugins → Chromascope) or Lightroom Classic (Window → Panels → Chromascope). The panel activates automatically when you open a document or select a photo. Use the toolbar to switch color spaces and density modes.`,
   },
   {
     id: 'color-spaces',

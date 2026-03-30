@@ -1,16 +1,21 @@
 # CLAUDE.md
 
+## Process
+
+When you solve a bug or an issue, or build a feature, run `npm run build:plugins` automatically so that I don't have to rebuild it manually.
+
 ## Project Overview
 
-ChromaScope is a commercial color analysis tool for Adobe Photoshop and Lightroom Classic. It renders chrominance vectorscope plots with multiple color spaces, visualization modes, and color harmony overlays.
+Chromascope is a commercial color analysis tool for Adobe Photoshop and Lightroom Classic. It renders chrominance vectorscope plots with multiple color spaces, visualization modes, and color harmony overlays.
 
 ## Monorepo Layout
 
 - `packages/core/` -- TypeScript core library (vectorscope math, rendering, UI controls)
-- `packages/decode/` -- Rust CLI binary (image decoding to raw RGB bytes)
+- `packages/decode/` -- Rust CLI binary (image decoding + vectorscope rendering)
 - `plugins/photoshop/` -- Photoshop UXP panel plugin (JavaScript)
-- `plugins/lightroom/` -- Lightroom Classic plugin (Lua)
-- `apps/web/` -- Next.js 16 app (landing page, pricing, licensing API, Stripe webhooks)
+- `plugins/lightroom/` -- Lightroom Classic plugin (Lua + Rust binary)
+- `apps/web/` -- Next.js 16 app (marketing site, pricing, licensing API, Stripe webhooks)
+- `scripts/` -- Setup, build, and deployment scripts
 
 Managed with Turborepo. Workspaces: `packages/*`, `plugins/*`, `apps/*`.
 
@@ -20,6 +25,7 @@ Managed with Turborepo. Workspaces: `packages/*`, `plugins/*`, `apps/*`.
 npx turbo build          # Build all packages
 npx turbo test           # Run all tests
 npx turbo dev            # Start dev servers
+npm run build:plugins    # Build core + decode + assemble both plugins
 
 # Core library
 cd packages/core
@@ -40,33 +46,51 @@ npm run lint             # ESLint
 
 ## Architecture Notes
 
-- The core library bundles to a single HTML file via `vite-plugin-singlefile` for embedding in plugin WebViews.
+### Core + Photoshop
+
+- The core library bundles to a single HTML file via `vite-plugin-singlefile` for embedding in the Photoshop UXP WebView.
 - Host-plugin communication uses a typed message protocol defined in `packages/core/src/protocol.ts` (PixelsMessage, SettingsMessage, EditMessage).
-- Lightroom can't read pixels from Lua -- it exports a thumbnail, decodes via the Rust binary, and sends raw RGB to the WebView.
 - Color space mappers implement the `ColorSpaceMapper` interface in `packages/core/src/types.ts`.
 - Density renderers implement the `DensityRenderer` interface in the same file.
+
+### Lightroom + Rust Renderer
+
+- Lightroom can't embed WebViews or read pixels from Lua.
+- The Rust `decode` binary has two subcommands:
+  - `decode decode` -- Decodes JPEG/TIFF to raw RGB bytes
+  - `decode render` -- Renders a vectorscope JPEG from raw RGB (YCbCr BT.601 scatter plot, graticule, skin tone line)
+- `ImagePipeline.lua` exports a thumbnail, calls `decode decode`, then `decode render`, and displays the resulting JPEG via `f:picture`.
+- Updates are driven by `LrDevelopController.addAdjustmentChangeObserver` + a 3-second fallback poll.
+- A busy-guard with coalescing prevents overlapping renders (max 1 queued).
+- Frame alternation (writing to `scope_0.jpg` / `scope_1.jpg`) forces `f:picture` to reload on each update.
+
+### Licensing
+
 - License keys use format `CHRM-XXXX-XXXX-XXXX` with tiers: trial (14-day), pro, pro_ai.
+- `validateLicense(key, machineId?)` -- machineId is optional for API-only validation.
+- `tierFeatures()` returns `'ai'` for pro_ai tier (not `'ai_analysis'`).
 
 ## Build Dependencies
 
 Core must build before plugins. The build order is:
 
 ```
-packages/core  -->  plugins/photoshop (copies core build output)
-                    plugins/lightroom (manual: copy core + decode binary)
-packages/decode -->  plugins/lightroom (manual: copy binary to bin/<platform>/)
-apps/web            (independent, no core dependency)
+packages/core   -->  plugins/photoshop (copies core build output)
+                     plugins/lightroom (copies core HTML + decode binary)
+packages/decode -->  plugins/lightroom (binary copied to bin/<platform>/)
+apps/web             (independent, no core dependency)
 ```
 
-Turborepo handles TypeScript build ordering via `turbo.json`. Rust builds and Lightroom binary copies are manual steps.
+`npm run build:plugins` handles the full pipeline: core build, Rust compile, Photoshop build, and Lightroom assembly (copies core HTML + decode binary).
 
 ## Web App (`apps/web`)
 
 - **Framework**: Next.js 16 with App Router, Turbopack, React 19
-- **Styling**: Tailwind CSS 4
-- **Database**: Neon serverless Postgres (`@neondatabase/serverless`)
-- **Payments**: Stripe (`stripe` package)
+- **Styling**: Tailwind CSS 4 (CSS-first config via `@theme` in globals.css)
+- **Database**: Neon serverless Postgres (`@neondatabase/serverless`) -- lazy-initialized via Proxy
+- **Payments**: Stripe (`stripe` package) -- lazy-initialized via `getStripe()`
 - **AI**: Vercel AI SDK 6 (`ai` package) with AI Gateway
+- **Design system**: "Chromatic Energy" -- dark mode, violet-to-indigo gradients, glass-effect cards, conic-gradient logo mark
 
 ### Environment Variables
 
@@ -79,13 +103,24 @@ Store in `apps/web/.env.local` (gitignored). Copy from `apps/web/.env.example` o
 ### Key Routes
 
 - `/api/stripe/checkout` -- Stripe checkout session creation
+- `/api/stripe/webhook` -- Stripe webhook handler (license creation, subscription management)
 - `/api/ai/natural-language` -- AI color adjustment endpoint
+- `/api/license/validate` -- License validation
+- `/api/license/trial` -- Trial license creation
 
 ## Code Conventions
 
 - TypeScript strict mode across all packages
-- Vitest for core library tests
-- Rust tests via `cargo test` for decode package
+- Vitest for core library tests (73 tests)
+- Rust integration tests via `cargo test --release` (3 tests)
 - Base tsconfig in `tsconfig.base.json`, extended per package
 - Vite 6 for core library bundling
 - `vite-plugin-singlefile` produces a self-contained HTML for WebView embedding
+- Stripe and Neon clients are lazy-initialized to avoid build-time crashes when env vars are missing
+
+## Deployment
+
+- **Platform**: Vercel (project: `iser/chromascope-website`)
+- **Root directory**: `apps/web`
+- **Framework**: Next.js (auto-detected)
+- Env vars must be set in Vercel dashboard or via `vercel env add`

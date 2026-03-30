@@ -2,18 +2,23 @@ let webviewElement = null;
 
 function init(webview) {
   webviewElement = webview;
+  console.log("[bridge] init, webview tag:", webview?.tagName, "src:", webview?.src);
 }
 
 function sendPixels(pixelResult) {
   if (!webviewElement || !pixelResult) return;
 
-  webviewElement.postMessage({
+  const msg = {
     type: "pixels",
     data: Array.from(pixelResult.data),
     width: pixelResult.width,
     height: pixelResult.height,
     colorProfile: pixelResult.colorProfile,
-  });
+  };
+
+  console.log("[bridge] sending pixels:", msg.width, "x", msg.height, "data length:", msg.data.length);
+  webviewElement.postMessage(msg);
+  console.log("[bridge] postMessage sent");
 }
 
 function sendSettings(settings) {

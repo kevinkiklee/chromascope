@@ -17,7 +17,7 @@ cd "$REPO_ROOT"
 
 echo ""
 echo "========================================="
-echo "  ChromaScope - Initial Setup"
+echo "  Chromascope - Initial Setup"
 echo "========================================="
 echo ""
 

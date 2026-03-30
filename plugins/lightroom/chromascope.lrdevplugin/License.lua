@@ -1,4 +1,4 @@
--- plugins/lightroom/chromascope.lrdevplugin/License.lua  (ChromaScope)
+-- plugins/lightroom/chromascope.lrdevplugin/License.lua  (Chromascope)
 -- Stub: always returns a valid license until real validation is implemented.
 
 License = {}
@@ -15,3 +15,5 @@ function License.getStatus()
     tier       = "development",
   }
 end
+
+return License

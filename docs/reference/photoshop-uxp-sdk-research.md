@@ -22,7 +22,7 @@ A single plugin can declare multiple entry points of mixed types.
 {
   "manifestVersion": 5,
   "id": "com.example.chromascope",
-  "name": "ChromaScope",
+  "name": "Chromascope",
   "version": "1.0.0",
   "main": "index.html",
   "host": {
@@ -33,7 +33,7 @@ A single plugin can declare multiple entry points of mixed types.
     {
       "type": "panel",
       "id": "chromascopePanel",
-      "label": { "default": "ChromaScope" },
+      "label": { "default": "Chromascope" },
       "minimumSize": { "width": 230, "height": 230 },
       "preferredDockedSize": { "width": 300, "height": 350 },
       "preferredFloatingSize": { "width": 400, "height": 450 },
@@ -187,7 +187,7 @@ let color = await document.sampleColor({ x: 100, y: 100 });
 - **SVG**: Inline SVG for vector graphics
 - **WebView**: Available with `requiredPermissions.webview.allow: "yes"` and domain whitelist
 
-### What Does NOT Work (Critical for ChromaScope)
+### What Does NOT Work (Critical for Chromascope)
 
 - **HTML5 Canvas (`<canvas>`)**: NOT SUPPORTED in UXP
 - **WebGL**: NOT SUPPORTED (no browser engine)
@@ -199,7 +199,7 @@ let color = await document.sampleColor({ x: 100, y: 100 });
 - **data attributes**: Not supported
 - **font-face**: Not supported
 
-### ChromaScope Rendering Strategy
+### Chromascope Rendering Strategy
 
 Since `<canvas>` is NOT available, the chromascope visualization must use one of:
 
@@ -278,7 +278,7 @@ await action.addNotificationListener(
 
 Hybrid plugins combine JavaScript UXP code with native C++ dynamic libraries (.dylib on macOS, .dll on Windows), similar to Node.js C++ addons. The C++ code runs natively with full system access.
 
-### Use Cases for ChromaScope
+### Use Cases for Chromascope
 
 - **High-performance pixel processing**: Process millions of pixels in C++ instead of JavaScript
 - **Custom rendering**: Render the chromascope visualization natively and pass image data back
@@ -409,7 +409,7 @@ Key points:
 | **Plugin Types** | Panel, Command | Export, Publish, Metadata, Web Gallery, Filter |
 | **File Access** | Sandboxed with permissions; hybrid plugins have full access | Full Lua file I/O |
 
-### Key Advantage for ChromaScope
+### Key Advantage for Chromascope
 
 Photoshop UXP can directly read pixel data from the active document or any layer using `imaging.getPixels()`. This is the fundamental requirement for a chromascope -- you need access to actual pixel color values to plot them on a chrominance diagram.
 
@@ -417,7 +417,7 @@ Lightroom Classic SDK has **no equivalent capability**. LrC plugins cannot read 
 
 ---
 
-## 9. Recommended Architecture for ChromaScope Plugin
+## 9. Recommended Architecture for Chromascope Plugin
 
 Based on this research, the recommended approach:
 

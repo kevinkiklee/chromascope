@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Ensure Rust toolchain is on PATH
+export PATH="$HOME/.cargo/bin:$PATH"
+
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
@@ -17,7 +20,7 @@ cd "$REPO_ROOT"
 
 echo ""
 echo "========================================="
-echo "  ChromaScope - Build All Plugins"
+echo "  Chromascope - Build All Plugins"
 echo "========================================="
 echo ""
 
@@ -92,6 +95,16 @@ if [ -n "$PLATFORM_DIR" ]; then
   cp "$DECODE_BIN" "$PLATFORM_DIR/decode"
   chmod +x "$PLATFORM_DIR/decode"
   ok "Copied decode binary → $PLATFORM_DIR/decode"
+fi
+
+# Generate pre-rendered overlay images (if not already present)
+OVERLAYS_DIR="$LR_DIR/overlays"
+if [ ! -d "$OVERLAYS_DIR/triadic" ]; then
+  info "Generating overlay images (1800 files, ~1s)..."
+  "$DECODE_BIN" generate-overlays --output "$OVERLAYS_DIR" --size 256
+  ok "Generated overlay images → $OVERLAYS_DIR/"
+else
+  ok "Overlay images already exist"
 fi
 
 # ─── Done ────────────────────────────────────────────────────────────────

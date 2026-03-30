@@ -28,7 +28,7 @@ export default function FeaturesPage() {
             Features
           </div>
           <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-4">
-            Everything inside ChromaScope
+            Everything inside Chromascope
           </h1>
           <p className="text-zinc-400 text-lg">Professional-grade color analysis for creative workflows.</p>
         </div>

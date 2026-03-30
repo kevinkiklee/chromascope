@@ -46,7 +46,7 @@ export default function DownloadPage() {
             Download
           </div>
           <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-4">
-            Get ChromaScope
+            Get Chromascope
           </h1>
           <p className="text-zinc-400 text-lg">Start a free 14-day trial or download with your license key.</p>
         </div>
@@ -140,7 +140,7 @@ export default function DownloadPage() {
               type="submit"
               className="w-full btn-ghost text-zinc-200 py-2.5 rounded-lg text-sm font-medium"
             >
-              Download ChromaScope
+              Download Chromascope
             </button>
           </form>
         </section>

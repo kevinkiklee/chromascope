@@ -7,42 +7,121 @@
     html, body {
       width: 100%; height: 100%;
       overflow: hidden;
-      background: var(--uxp-host-background-color, #323232);
+      background: #1a1a1a;
       font-family: "Adobe Clean", system-ui, sans-serif;
-      color: var(--uxp-host-text-color, #e0e0e0);
+      color: #e0e0e0;
     }
-    #plugin-root {
-      width: 100%; height: 100%;
-      display: flex;
-      flex-direction: column;
-    }
-    #scope-webview-container {
+    #chromascope-root { width: 100%; height: 100%; display: flex; flex-direction: column; }
+    #scope-canvas-container {
       flex: 1;
       min-height: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       position: relative;
     }
-    #scope-webview {
-      width: 100%;
-      height: 100%;
-      border: none;
+    #scope-canvas { image-rendering: pixelated; }
+    #controls-container {
+      flex-shrink: 0;
+      overflow-x: hidden;
+      overflow-y: auto;
     }
+
+    /* Override ALL core styles to match Photoshop native panels */
+    #controls-container {
+      padding: 4px 8px !important;
+      font-size: 11px !important;
+      background: var(--uxp-host-background-color, #1e1e1e) !important;
+      border-top: 1px solid var(--uxp-host-border-color, #333) !important;
+    }
+    .vs-control-group { margin-bottom: 2px !important; }
+    .vs-control-group summary {
+      font-size: 10px !important;
+      font-weight: 600 !important;
+      text-transform: uppercase !important;
+      letter-spacing: 0.5px !important;
+      color: var(--uxp-host-text-color-secondary, #999) !important;
+      padding: 3px 0 !important;
+    }
+    .vs-control-group[open] summary { margin-bottom: 3px !important; }
+    .vs-control-row {
+      display: flex !important;
+      flex-direction: row !important;
+      align-items: center !important;
+      gap: 6px !important;
+      margin-bottom: 3px !important;
+    }
+    .vs-control-row label {
+      flex: 0 0 auto !important;
+      width: 52px !important;
+      font-size: 10px !important;
+      color: var(--uxp-host-text-color-secondary, #999) !important;
+    }
+    .vs-btn-group {
+      display: flex !important;
+      flex-direction: row !important;
+      flex-wrap: nowrap !important;
+      gap: 1px !important;
+      flex: 1 !important;
+    }
+    .vs-btn {
+      flex: 1 !important;
+      padding: 1px 2px !important;
+      font-size: 9px !important;
+      line-height: 16px !important;
+      border-radius: 2px !important;
+      border: 1px solid var(--uxp-host-border-color, #555) !important;
+      background: var(--uxp-host-background-color, #3a3a3a) !important;
+      color: var(--uxp-host-text-color, #ccc) !important;
+      text-align: center !important;
+      cursor: pointer !important;
+    }
+    .vs-btn:hover { background: #4a4a4a !important; }
+    .vs-btn.active {
+      background: #4a6fa5 !important;
+      border-color: #5a8fd5 !important;
+      color: #fff !important;
+    }
+    .vs-slider-row {
+      display: flex !important;
+      flex-direction: row !important;
+      align-items: center !important;
+      gap: 4px !important;
+      margin-bottom: 2px !important;
+    }
+    .vs-slider-row label {
+      flex: 0 0 auto !important;
+      width: 52px !important;
+      font-size: 10px !important;
+      color: var(--uxp-host-text-color-secondary, #999) !important;
+    }
+    .vs-slider-row input[type=range] { flex: 1 !important; height: 12px !important; }
+    .vs-slider-row .vs-slider-value {
+      flex: 0 0 24px !important;
+      text-align: right !important;
+      font-size: 9px !important;
+      color: var(--uxp-host-text-color-secondary, #aaa) !important;
+    }
+
     #status-bar {
       flex-shrink: 0;
       padding: 4px 8px;
       font-size: 11px;
-      color: var(--uxp-host-text-color-secondary, #999);
-      border-top: 1px solid var(--uxp-host-border-color, #444);
-      background: var(--uxp-host-background-color, #2b2b2b);
+      color: #999;
+      border-top: 1px solid #444;
+      background: #1a1a1a;
     }
   </style>
 </head>
 <body>
-  <div id="plugin-root">
-    <div id="scope-webview-container">
-      <webview id="scope-webview" src="core/index.html"></webview>
+  <div id="chromascope-root">
+    <div id="scope-canvas-container">
+      <canvas id="scope-canvas"></canvas>
     </div>
-    <div id="status-bar">ChromaScope ready</div>
+    <div id="controls-container"></div>
+    <div id="status-bar">Chromascope ready</div>
   </div>
+  <script src="core/scope-bundle.js"></script>
   <script src="src/main.js"></script>
 </body>
 </html>

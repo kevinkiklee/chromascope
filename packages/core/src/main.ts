@@ -1,18 +1,18 @@
-import { ChromaScope } from "./chromascope.js";
+import { Chromascope } from "./chromascope.js";
 import { onHostMessage } from "./protocol.js";
 import { createControls } from "./ui/controls.js";
 import { attachScopeInteraction } from "./interaction/scope-interaction.js";
-import type { PixelData, ChromaScopeSettings } from "./types.js";
+import type { PixelData, ChromascopeSettings } from "./types.js";
 
 const canvas = document.getElementById("scope-canvas") as HTMLCanvasElement;
 const container = document.getElementById("scope-canvas-container") as HTMLElement;
 const controlsEl = document.getElementById("controls-container") as HTMLElement;
 const ctx = canvas.getContext("2d")!;
 
-const scope = new ChromaScope();
+const scope = new Chromascope();
 
 const controls = createControls(controlsEl, scope.settings, {
-  onSettingsChange(partial: Partial<ChromaScopeSettings>) {
+  onSettingsChange(partial: Partial<ChromascopeSettings>) {
     scope.updateSettings(partial);
     draw();
   },
@@ -70,7 +70,7 @@ onHostMessage((msg) => {
       break;
     }
     case "settings": {
-      const partial: Partial<ChromaScopeSettings> = {};
+      const partial: Partial<ChromascopeSettings> = {};
       if (msg.colorSpace) partial.colorSpace = msg.colorSpace;
       if (msg.densityMode) partial.densityMode = msg.densityMode;
       if (msg.logScale !== undefined) partial.logScale = msg.logScale;

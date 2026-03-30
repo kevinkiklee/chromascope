@@ -1,4 +1,4 @@
--- plugins/lightroom/chromascope.lrdevplugin/EditBridge.lua  (ChromaScope)
+-- plugins/lightroom/chromascope.lrdevplugin/EditBridge.lua  (Chromascope)
 
 local LrDevelopController = import "LrDevelopController"
 local LrTasks             = import "LrTasks"
@@ -74,3 +74,5 @@ function EditBridge.handleWebViewMessage(messageTable)
   if type(messageTable) ~= "table" then return end
   EditBridge.applyEdit(messageTable)
 end
+
+return EditBridge

@@ -20,7 +20,7 @@ export function Footer() {
                 background: 'conic-gradient(from 0deg, #f43f5e, #f97316, #eab308, #22c55e, #06b6d4, #8b5cf6, #f43f5e)',
               }}
             />
-            <span className="text-sm text-zinc-500 font-medium">ChromaScope</span>
+            <span className="text-sm text-zinc-500 font-medium">Chromascope</span>
           </div>
 
           <div className="flex gap-6 text-sm">
@@ -36,7 +36,7 @@ export function Footer() {
           </div>
 
           <p className="text-zinc-600 text-xs">
-            &copy; {new Date().getFullYear()} ChromaScope
+            &copy; {new Date().getFullYear()} Chromascope
           </p>
         </div>
       </div>

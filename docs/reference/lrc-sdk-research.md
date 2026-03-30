@@ -17,8 +17,8 @@ return {
   LrSdkVersion = 15.0,
   LrSdkMinimumVersion = 6.0,
   LrToolkitIdentifier = "com.example.chromascope",
-  LrPluginName = "ChromaScope",
-  LrLibraryMenuItems = {{ title = "ChromaScope", file = "ShowChromaScope.lua" }},
+  LrPluginName = "Chromascope",
+  LrLibraryMenuItems = {{ title = "Chromascope", file = "ShowChromascope.lua" }},
   VERSION = { major=1, minor=0, revision=0, build=1 }
 }
 ```
@@ -58,7 +58,7 @@ Closest mechanisms:
 - **Display**: `static_text`, `picture` (static image file), `catalog_photo` (thumbnail), `color_well`
 - **Data binding**: `LrView.bind()` for two-way binding to `LrObservableTable`
 
-### ChromaScope Display Strategy
+### Chromascope Display Strategy
 The `picture` control can display an image file:
 ```lua
 viewFactory:picture { value = "/path/to/chromascope.png" }
@@ -107,7 +107,7 @@ Generate the chromascope image externally, display via `picture`, refresh on cha
 
 ---
 
-## 6. Recommended Architecture for LrC ChromaScope
+## 6. Recommended Architecture for LrC Chromascope
 
 Given the severe limitations, the only viable approach:
 

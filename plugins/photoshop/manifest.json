@@ -1,26 +1,33 @@
 {
   "manifestVersion": 5,
   "id": "com.chromascope.photoshop",
-  "name": "ChromaScope",
+  "name": "Chromascope",
   "version": "1.0.0",
   "main": "index.html",
   "host": {
     "app": "PS",
     "minVersion": "23.3.0"
   },
+  "apiVersion": 2,
   "entrypoints": [
     {
       "type": "panel",
       "id": "chromascopePanel",
-      "label": { "default": "ChromaScope" },
+      "label": { "default": "Chromascope" },
       "minimumSize": { "width": 230, "height": 300 },
       "preferredDockedSize": { "width": 320, "height": 450 },
-      "preferredFloatingSize": { "width": 400, "height": 550 }
+      "preferredFloatingSize": { "width": 400, "height": 550 },
+      "icons": [
+        { "width": 23, "height": 23, "path": "icons/plugin-icon.png", "scale": [1, 2], "theme": ["all"] }
+      ]
     }
+  ],
+  "icons": [
+    { "width": 48, "height": 48, "path": "icons/plugin-icon.png", "scale": [1, 2], "theme": ["all"] }
   ],
   "requiredPermissions": {
     "network": { "domains": [] },
-    "webview": { "allow": "yes", "domains": ["about:blank"] },
+    "webview": { "allow": "yes", "allowLocalRendering": "yes", "enableMessageBridge": "localAndRemote" },
     "clipboard": "readAndWrite",
     "localFileSystem": "request"
   }

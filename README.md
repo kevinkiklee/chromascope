@@ -1,4 +1,4 @@
-# ChromaScope
+# Chromascope
 
 A professional color analysis tool for Adobe Creative Suite. Visualizes chrominance distribution on a vectorscope plot for colorists, video editors, and color grading professionals.
 
@@ -18,13 +18,14 @@ A professional color analysis tool for Adobe Creative Suite. Visualizes chromina
 chromascope/
   packages/
     core/        TypeScript library -- vectorscope math, rendering, UI
-    decode/      Rust binary -- JPEG/TIFF to raw RGB bytes
+    decode/      Rust binary -- image decoding, RGB extraction, vectorscope rendering
   plugins/
     photoshop/   Photoshop UXP panel plugin
-    lightroom/   Lightroom Classic plugin (Lua + external binary)
+    lightroom/   Lightroom Classic plugin (Lua + Rust binary)
   apps/
     web/         Next.js marketing site, licensing API, Stripe webhooks
   docs/          Architecture docs and guides
+  scripts/       Setup, build, and deployment scripts
 ```
 
 ## Tech Stack
@@ -33,13 +34,13 @@ chromascope/
 |-------|-----------|
 | Monorepo | Turborepo |
 | Core | TypeScript, Vite 6, Vitest |
-| Decode | Rust (image crate, clap) |
+| Decode | Rust (image crate, clap) -- decode + render subcommands |
 | Web | Next.js 16, React 19, Tailwind CSS 4, Turbopack |
 | Database | Neon (serverless Postgres) |
 | Payments | Stripe |
 | AI | Vercel AI SDK 6, AI Gateway |
 | Photoshop | Adobe UXP, batchPlay API |
-| Lightroom | Lua, LrDevelopController |
+| Lightroom | Lua, LrDevelopController, Rust-rendered vectorscope |
 
 ## Getting Started
 
@@ -92,19 +93,44 @@ Required environment variables in `apps/web/.env.local`:
 
 If the project is linked to Vercel, run `vercel env pull apps/web/.env.local` to pull all variables automatically.
 
+### Build all plugins
+
+```sh
+npm run build:plugins    # Builds core, decode binary, Photoshop plugin, assembles Lightroom plugin
+```
+
 ## Architecture
 
-The core library bundles to a single HTML file (`vite-plugin-singlefile`) that embeds in plugin WebViews. Plugins communicate with the core via a typed message protocol (`packages/core/src/protocol.ts`) passing pixel data, settings changes, and edit commands.
+### Photoshop
+
+The core library bundles to a single HTML file (`vite-plugin-singlefile`) that embeds in the Photoshop UXP panel as a WebView. The plugin communicates with the core via a typed message protocol (`packages/core/src/protocol.ts`):
 
 ```
-Plugin (Photoshop/Lightroom)
-  |
+Photoshop Plugin (UXP)
   |-- PixelsMessage   -->  Core WebView (vectorscope rendering)
-  |<-- SettingsMessage --  Core WebView (user changed settings)
   |<-- EditMessage     --  Core WebView (apply color correction)
 ```
 
-Lightroom cannot read pixels directly from Lua, so it exports a thumbnail, pipes it through the Rust decode binary, and sends the raw RGB bytes to the WebView.
+### Lightroom Classic
+
+Lightroom's Lua SDK does not support embedded WebViews. Instead, the Rust `decode` binary handles both image decoding and vectorscope rendering:
+
+```
+Lightroom Plugin (Lua)
+  |-- requestJpegThumbnail  -->  JPEG thumbnail
+  |-- decode decode         -->  raw RGB bytes
+  |-- decode render         -->  vectorscope JPEG (scatter plot + graticule + skin tone line)
+  |-- f:picture             -->  displays rendered JPEG in dialog
+```
+
+The vectorscope image updates automatically when develop sliders change via `LrDevelopController.addAdjustmentChangeObserver`. A busy-guard with coalescing prevents overlapping renders.
+
+### Rust decode binary
+
+The binary has two subcommands:
+
+- `decode decode` -- Decodes JPEG/TIFF to raw RGB bytes (used by both Photoshop and Lightroom pipelines)
+- `decode render` -- Renders a vectorscope JPEG from raw RGB data (YCbCr BT.601 scatter plot, graticule, skin tone line)
 
 ## License
 
