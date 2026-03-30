@@ -13,6 +13,12 @@ const DEFAULT_SETTINGS: VectorscopeSettings = {
   colorSpace: "ycbcr",
   densityMode: "scatter",
   logScale: false,
+  harmony: {
+    scheme: null,
+    rotation: 0,
+    zoneWidth: 1.0,
+    pullStrengths: [],
+  },
 };
 
 export class Vectorscope {
