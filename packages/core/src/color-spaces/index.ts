@@ -1,10 +1,12 @@
 import type { ColorSpaceMapper, ColorSpaceId } from "../types.js";
 import { YCbCrMapper } from "./ycbcr.js";
+import { CIELUVMapper } from "./cieluv.js";
+import { HSLMapper } from "./hsl.js";
 
 const mappers: Record<ColorSpaceId, () => ColorSpaceMapper> = {
   ycbcr: () => new YCbCrMapper(),
-  cieluv: () => { throw new Error("CIE LUV not yet implemented"); },
-  hsl: () => { throw new Error("HSL not yet implemented"); },
+  cieluv: () => new CIELUVMapper(),
+  hsl: () => new HSLMapper(),
 };
 
 export function createColorSpaceMapper(id: ColorSpaceId): ColorSpaceMapper {
@@ -12,3 +14,5 @@ export function createColorSpaceMapper(id: ColorSpaceId): ColorSpaceMapper {
 }
 
 export { YCbCrMapper } from "./ycbcr.js";
+export { CIELUVMapper } from "./cieluv.js";
+export { HSLMapper } from "./hsl.js";
