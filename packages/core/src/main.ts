@@ -1,9 +1,8 @@
 import { Vectorscope } from "./vectorscope.js";
 import { onHostMessage } from "./protocol.js";
 import { createControls } from "./ui/controls.js";
+import { attachScopeInteraction } from "./interaction/scope-interaction.js";
 import type { PixelData, VectorscopeSettings } from "./types.js";
-
-// --- Init ---
 
 const canvas = document.getElementById("scope-canvas") as HTMLCanvasElement;
 const container = document.getElementById("scope-canvas-container") as HTMLElement;
@@ -12,8 +11,6 @@ const ctx = canvas.getContext("2d")!;
 
 const scope = new Vectorscope();
 
-// --- Controls ---
-
 const controls = createControls(controlsEl, scope.settings, {
   onSettingsChange(partial: Partial<VectorscopeSettings>) {
     scope.updateSettings(partial);
@@ -21,7 +18,23 @@ const controls = createControls(controlsEl, scope.settings, {
   },
 });
 
-// --- Sizing ---
+attachScopeInteraction(
+  canvas,
+  () => canvas.width,
+  () => scope.harmonyZones,
+  {
+    onHover(_polar) {},
+    onHarmonyRotate(delta) {
+      const newRotation = scope.settings.harmony.rotation + delta;
+      scope.updateSettings({
+        harmony: { ...scope.settings.harmony, rotation: newRotation },
+      });
+      controls.update(scope.settings);
+      draw();
+    },
+    requestRedraw: () => draw(),
+  },
+);
 
 function resize(): void {
   const rect = container.getBoundingClientRect();
@@ -38,15 +51,11 @@ function resize(): void {
 const resizeObserver = new ResizeObserver(resize);
 resizeObserver.observe(container);
 
-// --- Render ---
-
 function draw(): void {
   const size = canvas.width;
   if (size < 10) return;
   scope.render(ctx, size);
 }
-
-// --- Host Messages ---
 
 onHostMessage((msg) => {
   switch (msg.type) {
@@ -66,17 +75,16 @@ onHostMessage((msg) => {
       if (msg.colorSpace) partial.colorSpace = msg.colorSpace;
       if (msg.densityMode) partial.densityMode = msg.densityMode;
       if (msg.logScale !== undefined) partial.logScale = msg.logScale;
+      if (msg.harmony) partial.harmony = msg.harmony;
       scope.updateSettings(partial);
       controls.update(scope.settings);
       draw();
       break;
     }
     case "highlight": {
-      // TODO: Plan 2 — highlight interaction
       break;
     }
   }
 });
 
-// --- Initial render ---
 resize();

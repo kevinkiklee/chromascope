@@ -1,6 +1,6 @@
 // packages/core/src/protocol.ts
 
-import type { ColorSpaceId, DensityModeId, VectorscopeSettings } from "./types.js";
+import type { ColorSpaceId, DensityModeId, HarmonyConfig, VectorscopeSettings } from "./types.js";
 
 // --- Messages from Host → WebView ---
 
@@ -23,6 +23,7 @@ export interface SettingsMessage {
   colorSpace?: ColorSpaceId;
   densityMode?: DensityModeId;
   logScale?: boolean;
+  harmony?: HarmonyConfig;
 }
 
 export type HostMessage = PixelsMessage | HighlightFromHostMessage | SettingsMessage;
