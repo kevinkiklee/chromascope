@@ -31,10 +31,40 @@ export interface DensityRenderer {
   render(points: MappedPoint[], ctx: CanvasRenderingContext2D, size: number): void;
 }
 
+export type HarmonySchemeId =
+  | "complementary"
+  | "splitComplementary"
+  | "triadic"
+  | "tetradic"
+  | "analogous";
+
+/** A single angular zone on the vectorscope circle */
+export interface HarmonyZone {
+  /** Center angle in radians (0 = right, counter-clockwise) */
+  centerAngle: number;
+  /** Half-width of the zone in radians */
+  halfWidth: number;
+  /** Pull strength for Fit to Scheme (0 to 1) */
+  pullStrength: number;
+}
+
+/** Full harmony overlay configuration */
+export interface HarmonyConfig {
+  /** Which scheme is active, or null for no overlay */
+  scheme: HarmonySchemeId | null;
+  /** Rotation offset in radians applied to all zones */
+  rotation: number;
+  /** Zone width multiplier (0.5 = narrow, 2.0 = wide). Default 1.0 */
+  zoneWidth: number;
+  /** Per-zone pull strengths (indexed same as zones array). Falls back to 0.5 */
+  pullStrengths: number[];
+}
+
 export interface VectorscopeSettings {
   colorSpace: ColorSpaceId;
   densityMode: DensityModeId;
   logScale: boolean;
+  harmony: HarmonyConfig;
 }
 
 /** Raw pixel data from host plugin */
