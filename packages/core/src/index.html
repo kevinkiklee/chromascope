@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vectorscope</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; overflow: hidden; background: #1a1a1a; color: #e0e0e0; font-family: system-ui, sans-serif; }
+    #vectorscope-root { width: 100%; height: 100%; display: flex; flex-direction: column; }
+    #scope-canvas-container { flex: 1; position: relative; min-height: 0; }
+    #controls-container { flex-shrink: 0; }
+  </style>
+</head>
+<body>
+  <div id="vectorscope-root">
+    <div id="scope-canvas-container"></div>
+    <div id="controls-container"></div>
+  </div>
+  <script type="module" src="./vectorscope.ts"></script>
+</body>
+</html>
