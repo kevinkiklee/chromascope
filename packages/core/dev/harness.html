@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Vectorscope Dev Harness</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #111; color: #ddd; font-family: system-ui; display: flex; height: 100vh; }
+    #scope-frame { flex: 1; border: none; }
+    #harness-controls { width: 280px; padding: 16px; background: #1a1a1a; border-left: 1px solid #333; overflow-y: auto; }
+    h3 { margin: 16px 0 8px; color: #aaa; font-size: 13px; text-transform: uppercase; letter-spacing: 1px; }
+    h3:first-child { margin-top: 0; }
+    button { display: block; width: 100%; padding: 8px; margin: 4px 0; background: #2a2a2a; color: #ddd; border: 1px solid #444; border-radius: 4px; cursor: pointer; font-size: 13px; }
+    button:hover { background: #3a3a3a; }
+    #status { margin-top: 16px; font-size: 11px; color: #888; }
+    #image-upload { margin: 8px 0; }
+  </style>
+</head>
+<body>
+  <iframe id="scope-frame" src="/src/index.html"></iframe>
+  <div id="harness-controls">
+    <h3>Test Patterns</h3>
+    <button onclick="sendColorBars()">SMPTE Color Bars</button>
+    <button onclick="sendGradient()">Hue Gradient</button>
+    <button onclick="sendRandom()">Random Noise</button>
+    <button onclick="sendSkinTones()">Skin Tones</button>
+    <button onclick="sendMonochrome()">Monochrome</button>
+
+    <h3>Load Image</h3>
+    <input type="file" id="image-upload" accept="image/*" onchange="loadImage(event)" />
+
+    <div id="status">Ready. Send a test pattern to see the vectorscope.</div>
+  </div>
+
+  <script>
+    const frame = document.getElementById("scope-frame");
+    const status = document.getElementById("status");
+
+    function send(pixels, width, height) {
+      frame.contentWindow.postMessage({
+        type: "pixels",
+        data: Array.from(pixels),
+        width,
+        height,
+        colorProfile: "sRGB",
+      }, "*");
+      status.textContent = `Sent ${width}x${height} (${pixels.length / 3} pixels)`;
+    }
+
+    function sendColorBars() {
+      const w = 256, h = 256;
+      const data = new Uint8Array(w * h * 3);
+      // 7 SMPTE bars: white, yellow, cyan, green, magenta, red, blue
+      const bars = [
+        [255,255,255], [255,255,0], [0,255,255], [0,255,0],
+        [255,0,255], [255,0,0], [0,0,255],
+      ];
+      for (let y = 0; y < h; y++) {
+        for (let x = 0; x < w; x++) {
+          const bar = bars[Math.floor(x / (w / 7))];
+          const i = (y * w + x) * 3;
+          data[i] = bar[0]; data[i+1] = bar[1]; data[i+2] = bar[2];
+        }
+      }
+      send(data, w, h);
+    }
+
+    function sendGradient() {
+      const w = 256, h = 256;
+      const data = new Uint8Array(w * h * 3);
+      for (let y = 0; y < h; y++) {
+        for (let x = 0; x < w; x++) {
+          const hue = (x / w) * 360;
+          const sat = y / h;
+          const [r, g, b] = hslToRgb(hue, sat, 0.5);
+          const i = (y * w + x) * 3;
+          data[i] = r; data[i+1] = g; data[i+2] = b;
+        }
+      }
+      send(data, w, h);
+    }
+
+    function sendRandom() {
+      const w = 128, h = 128;
+      const data = new Uint8Array(w * h * 3);
+      for (let i = 0; i < data.length; i++) data[i] = Math.floor(Math.random() * 256);
+      send(data, w, h);
+    }
+
+    function sendSkinTones() {
+      const w = 128, h = 128;
+      const data = new Uint8Array(w * h * 3);
+      for (let i = 0; i < w * h; i++) {
+        // Range of skin tones: warm hues, moderate saturation
+        const r = 180 + Math.floor(Math.random() * 60);
+        const g = 120 + Math.floor(Math.random() * 50);
+        const b = 90 + Math.floor(Math.random() * 40);
+        data[i*3] = r; data[i*3+1] = g; data[i*3+2] = b;
+      }
+      send(data, w, h);
+    }
+
+    function sendMonochrome() {
+      const w = 128, h = 128;
+      const data = new Uint8Array(w * h * 3);
+      for (let i = 0; i < w * h; i++) {
+        const v = Math.floor(Math.random() * 256);
+        data[i*3] = v; data[i*3+1] = v; data[i*3+2] = v;
+      }
+      send(data, w, h);
+    }
+
+    function loadImage(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const img = new Image();
+      img.onload = () => {
+        // Downsample to 256x256
+        const size = 256;
+        const c = document.createElement("canvas");
+        c.width = size; c.height = size;
+        const cx = c.getContext("2d");
+        cx.drawImage(img, 0, 0, size, size);
+        const imgData = cx.getImageData(0, 0, size, size);
+        // Convert RGBA to RGB
+        const rgb = new Uint8Array(size * size * 3);
+        for (let i = 0; i < size * size; i++) {
+          rgb[i*3]   = imgData.data[i*4];
+          rgb[i*3+1] = imgData.data[i*4+1];
+          rgb[i*3+2] = imgData.data[i*4+2];
+        }
+        send(rgb, size, size);
+      };
+      img.src = URL.createObjectURL(file);
+    }
+
+    function hslToRgb(h, s, l) {
+      const c = (1 - Math.abs(2 * l - 1)) * s;
+      const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
+      const m = l - c / 2;
+      let r, g, b;
+      if (h < 60)       { r = c; g = x; b = 0; }
+      else if (h < 120) { r = x; g = c; b = 0; }
+      else if (h < 180) { r = 0; g = c; b = x; }
+      else if (h < 240) { r = 0; g = x; b = c; }
+      else if (h < 300) { r = x; g = 0; b = c; }
+      else              { r = c; g = 0; b = x; }
+      return [Math.round((r+m)*255), Math.round((g+m)*255), Math.round((b+m)*255)];
+    }
+  </script>
+</body>
+</html>
