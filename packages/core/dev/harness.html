@@ -29,6 +29,19 @@
     <h3>Load Image</h3>
     <input type="file" id="image-upload" accept="image/*" onchange="loadImage(event)" />
 
+    <h3>Harmony Overlays</h3>
+    <button onclick="setHarmony('complementary')">Complementary</button>
+    <button onclick="setHarmony('splitComplementary')">Split Complementary</button>
+    <button onclick="setHarmony('triadic')">Triadic</button>
+    <button onclick="setHarmony('tetradic')">Tetradic</button>
+    <button onclick="setHarmony('analogous')">Analogous</button>
+    <button onclick="setHarmony(null)">None (Clear)</button>
+    <div style="margin: 8px 0;">
+      <label style="color: #999; font-size: 11px;">Rotation:
+        <input type="range" min="0" max="360" value="0" oninput="rotateHarmony(this.value)" style="width: 140px;" />
+      </label>
+    </div>
+
     <div id="status">Ready. Send a test pattern to see the vectorscope.</div>
   </div>
 
@@ -146,6 +159,32 @@
       else if (h < 300) { r = x; g = 0; b = c; }
       else              { r = c; g = 0; b = x; }
       return [Math.round((r+m)*255), Math.round((g+m)*255), Math.round((b+m)*255)];
+    }
+
+    function setHarmony(scheme) {
+      frame.contentWindow.postMessage({
+        type: "settings",
+        harmony: {
+          scheme: scheme,
+          rotation: 0,
+          zoneWidth: 1.0,
+          pullStrengths: [],
+        },
+      }, "*");
+      status.textContent = `Harmony: ${scheme || "none"}`;
+    }
+
+    function rotateHarmony(deg) {
+      frame.contentWindow.postMessage({
+        type: "settings",
+        harmony: {
+          scheme: null,
+          rotation: (deg * Math.PI) / 180,
+          zoneWidth: 1.0,
+          pullStrengths: [],
+        },
+      }, "*");
+      status.textContent = `Rotation: ${deg}°`;
     }
   </script>
 </body>
