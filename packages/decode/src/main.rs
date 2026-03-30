@@ -61,6 +61,14 @@ pub struct RenderArgs {
     /// Harmony rotation offset in degrees (0-360)
     #[arg(long, default_value_t = 0.0)]
     rotation: f64,
+
+    /// Hide skin tone reference line
+    #[arg(long, default_value_t = false)]
+    hide_skin_tone: bool,
+
+    /// Overlay line color (white, yellow, cyan, green, magenta, orange)
+    #[arg(long, default_value = "yellow")]
+    overlay_color: String,
 }
 
 fn main() -> anyhow::Result<()> {
@@ -101,9 +109,10 @@ fn cmd_render(args: RenderArgs) -> anyhow::Result<()> {
     let harmony = args.scheme.as_deref().map(|s| render::HarmonyConfig {
         scheme: s.to_string(),
         rotation_deg: args.rotation,
+        overlay_color: args.overlay_color.clone(),
     });
 
-    let scope = render::render_vectorscope(&raw, args.width, args.height, args.size, harmony.as_ref());
+    let scope = render::render_vectorscope(&raw, args.width, args.height, args.size, harmony.as_ref(), !args.hide_skin_tone);
 
     scope.save(&args.output)
         .map_err(|e| anyhow::anyhow!("Failed to save {:?}: {}", args.output, e))?;

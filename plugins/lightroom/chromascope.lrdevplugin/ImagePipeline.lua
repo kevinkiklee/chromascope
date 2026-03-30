@@ -33,6 +33,24 @@ local function binary()
   return _binary
 end
 
+local function appendOverlayFlags(cmd, props)
+  local scheme = props.scheme
+  if scheme and scheme ~= "none" then
+    cmd = cmd .. string.format(
+      ' --scheme %s --rotation %d',
+      scheme, math.floor((props.rotation or 0) + 0.5) % 360
+    )
+  end
+  if props.skinTone == false then
+    cmd = cmd .. ' --hide-skin-tone'
+  end
+  local overlayColor = props.overlayColor
+  if overlayColor and overlayColor ~= "" then
+    cmd = cmd .. string.format(' --overlay-color %s', overlayColor)
+  end
+  return cmd
+end
+
 function ImagePipeline.scopePath()
   return _scopePath
 end
@@ -118,17 +136,11 @@ function ImagePipeline.refresh(props)
   end
 
   -- Render with optional harmony overlay
-  local renderCmd = string.format(
-    '"%s" render --input "%s" --output "%s" --width 128 --height 128 --size 256',
-    bin, rgbPath, _scopePath
-  )
-  local scheme = props.scheme
-  if scheme and scheme ~= "none" then
-    renderCmd = renderCmd .. string.format(
-      ' --scheme %s --rotation %d',
-      scheme, math.floor((props.rotation or 0) + 0.5) % 360
-    )
-  end
+  local fullSize = tonumber(props.scopeSize) or 500
+  local renderCmd = appendOverlayFlags(string.format(
+    '"%s" render --input "%s" --output "%s" --width 128 --height 128 --size %d',
+    bin, rgbPath, _scopePath, fullSize
+  ), props)
   exitCode = LrTasks.execute(renderCmd)
   -- Keep rgbPath for refreshOverlayOnly to re-use
   if exitCode ~= 0 then
@@ -164,17 +176,10 @@ function ImagePipeline.refreshOverlayFast(props)
     return
   end
 
-  local renderCmd = string.format(
+  local renderCmd = appendOverlayFlags(string.format(
     '"%s" render --input "%s" --output "%s" --width 128 --height 128 --size 128',
     bin, rgbPath, _scopePath
-  )
-  local scheme = props.scheme
-  if scheme and scheme ~= "none" then
-    renderCmd = renderCmd .. string.format(
-      ' --scheme %s --rotation %d',
-      scheme, math.floor((props.rotation or 0) + 0.5) % 360
-    )
-  end
+  ), props)
   LrTasks.execute(renderCmd)
 
   props.imagePath = nil
@@ -196,17 +201,11 @@ function ImagePipeline.refreshOverlayFull(props)
     return
   end
 
-  local renderCmd = string.format(
-    '"%s" render --input "%s" --output "%s" --width 128 --height 128 --size 256',
-    bin, rgbPath, _scopePath
-  )
-  local scheme = props.scheme
-  if scheme and scheme ~= "none" then
-    renderCmd = renderCmd .. string.format(
-      ' --scheme %s --rotation %d',
-      scheme, math.floor((props.rotation or 0) + 0.5) % 360
-    )
-  end
+  local fullSize = tonumber(props.scopeSize) or 500
+  local renderCmd = appendOverlayFlags(string.format(
+    '"%s" render --input "%s" --output "%s" --width 128 --height 128 --size %d',
+    bin, rgbPath, _scopePath, fullSize
+  ), props)
   LrTasks.execute(renderCmd)
 
   props.imagePath = nil
