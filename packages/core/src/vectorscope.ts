@@ -1,6 +1,7 @@
 import type {
   ColorSpaceMapper,
   DensityRenderer,
+  HarmonyZone,
   MappedPoint,
   PixelData,
   VectorscopeSettings,
@@ -8,6 +9,7 @@ import type {
 import { createColorSpaceMapper } from "./color-spaces/index.js";
 import { createDensityRenderer } from "./renderers/index.js";
 import { renderGraticule } from "./graticule.js";
+import { getHarmonyZones, renderHarmonyOverlay, renderSkinToneLine } from "./overlays/index.js";
 
 const DEFAULT_SETTINGS: VectorscopeSettings = {
   colorSpace: "ycbcr",
@@ -24,20 +26,20 @@ const DEFAULT_SETTINGS: VectorscopeSettings = {
 export class Vectorscope {
   settings: VectorscopeSettings;
   mappedPoints: MappedPoint[] = [];
+  harmonyZones: HarmonyZone[] = [];
 
   private mapper: ColorSpaceMapper;
   private renderer: DensityRenderer;
   private pixels: PixelData | null = null;
-  private graticuleCache: ImageData | null = null;
   private graticuleCacheSize = 0;
 
   constructor(settings?: Partial<VectorscopeSettings>) {
     this.settings = { ...DEFAULT_SETTINGS, ...settings };
     this.mapper = createColorSpaceMapper(this.settings.colorSpace);
     this.renderer = createDensityRenderer(this.settings.densityMode);
+    this.harmonyZones = getHarmonyZones(this.settings.harmony);
   }
 
-  /** Update settings. Re-maps points if color space changed. Swaps renderer if density mode changed. */
   updateSettings(partial: Partial<VectorscopeSettings>): void {
     const prev = { ...this.settings };
     Object.assign(this.settings, partial);
@@ -50,33 +52,32 @@ export class Vectorscope {
     if (this.settings.densityMode !== prev.densityMode) {
       this.renderer = createDensityRenderer(this.settings.densityMode);
     }
+
+    if (this.settings.harmony !== prev.harmony) {
+      this.harmonyZones = getHarmonyZones(this.settings.harmony);
+    }
   }
 
-  /** Receive new pixel data from the host plugin. */
   setPixels(pixelData: PixelData): void {
     this.pixels = pixelData;
     this.remapPoints();
   }
 
-  /** Render the full vectorscope onto the given canvas context. */
   render(ctx: CanvasRenderingContext2D, size: number): void {
-    // Draw graticule (cached)
-    if (this.graticuleCacheSize !== size || !this.graticuleCache) {
-      // Render graticule to an offscreen operation then cache
-      renderGraticule(ctx, size);
-      // For now, render inline. Caching with getImageData is optional optimization.
-      this.graticuleCacheSize = size;
-    } else {
-      renderGraticule(ctx, size);
+    renderGraticule(ctx, size);
+    this.graticuleCacheSize = size;
+
+    if (this.harmonyZones.length > 0) {
+      renderHarmonyOverlay(ctx, this.harmonyZones, size);
     }
 
-    // Draw density plot on top
+    renderSkinToneLine(ctx, size);
+
     if (this.mappedPoints.length > 0) {
       this.renderer.render(this.mappedPoints, ctx, size);
     }
   }
 
-  /** Re-map all pixels through the current color space mapper. */
   private remapPoints(): void {
     if (!this.pixels) {
       this.mappedPoints = [];

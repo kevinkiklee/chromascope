@@ -30,6 +30,12 @@ function createMockCanvas(size: number) {
     putImageData: vi.fn(),
     createRadialGradient: vi.fn(() => ({ addColorStop: vi.fn() })),
     getImageData: vi.fn(() => imageData),
+    setLineDash: vi.fn(),
+    getLineDash: vi.fn(() => []),
+    closePath: vi.fn(),
+    translate: vi.fn(),
+    rotate: vi.fn(),
+    scale: vi.fn(),
   } as unknown as CanvasRenderingContext2D;
 
   return ctx;
