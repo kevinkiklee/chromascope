@@ -126,3 +126,51 @@ fn render_produces_valid_jpeg() {
     std::fs::remove_file(&rgb_path).ok();
     std::fs::remove_file(&scope_path).ok();
 }
+
+#[test]
+fn render_with_harmony_overlay_adds_visible_lines() {
+    let input = fixtures_dir().join("test.jpg");
+    ensure_test_jpeg(&input);
+
+    let rgb_path = fixtures_dir().join("harmony_test.rgb");
+    let scope_plain = fixtures_dir().join("harmony_plain.jpg");
+    let scope_overlay = fixtures_dir().join("harmony_overlay.jpg");
+
+    Command::new(binary_path())
+        .args(["decode", "--input", input.to_str().unwrap(),
+               "--output", rgb_path.to_str().unwrap(), "--width", "64", "--height", "64"])
+        .status().unwrap();
+
+    // Render without overlay
+    Command::new(binary_path())
+        .args(["render", "--input", rgb_path.to_str().unwrap(),
+               "--output", scope_plain.to_str().unwrap(),
+               "--width", "64", "--height", "64", "--size", "256"])
+        .status().unwrap();
+
+    // Render with triadic overlay
+    Command::new(binary_path())
+        .args(["render", "--input", rgb_path.to_str().unwrap(),
+               "--output", scope_overlay.to_str().unwrap(),
+               "--width", "64", "--height", "64", "--size", "256",
+               "--scheme", "triadic", "--rotation", "30"])
+        .status().unwrap();
+
+    let img_plain = image::open(&scope_plain).unwrap().to_rgb8();
+    let img_overlay = image::open(&scope_overlay).unwrap().to_rgb8();
+
+    // Count bright pixels (overlay lines are white ~200)
+    let bright = |img: &RgbImage| -> usize {
+        img.pixels().filter(|p| p[0] > 100 || p[1] > 100 || p[2] > 100).count()
+    };
+
+    assert!(
+        bright(&img_overlay) > bright(&img_plain),
+        "overlay should add visible white lines: plain={}, overlay={}",
+        bright(&img_plain), bright(&img_overlay)
+    );
+
+    std::fs::remove_file(&rgb_path).ok();
+    std::fs::remove_file(&scope_plain).ok();
+    std::fs::remove_file(&scope_overlay).ok();
+}

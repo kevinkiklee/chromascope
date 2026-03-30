@@ -1,27 +1,73 @@
 use image::{Rgb, RgbImage};
 use std::f64::consts::PI;
 
-/// Background color for the vectorscope (near-black)
+const TWO_PI: f64 = 2.0 * PI;
+
 const BG: Rgb<u8> = Rgb([9, 9, 11]);
-
-/// Graticule line color (very dim)
 const GRID: Rgb<u8> = Rgb([30, 30, 35]);
-
-/// Skin tone line color (warm amber)
 const SKIN_TONE: Rgb<u8> = Rgb([180, 120, 60]);
-
-/// Skin tone angle in radians
 const SKIN_TONE_ANGLE: f64 = 123.0 * PI / 180.0;
+const ZONE_LINE: Rgb<u8> = Rgb([200, 200, 200]);
+const ZONE_CENTER_LINE: Rgb<u8> = Rgb([140, 140, 140]);
+const BASE_HALF_WIDTH: f64 = PI / 12.0; // 15 degrees
 
-/// Render a vectorscope image from raw RGB pixel data.
-pub fn render_vectorscope(rgb_data: &[u8], width: u32, height: u32, size: u32) -> RgbImage {
+pub struct HarmonyConfig {
+    pub scheme: String,
+    pub rotation_deg: f64,
+}
+
+struct Zone {
+    center_angle: f64,
+    half_width: f64,
+}
+
+fn normalize_angle(a: f64) -> f64 {
+    ((a % TWO_PI) + TWO_PI) % TWO_PI
+}
+
+fn scheme_base_angles(scheme: &str) -> Vec<f64> {
+    match scheme {
+        "complementary" => vec![0.0, PI],
+        "splitComplementary" => vec![0.0, PI - PI / 6.0, PI + PI / 6.0],
+        "triadic" => vec![0.0, TWO_PI / 3.0, 2.0 * TWO_PI / 3.0],
+        "tetradic" => vec![0.0, PI / 2.0, PI, 3.0 * PI / 2.0],
+        "analogous" => vec![0.0, PI / 6.0, -PI / 6.0],
+        _ => vec![],
+    }
+}
+
+fn get_zones(config: &HarmonyConfig) -> Vec<Zone> {
+    let rotation = config.rotation_deg.to_radians();
+    scheme_base_angles(&config.scheme)
+        .into_iter()
+        .map(|angle| Zone {
+            center_angle: normalize_angle(angle + rotation),
+            half_width: BASE_HALF_WIDTH,
+        })
+        .collect()
+}
+
+pub fn render_vectorscope(
+    rgb_data: &[u8],
+    width: u32,
+    height: u32,
+    size: u32,
+    harmony: Option<&HarmonyConfig>,
+) -> RgbImage {
     let mut img = RgbImage::from_pixel(size, size, BG);
     let center = size as f64 / 2.0;
     let radius = center * 0.9;
 
+    // Harmony zones (behind graticule and data)
+    if let Some(config) = harmony {
+        let zones = get_zones(config);
+        draw_harmony_zones(&mut img, &zones, center, radius, size);
+    }
+
     draw_graticule(&mut img, center, radius, size);
     draw_skin_tone_line(&mut img, center, radius);
 
+    // Plot pixels
     let total = (width * height) as usize;
     for i in 0..total {
         let off = i * 3;
@@ -55,6 +101,56 @@ pub fn render_vectorscope(rgb_data: &[u8], width: u32, height: u32, size: u32) -
     }
 
     img
+}
+
+fn draw_harmony_zones(
+    img: &mut RgbImage,
+    zones: &[Zone],
+    center: f64,
+    radius: f64,
+    size: u32,
+) {
+    for zone in zones {
+        let start = -(zone.center_angle + zone.half_width);
+        let end = -(zone.center_angle - zone.half_width);
+        let mid = -(zone.center_angle);
+
+        // Solid edge lines
+        draw_line(img, center, radius, start, size, ZONE_LINE, 0.7);
+        draw_line(img, center, radius, end, size, ZONE_LINE, 0.7);
+
+        // Dashed center line
+        draw_dashed_line(img, center, radius * 0.9, mid, size, ZONE_CENTER_LINE, 0.5);
+    }
+}
+
+fn draw_line(img: &mut RgbImage, center: f64, radius: f64, angle: f64, size: u32, color: Rgb<u8>, alpha: f64) {
+    let steps = (radius * 2.0) as u32;
+    for step in 0..steps {
+        let t = step as f64 / steps as f64;
+        let r = radius * t;
+        let px = (center + r * angle.cos()) as u32;
+        let py = (center + r * angle.sin()) as u32;
+        if px < size && py < size {
+            blend_pixel(img, px, py, color, alpha);
+        }
+    }
+}
+
+fn draw_dashed_line(img: &mut RgbImage, center: f64, radius: f64, angle: f64, size: u32, color: Rgb<u8>, alpha: f64) {
+    let steps = (radius * 2.0) as u32;
+    for step in 0..steps {
+        if (step / 4) % 2 != 0 {
+            continue;
+        }
+        let t = step as f64 / steps as f64;
+        let r = radius * t;
+        let px = (center + r * angle.cos()) as u32;
+        let py = (center + r * angle.sin()) as u32;
+        if px < size && py < size {
+            blend_pixel(img, px, py, color, alpha);
+        }
+    }
 }
 
 fn draw_graticule(img: &mut RgbImage, center: f64, radius: f64, size: u32) {

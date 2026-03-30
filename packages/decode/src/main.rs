@@ -3,7 +3,6 @@ use image::imageops::FilterType;
 use std::fs;
 use std::path::PathBuf;
 
-mod overlay;
 mod render;
 
 /// Chromascope image decoder and vectorscope renderer.
@@ -21,12 +20,6 @@ enum Command {
 
     /// Render a vectorscope image from raw RGB pixel data.
     Render(RenderArgs),
-
-    /// Max-blend a base scope image with a pre-rendered overlay.
-    Composite(CompositeArgs),
-
-    /// Generate all pre-rendered overlay images (run at build time).
-    GenerateOverlays(GenerateOverlaysArgs),
 }
 
 #[derive(Parser, Debug)]
@@ -60,32 +53,14 @@ pub struct RenderArgs {
 
     #[arg(long, default_value_t = 512)]
     size: u32,
-}
 
-#[derive(Parser, Debug)]
-struct CompositeArgs {
-    /// Base vectorscope JPEG
+    /// Color harmony scheme (complementary, splitComplementary, triadic, tetradic, analogous)
     #[arg(long)]
-    base: PathBuf,
+    scheme: Option<String>,
 
-    /// Pre-rendered overlay JPEG
-    #[arg(long)]
-    overlay: PathBuf,
-
-    /// Output JPEG path
-    #[arg(short, long)]
-    output: PathBuf,
-}
-
-#[derive(Parser, Debug)]
-struct GenerateOverlaysArgs {
-    /// Output directory for overlay images
-    #[arg(short, long)]
-    output: PathBuf,
-
-    /// Image size (square)
-    #[arg(long, default_value_t = 256)]
-    size: u32,
+    /// Harmony rotation offset in degrees (0-360)
+    #[arg(long, default_value_t = 0.0)]
+    rotation: f64,
 }
 
 fn main() -> anyhow::Result<()> {
@@ -94,8 +69,6 @@ fn main() -> anyhow::Result<()> {
     match cli.command {
         Command::Decode(args) => cmd_decode(args),
         Command::Render(args) => cmd_render(args),
-        Command::Composite(args) => cmd_composite(args),
-        Command::GenerateOverlays(args) => cmd_generate_overlays(args),
     }
 }
 
@@ -125,31 +98,15 @@ fn cmd_render(args: RenderArgs) -> anyhow::Result<()> {
         ));
     }
 
-    let scope = render::render_vectorscope(&raw, args.width, args.height, args.size);
+    let harmony = args.scheme.as_deref().map(|s| render::HarmonyConfig {
+        scheme: s.to_string(),
+        rotation_deg: args.rotation,
+    });
+
+    let scope = render::render_vectorscope(&raw, args.width, args.height, args.size, harmony.as_ref());
+
     scope.save(&args.output)
         .map_err(|e| anyhow::anyhow!("Failed to save {:?}: {}", args.output, e))?;
 
-    Ok(())
-}
-
-fn cmd_composite(args: CompositeArgs) -> anyhow::Result<()> {
-    let base = image::open(&args.base)
-        .map_err(|e| anyhow::anyhow!("Failed to open base {:?}: {}", args.base, e))?
-        .to_rgb8();
-
-    let over = image::open(&args.overlay)
-        .map_err(|e| anyhow::anyhow!("Failed to open overlay {:?}: {}", args.overlay, e))?
-        .to_rgb8();
-
-    let result = overlay::composite(&base, &over);
-    result.save(&args.output)
-        .map_err(|e| anyhow::anyhow!("Failed to save {:?}: {}", args.output, e))?;
-
-    Ok(())
-}
-
-fn cmd_generate_overlays(args: GenerateOverlaysArgs) -> anyhow::Result<()> {
-    let count = overlay::generate_all(&args.output, args.size)?;
-    eprintln!("Generated {} overlay images in {:?}", count, args.output);
     Ok(())
 }

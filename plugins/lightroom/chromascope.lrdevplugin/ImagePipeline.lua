@@ -8,17 +8,11 @@ local LrPathUtils     = import "LrPathUtils"
 ImagePipeline = {}
 
 local _tempDir = LrPathUtils.getStandardFilePath("temp")
-local _frame   = 0
 local _busy    = false
 local _pendingRefresh = false
 
--- Base scope path (no overlay) — persists between overlay swaps
-local _baseScopePath = LrPathUtils.child(_tempDir, "chromascope_base.jpg")
-
--- Display paths alternate to force f:picture reload
-local function displayPath(n)
-  return LrPathUtils.child(_tempDir, string.format("chromascope_display_%d.jpg", n))
-end
+-- Single fixed output path — no frame alternation
+local _scopePath = LrPathUtils.child(_tempDir, "chromascope_scope.jpg")
 
 local function getBinary()
   local pluginDir = _PLUGIN.path
@@ -39,46 +33,13 @@ local function binary()
   return _binary
 end
 
--- Resolve the overlay JPEG path for a given scheme and rotation.
-local function overlayPath(scheme, rotation)
-  return LrPathUtils.child(
-    LrPathUtils.child(
-      LrPathUtils.child(_PLUGIN.path, "overlays"),
-      scheme
-    ),
-    string.format("%03d.jpg", rotation % 360)
-  )
+function ImagePipeline.scopePath()
+  return _scopePath
 end
 
--- Swap the display frame and update the picture binding.
-local function swapDisplay(props, sourcePath)
-  local nextFrame = 1 - _frame
-  local outPath = displayPath(nextFrame)
-
-  -- Copy source to display path (or it IS the source if no overlay)
-  local f_in = io.open(sourcePath, "rb")
-  if not f_in then return end
-  local data = f_in:read("*all")
-  f_in:close()
-
-  local f_out = io.open(outPath, "wb")
-  if not f_out then return end
-  f_out:write(data)
-  f_out:close()
-
-  local oldPath = displayPath(_frame)
-  _frame = nextFrame
-  props.imagePath = outPath
-
-  if LrFileUtils.exists(oldPath) then
-    LrFileUtils.delete(oldPath)
-  end
-end
-
--- Render placeholder (empty scope).
 function ImagePipeline.ensurePlaceholder(props)
-  if LrFileUtils.exists(_baseScopePath) then
-    swapDisplay(props, _baseScopePath)
+  if LrFileUtils.exists(_scopePath) then
+    props.imagePath = _scopePath
     props.status = "Ready"
     return
   end
@@ -91,15 +52,13 @@ function ImagePipeline.ensurePlaceholder(props)
 
   LrTasks.execute(string.format(
     '"%s" render --input "%s" --output "%s" --width 8 --height 8 --size 256',
-    binary(), blackRgb, _baseScopePath
+    binary(), blackRgb, _scopePath
   ))
   LrFileUtils.delete(blackRgb)
-
-  swapDisplay(props, _baseScopePath)
+  props.imagePath = _scopePath
   props.status = "Ready"
 end
 
--- Bridge async thumbnail callback to sync task context.
 local function exportThumbnail(photo, outPath)
   local done, ok, errMsg = false, false, nil
   photo:requestJpegThumbnail(256, 256, function(jpegData, reason)
@@ -119,8 +78,8 @@ local function exportThumbnail(photo, outPath)
   return ok, errMsg
 end
 
--- SLOW PATH: Full render (photo/develop changes).
--- Renders base scope, then composites overlay if active.
+-- Full render. Overwrites the fixed scope path in place.
+-- After writing, bumps the imagePath binding to force f:picture reload.
 function ImagePipeline.refresh(props)
   if _busy then
     _pendingRefresh = true
@@ -158,20 +117,29 @@ function ImagePipeline.refresh(props)
     return
   end
 
-  exitCode = LrTasks.execute(string.format(
+  -- Render with optional harmony overlay
+  local renderCmd = string.format(
     '"%s" render --input "%s" --output "%s" --width 128 --height 128 --size 256',
-    bin, rgbPath, _baseScopePath
-  ))
-  LrFileUtils.delete(rgbPath)
+    bin, rgbPath, _scopePath
+  )
+  local scheme = props.scheme
+  if scheme and scheme ~= "none" then
+    renderCmd = renderCmd .. string.format(
+      ' --scheme %s --rotation %d',
+      scheme, math.floor((props.rotation or 0) + 0.5) % 360
+    )
+  end
+  exitCode = LrTasks.execute(renderCmd)
+  -- Keep rgbPath for refreshOverlayOnly to re-use
   if exitCode ~= 0 then
     props.status = string.format("Render failed (%s)", tostring(exitCode))
     _busy = false
     return
   end
 
-  -- Apply overlay if active
-  ImagePipeline.applyOverlay(props)
-
+  -- Force f:picture to re-read by toggling the path binding
+  props.imagePath = nil
+  props.imagePath = _scopePath
   props.status = "Updated"
   _busy = false
 
@@ -181,36 +149,69 @@ function ImagePipeline.refresh(props)
   end
 end
 
--- FAST PATH: Composite base scope + pre-rendered overlay (~3ms).
--- Called on scheme/rotation changes without re-rendering the scope.
-function ImagePipeline.applyOverlay(props)
+-- Fast overlay re-render at reduced resolution (3ms vs 178ms).
+-- Re-uses last decoded RGB. Renders at 128x128 for speed — f:picture upscales.
+function ImagePipeline.refreshOverlayFast(props)
+  if _busy then return end
+  _busy = true
+
+  local rgbPath = LrPathUtils.child(_tempDir, "chromascope_pixels.rgb")
+  local bin     = binary()
+
+  if not LrFileUtils.exists(rgbPath) then
+    _busy = false
+    ImagePipeline.refresh(props)
+    return
+  end
+
+  local renderCmd = string.format(
+    '"%s" render --input "%s" --output "%s" --width 128 --height 128 --size 128',
+    bin, rgbPath, _scopePath
+  )
   local scheme = props.scheme
-  if not scheme or scheme == "none" then
-    -- No overlay — show base scope directly
-    swapDisplay(props, _baseScopePath)
+  if scheme and scheme ~= "none" then
+    renderCmd = renderCmd .. string.format(
+      ' --scheme %s --rotation %d',
+      scheme, math.floor((props.rotation or 0) + 0.5) % 360
+    )
+  end
+  LrTasks.execute(renderCmd)
+
+  props.imagePath = nil
+  props.imagePath = _scopePath
+  _busy = false
+end
+
+-- Full-quality overlay re-render at native resolution.
+-- Called after slider stops to sharpen the image.
+function ImagePipeline.refreshOverlayFull(props)
+  if _busy then return end
+  _busy = true
+
+  local rgbPath = LrPathUtils.child(_tempDir, "chromascope_pixels.rgb")
+  local bin     = binary()
+
+  if not LrFileUtils.exists(rgbPath) then
+    _busy = false
     return
   end
 
-  local rotation = math.floor((props.rotation or 0) + 0.5) % 360
-  local ovPath = overlayPath(scheme, rotation)
-
-  if not LrFileUtils.exists(ovPath) then
-    swapDisplay(props, _baseScopePath)
-    return
+  local renderCmd = string.format(
+    '"%s" render --input "%s" --output "%s" --width 128 --height 128 --size 256',
+    bin, rgbPath, _scopePath
+  )
+  local scheme = props.scheme
+  if scheme and scheme ~= "none" then
+    renderCmd = renderCmd .. string.format(
+      ' --scheme %s --rotation %d',
+      scheme, math.floor((props.rotation or 0) + 0.5) % 360
+    )
   end
+  LrTasks.execute(renderCmd)
 
-  local compositePath = LrPathUtils.child(_tempDir, "chromascope_composite.jpg")
-  local exitCode = LrTasks.execute(string.format(
-    '"%s" composite --base "%s" --overlay "%s" --output "%s"',
-    binary(), _baseScopePath, ovPath, compositePath
-  ))
-
-  if exitCode == 0 then
-    swapDisplay(props, compositePath)
-    LrFileUtils.delete(compositePath)
-  else
-    swapDisplay(props, _baseScopePath)
-  end
+  props.imagePath = nil
+  props.imagePath = _scopePath
+  _busy = false
 end
 
 return ImagePipeline

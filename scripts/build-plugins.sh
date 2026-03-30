@@ -97,16 +97,6 @@ if [ -n "$PLATFORM_DIR" ]; then
   ok "Copied decode binary → $PLATFORM_DIR/decode"
 fi
 
-# Generate pre-rendered overlay images (if not already present)
-OVERLAYS_DIR="$LR_DIR/overlays"
-if [ ! -d "$OVERLAYS_DIR/triadic" ]; then
-  info "Generating overlay images (1800 files, ~1s)..."
-  "$DECODE_BIN" generate-overlays --output "$OVERLAYS_DIR" --size 256
-  ok "Generated overlay images → $OVERLAYS_DIR/"
-else
-  ok "Overlay images already exist"
-fi
-
 # ─── Done ────────────────────────────────────────────────────────────────
 
 echo ""
