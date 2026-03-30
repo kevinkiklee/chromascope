@@ -1,12 +1,29 @@
-.superpowers/
+# Dependencies
 node_modules/
+
+# Build output
 dist/
 build/
-.turbo/
-*.tsbuildinfo
-.env*.local
-.vercel
 .next/
 target/
+*.tsbuildinfo
+
+# Turbo
+.turbo/
+
+# Environment
+.env*.local
+
+# Vercel
+.vercel/
+
+# OS
+.DS_Store
+
+# Plugin build artifacts
 plugins/lightroom/chromascope.lrdevplugin/bin/*/decode
 plugins/lightroom/chromascope.lrdevplugin/core/
+plugins/photoshop/core/scope-bundle.js
+
+# Superpowers
+.superpowers/
