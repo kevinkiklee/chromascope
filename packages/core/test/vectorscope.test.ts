@@ -106,4 +106,53 @@ describe("Vectorscope", () => {
     // Different color spaces produce different coordinates
     expect(hslPoint.x).not.toBeCloseTo(ycbcrPoint.x, 2);
   });
+
+  it("initializes with no harmony zones by default", () => {
+    const scope = new Vectorscope();
+    expect(scope.harmonyZones.length).toBe(0);
+  });
+
+  it("computes harmony zones when scheme is set", () => {
+    const scope = new Vectorscope({
+      harmony: {
+        scheme: "triadic",
+        rotation: 0,
+        zoneWidth: 1.0,
+        pullStrengths: [],
+      },
+    });
+    expect(scope.harmonyZones.length).toBe(3);
+  });
+
+  it("recomputes zones when harmony settings change", () => {
+    const scope = new Vectorscope();
+    expect(scope.harmonyZones.length).toBe(0);
+
+    scope.updateSettings({
+      harmony: {
+        scheme: "complementary",
+        rotation: 0,
+        zoneWidth: 1.0,
+        pullStrengths: [],
+      },
+    });
+    expect(scope.harmonyZones.length).toBe(2);
+  });
+
+  it("renders with harmony overlay without error", () => {
+    const scope = new Vectorscope({
+      harmony: {
+        scheme: "analogous",
+        rotation: Math.PI / 4,
+        zoneWidth: 1.5,
+        pullStrengths: [0.8, 0.6, 0.4],
+      },
+    });
+    const ctx = createMockCanvas(300);
+
+    const data = new Uint8Array([255, 0, 0, 0, 255, 0, 0, 0, 255]);
+    scope.setPixels({ data, width: 3, height: 1, colorProfile: "sRGB" });
+
+    expect(() => scope.render(ctx, 300)).not.toThrow();
+  });
 });
