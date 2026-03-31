@@ -87,14 +87,13 @@ local _lastSettingsHash = nil
 local _lastPhotoId = nil
 
 local function hashSettings(photo)
-  -- Numeric hash from photo ID + key develop values.
-  -- Uses arithmetic instead of string concatenation to minimize garbage.
+  -- Simple additive hash — no multiplication overflow.
   local id = photo.localIdentifier or 0
   local settings = photo:getDevelopSettings()
-  if not settings then return id end
+  if not settings then return tostring(id) end
 
-  -- Simple checksum of the most commonly changed sliders
-  local sum = id * 31
+  -- Sum key slider values with position weighting to avoid collisions
+  local sum = id
   local vals = {
     settings.Exposure2012, settings.Contrast2012,
     settings.Highlights2012, settings.Shadows2012,
@@ -111,12 +110,11 @@ local function hashSettings(photo)
     settings.LuminanceAdjustmentBlue,
     settings.SplitToningHighlightHue, settings.SplitToningShadowHue,
   }
-  for _, v in ipairs(vals) do
-    sum = sum * 31 + (v or 0) * 1000
+  for i, v in ipairs(vals) do
+    sum = sum + (v or 0) * i
   end
-  -- Release the settings table reference for GC
   settings = nil
-  return sum
+  return tostring(sum)
 end
 
 -- Check if develop settings changed since last render.

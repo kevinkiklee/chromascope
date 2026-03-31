@@ -36,7 +36,7 @@ fn resolve_zone_color(name: &str) -> Rgb<u8> {
 
 struct Zone {
     center_angle: f64,
-    half_width: f64,
+    _half_width: f64,
 }
 
 fn normalize_angle(a: f64) -> f64 {
@@ -46,7 +46,7 @@ fn normalize_angle(a: f64) -> f64 {
 fn scheme_base_angles(scheme: &str) -> Vec<f64> {
     match scheme {
         "complementary" => vec![0.0, PI],
-        "splitComplementary" => vec![0.0, PI - PI / 6.0, PI + PI / 6.0],
+        "splitComplementary" => vec![0.0, PI - PI / 12.0, PI + PI / 12.0],
         "triadic" => vec![0.0, TWO_PI / 3.0, 2.0 * TWO_PI / 3.0],
         "tetradic" => vec![0.0, PI / 2.0, PI, 3.0 * PI / 2.0],
         "analogous" => vec![0.0, PI / 6.0, -PI / 6.0],
@@ -60,7 +60,7 @@ fn get_zones(config: &HarmonyConfig) -> Vec<Zone> {
         .into_iter()
         .map(|angle| Zone {
             center_angle: normalize_angle(angle + rotation),
-            half_width: BASE_HALF_WIDTH,
+            _half_width: BASE_HALF_WIDTH,
         })
         .collect()
 }
@@ -350,7 +350,7 @@ pub fn render_vectorscope(
     img
 }
 
-/// Draw harmony zone edges with connecting arcs along the outer rim.
+/// Draw harmony zone edges as lines from center to rim (matching Photoshop plugin style).
 fn draw_harmony_zones(
     img: &mut RgbImage,
     zones: &[Zone],
@@ -359,78 +359,101 @@ fn draw_harmony_zones(
     size: u32,
     color: Rgb<u8>,
 ) {
-    for zone in zones {
-        let start = -(zone.center_angle + zone.half_width);
-        let end = -(zone.center_angle - zone.half_width);
+    for (i, zone) in zones.iter().enumerate() {
+        let mid = -(zone.center_angle);
+        draw_soft_line(img, center, radius, mid, size, color, 0.7);
 
-        // Radial edge lines (1px core + soft edges)
-        draw_soft_line(img, center, radius, start, size, color, 0.7);
-        draw_soft_line(img, center, radius, end, size, color, 0.7);
-
-        // Connecting arc along the outer rim
-        draw_arc(img, center, radius, start, end, size, color, 0.7);
+        // First zone is the key — draw arrowhead at the rim
+        if i == 0 {
+            draw_arrowhead(img, center, radius, mid, size, color, 0.85);
+        }
     }
 }
 
-/// Draw a line from center to rim: 1px core with soft 0.25-alpha edges.
-fn draw_soft_line(img: &mut RgbImage, center: f64, radius: f64, angle: f64, size: u32, color: Rgb<u8>, alpha: f64) {
-    let steps = (radius * 2.0) as u32;
-    let cos_a = angle.cos();
-    let sin_a = angle.sin();
-    let perp_x = -sin_a;
-    let perp_y = cos_a;
+/// Draw a small arrowhead at the tip of a line near the outer rim.
+fn draw_arrowhead(img: &mut RgbImage, center: f64, radius: f64, angle: f64, size: u32, color: Rgb<u8>, alpha: f64) {
+    let tip_r = radius * 0.92;
+    let arrow_len = radius * 0.08;
+    let arrow_half_w = radius * 0.03;
 
-    for step in 0..steps {
-        let t = step as f64 / steps as f64;
-        let r = radius * t;
-        let base_x = center + r * cos_a;
-        let base_y = center + r * sin_a;
+    let tip_x = center + tip_r * angle.cos();
+    let tip_y = center + tip_r * angle.sin();
 
-        // Center pixel
-        let px = base_x as u32;
-        let py = base_y as u32;
-        if px < size && py < size {
-            blend_pixel(img, px, py, color, alpha);
-        }
-        // Soft edges
-        for offset in &[-1.0_f64, 1.0] {
-            let ex = (base_x + perp_x * offset) as u32;
-            let ey = (base_y + perp_y * offset) as u32;
-            if ex < size && ey < size {
-                blend_pixel(img, ex, ey, color, alpha * 0.25);
+    // Two base points of the triangle, spread perpendicular to the line
+    let base_r = tip_r - arrow_len;
+    let perp_x = -angle.sin();
+    let perp_y = angle.cos();
+
+    let base_cx = center + base_r * angle.cos();
+    let base_cy = center + base_r * angle.sin();
+
+    let b1_x = base_cx + perp_x * arrow_half_w;
+    let b1_y = base_cy + perp_y * arrow_half_w;
+    let b2_x = base_cx - perp_x * arrow_half_w;
+    let b2_y = base_cy - perp_y * arrow_half_w;
+
+    // Fill the triangle by scanning a bounding box
+    let min_x = tip_x.min(b1_x).min(b2_x).floor() as i32 - 1;
+    let max_x = tip_x.max(b1_x).max(b2_x).ceil() as i32 + 1;
+    let min_y = tip_y.min(b1_y).min(b2_y).floor() as i32 - 1;
+    let max_y = tip_y.max(b1_y).max(b2_y).ceil() as i32 + 1;
+
+    for py in min_y..=max_y {
+        for px in min_x..=max_x {
+            if px < 0 || py < 0 || px as u32 >= size || py as u32 >= size { continue; }
+            let fx = px as f64;
+            let fy = py as f64;
+
+            // Barycentric test: is (fx, fy) inside triangle (tip, b1, b2)?
+            let d1 = (fx - b2_x) * (b1_y - b2_y) - (b1_x - b2_x) * (fy - b2_y);
+            let d2 = (fx - tip_x) * (b2_y - tip_y) - (b2_x - tip_x) * (fy - tip_y);
+            let d3 = (fx - b1_x) * (tip_y - b1_y) - (tip_x - b1_x) * (fy - b1_y);
+
+            let has_neg = d1 < 0.0 || d2 < 0.0 || d3 < 0.0;
+            let has_pos = d1 > 0.0 || d2 > 0.0 || d3 > 0.0;
+
+            if !(has_neg && has_pos) {
+                blend_pixel(img, px as u32, py as u32, color, alpha);
             }
         }
     }
 }
 
-/// Draw an arc between two angles along the outer rim (always takes the short path).
-#[allow(clippy::too_many_arguments)]
-fn draw_arc(img: &mut RgbImage, center: f64, radius: f64, start: f64, end: f64, size: u32, color: Rgb<u8>, alpha: f64) {
-    let mut sweep = end - start;
-    // Normalize to [-PI, PI] so we always take the short path
-    while sweep > PI { sweep -= TWO_PI; }
-    while sweep < -PI { sweep += TWO_PI; }
+/// Draw an anti-aliased line from center to rim using Wu's algorithm approach.
+fn draw_soft_line(img: &mut RgbImage, center: f64, radius: f64, angle: f64, size: u32, color: Rgb<u8>, alpha: f64) {
+    let x0 = center;
+    let y0 = center;
+    let x1 = center + radius * angle.cos();
+    let y1 = center + radius * angle.sin();
 
-    let circumference = (radius * sweep.abs()) as u32;
-    let steps = circumference.max(60);
+    let dx = (x1 - x0).abs();
+    let dy = (y1 - y0).abs();
+    let steps = dx.max(dy).ceil() as u32;
+    if steps == 0 { return; }
 
-    for step in 0..=steps {
-        let t = step as f64 / steps as f64;
-        let angle = start + sweep * t;
+    let x_step = (x1 - x0) / steps as f64;
+    let y_step = (y1 - y0) / steps as f64;
 
-        // Center pixel
-        let px = (center + radius * angle.cos()) as u32;
-        let py = (center + radius * angle.sin()) as u32;
-        if px < size && py < size {
-            blend_pixel(img, px, py, color, alpha);
-        }
-        // Soft inner/outer edges
-        for r_offset in &[-2.0_f64, -1.0, 1.0, 2.0] {
-            let r = radius + r_offset;
-            let ex = (center + r * angle.cos()) as u32;
-            let ey = (center + r * angle.sin()) as u32;
-            if ex < size && ey < size {
-                blend_pixel(img, ex, ey, color, alpha * 0.25);
+    for i in 0..=steps {
+        let fx = x0 + x_step * i as f64;
+        let fy = y0 + y_step * i as f64;
+
+        let ix = fx.floor() as i32;
+        let iy = fy.floor() as i32;
+        let frac_x = fx - fx.floor();
+        let frac_y = fy - fy.floor();
+
+        // Anti-aliased: distribute alpha across 4 neighboring pixels
+        let weights = [
+            (ix, iy, (1.0 - frac_x) * (1.0 - frac_y)),
+            (ix + 1, iy, frac_x * (1.0 - frac_y)),
+            (ix, iy + 1, (1.0 - frac_x) * frac_y),
+            (ix + 1, iy + 1, frac_x * frac_y),
+        ];
+
+        for &(px, py, w) in &weights {
+            if px >= 0 && py >= 0 && (px as u32) < size && (py as u32) < size && w > 0.01 {
+                blend_pixel(img, px as u32, py as u32, color, alpha * w);
             }
         }
     }
