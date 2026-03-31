@@ -80,7 +80,8 @@ struct ScopePoint {
 fn map_ycbcr(r: f64, g: f64, b: f64) -> (f64, f64) {
     let cb = -0.168736 * r - 0.331264 * g + 0.500000 * b;
     let cr =  0.500000 * r - 0.418688 * g - 0.081312 * b;
-    (cb / 128.0, cr / 128.0)
+    // Scale by 1.33x so typical saturation fills to the outer ring
+    (cb / 96.0, cr / 96.0)
 }
 
 /// sRGB linearization (inverse gamma).
@@ -310,6 +311,7 @@ fn render_heatmap(img: &mut RgbImage, points: &[ScopePoint], size: u32) {
     }
 }
 
+#[allow(clippy::too_many_arguments)]
 pub fn render_vectorscope(
     rgb_data: &[u8],
     width: u32,
@@ -402,6 +404,7 @@ fn draw_soft_line(img: &mut RgbImage, center: f64, radius: f64, angle: f64, size
 }
 
 /// Draw an arc between two angles along the outer rim (always takes the short path).
+#[allow(clippy::too_many_arguments)]
 fn draw_arc(img: &mut RgbImage, center: f64, radius: f64, start: f64, end: f64, size: u32, color: Rgb<u8>, alpha: f64) {
     let mut sweep = end - start;
     // Normalize to [-PI, PI] so we always take the short path
@@ -471,10 +474,9 @@ fn draw_degree_markers(img: &mut RgbImage, center: f64, radius: f64, size: u32) 
         [[1,1,1],[1,0,1],[1,1,1],[0,0,1],[1,1,1]], // 9
     ];
 
-    let scale = 2; // 2x rendering scale
-    let digit_w = 3 * scale;
-    let digit_h = 5 * scale;
-    let char_w = digit_w + scale; // digit width + spacing
+    let scale: i32 = 2; // 2x rendering scale
+    let digit_h: i32 = 5 * scale;
+    let char_w: i32 = 3 * scale + scale; // digit width + spacing
 
     for i in 0..12 {
         let deg = i * 30;
@@ -482,7 +484,7 @@ fn draw_degree_markers(img: &mut RgbImage, center: f64, radius: f64, size: u32) 
 
         // Tick mark at the outer rim
         let tick_inner = radius * 0.94;
-        let tick_outer = radius * 1.0;
+        let tick_outer = radius;
         let steps = ((tick_outer - tick_inner) * 2.5) as u32;
         for step in 0..steps {
             let t = step as f64 / steps as f64;
@@ -501,22 +503,22 @@ fn draw_degree_markers(img: &mut RgbImage, center: f64, radius: f64, size: u32) 
 
         // Render degree number at 2x scale
         let text = format!("{}", deg);
-        let total_w = text.len() as i32 * char_w as i32 - scale as i32;
+        let total_w = text.len() as i32 * char_w - scale;
         let start_x = label_cx as i32 - total_w / 2;
-        let start_y = label_cy as i32 - digit_h as i32 / 2;
+        let start_y = label_cy as i32 - digit_h / 2;
 
         for (ci, ch) in text.chars().enumerate() {
             let d = (ch as u8 - b'0') as usize;
             if d > 9 { continue; }
             let bitmap = &digits[d];
-            for row in 0..5 {
-                for col in 0..3 {
-                    if bitmap[row][col] == 1 {
+            for (row, bitmap_row) in bitmap.iter().enumerate() {
+                for (col, &pixel) in bitmap_row.iter().enumerate() {
+                    if pixel == 1 {
                         // Draw a scale x scale block for each pixel
                         for sy in 0..scale {
                             for sx in 0..scale {
-                                let px = start_x + ci as i32 * char_w as i32 + col as i32 * scale as i32 + sx as i32;
-                                let py = start_y + row as i32 * scale as i32 + sy as i32;
+                                let px = start_x + ci as i32 * char_w + col as i32 * scale + sx;
+                                let py = start_y + row as i32 * scale + sy;
                                 if px >= 0 && py >= 0 && (px as u32) < size && (py as u32) < size {
                                     blend_pixel(img, px as u32, py as u32, LABEL, 0.85);
                                 }

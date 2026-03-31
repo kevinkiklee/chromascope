@@ -117,13 +117,13 @@ function ChromascopeDialog.show(context)
     ImagePipeline.ensurePlaceholder(props)
     ImagePipeline.refresh(props)
     while not stopRefresh do
-      LrTasks.sleep(1)
+      LrTasks.sleep(2)
       if not stopRefresh then
         if ImagePipeline.settingsChanged() then
-          -- Settings changed — full pipeline (thumbnail + decode + render)
+          -- Develop settings changed — full pipeline with new thumbnail
           ImagePipeline.refresh(props)
         else
-          -- No change — cheap re-render for overlay updates only
+          -- No develop change — re-render with cached RGB for overlay updates
           ImagePipeline.refreshOverlayFull(props)
         end
       end

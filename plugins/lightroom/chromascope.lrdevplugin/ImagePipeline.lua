@@ -87,45 +87,36 @@ local _lastSettingsHash = nil
 local _lastPhotoId = nil
 
 local function hashSettings(photo)
-  -- Build a simple string hash from photo ID + key develop values
+  -- Numeric hash from photo ID + key develop values.
+  -- Uses arithmetic instead of string concatenation to minimize garbage.
   local id = photo.localIdentifier or 0
   local settings = photo:getDevelopSettings()
-  if not settings then return tostring(id) end
+  if not settings then return id end
 
-  -- Hash the most commonly changed sliders
-  local parts = {
-    tostring(id),
-    tostring(settings.Exposure2012 or 0),
-    tostring(settings.Contrast2012 or 0),
-    tostring(settings.Highlights2012 or 0),
-    tostring(settings.Shadows2012 or 0),
-    tostring(settings.Whites2012 or 0),
-    tostring(settings.Blacks2012 or 0),
-    tostring(settings.Clarity2012 or 0),
-    tostring(settings.Vibrance or 0),
-    tostring(settings.Saturation or 0),
-    tostring(settings.HueAdjustmentRed or 0),
-    tostring(settings.HueAdjustmentOrange or 0),
-    tostring(settings.HueAdjustmentYellow or 0),
-    tostring(settings.HueAdjustmentGreen or 0),
-    tostring(settings.HueAdjustmentAqua or 0),
-    tostring(settings.HueAdjustmentBlue or 0),
-    tostring(settings.HueAdjustmentPurple or 0),
-    tostring(settings.SaturationAdjustmentRed or 0),
-    tostring(settings.SaturationAdjustmentOrange or 0),
-    tostring(settings.SaturationAdjustmentYellow or 0),
-    tostring(settings.SaturationAdjustmentGreen or 0),
-    tostring(settings.SaturationAdjustmentBlue or 0),
-    tostring(settings.LuminanceAdjustmentRed or 0),
-    tostring(settings.LuminanceAdjustmentOrange or 0),
-    tostring(settings.LuminanceAdjustmentYellow or 0),
-    tostring(settings.LuminanceAdjustmentGreen or 0),
-    tostring(settings.LuminanceAdjustmentBlue or 0),
-    tostring(settings.WhiteBalance or ""),
-    tostring(settings.SplitToningHighlightHue or 0),
-    tostring(settings.SplitToningShadowHue or 0),
+  -- Simple checksum of the most commonly changed sliders
+  local sum = id * 31
+  local vals = {
+    settings.Exposure2012, settings.Contrast2012,
+    settings.Highlights2012, settings.Shadows2012,
+    settings.Whites2012, settings.Blacks2012,
+    settings.Clarity2012, settings.Vibrance, settings.Saturation,
+    settings.HueAdjustmentRed, settings.HueAdjustmentOrange,
+    settings.HueAdjustmentYellow, settings.HueAdjustmentGreen,
+    settings.HueAdjustmentBlue, settings.HueAdjustmentPurple,
+    settings.SaturationAdjustmentRed, settings.SaturationAdjustmentOrange,
+    settings.SaturationAdjustmentYellow, settings.SaturationAdjustmentGreen,
+    settings.SaturationAdjustmentBlue,
+    settings.LuminanceAdjustmentRed, settings.LuminanceAdjustmentOrange,
+    settings.LuminanceAdjustmentYellow, settings.LuminanceAdjustmentGreen,
+    settings.LuminanceAdjustmentBlue,
+    settings.SplitToningHighlightHue, settings.SplitToningShadowHue,
   }
-  return table.concat(parts, "|")
+  for _, v in ipairs(vals) do
+    sum = sum * 31 + (v or 0) * 1000
+  end
+  -- Release the settings table reference for GC
+  settings = nil
+  return sum
 end
 
 -- Check if develop settings changed since last render.
