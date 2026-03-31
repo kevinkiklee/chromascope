@@ -19,6 +19,7 @@ local _savedRotation     = 0
 local _savedSkinTone     = false
 local _savedOverlayColor = "yellow"
 local _savedDensity      = "scatter"
+local _savedColorSpace   = "ycbcr"
 local _reopening         = false
 
 function ChromascopeDialog.show(context)
@@ -33,6 +34,7 @@ function ChromascopeDialog.show(context)
   props.skinTone     = _savedSkinTone
   props.overlayColor = _savedOverlayColor
   props.density      = _savedDensity
+  props.colorSpace   = _savedColorSpace
   props.scopeSize    = tostring(_savedSize)
 
   local stopRefresh = false
@@ -78,6 +80,17 @@ function ChromascopeDialog.show(context)
     end)
   end)
 
+  -- Color space change: full re-render (different mapping algorithm)
+  props:addObserver("colorSpace", function()
+    _savedColorSpace = props.colorSpace
+    _settleVersion = _settleVersion + 1
+    local sv = _settleVersion
+    LrTasks.startAsyncTask(function()
+      if sv ~= _settleVersion then return end
+      ImagePipeline.refresh(props)
+    end)
+  end)
+
   -- Size change: save all state and reopen
   props:addObserver("scopeSize", function()
     local newSize = tonumber(props.scopeSize) or 500
@@ -88,6 +101,7 @@ function ChromascopeDialog.show(context)
       _savedSkinTone     = props.skinTone
       _savedOverlayColor = props.overlayColor
       _savedDensity      = props.density
+      _savedColorSpace   = props.colorSpace
       _reopening         = true
       stopRefresh        = true
       LrDialogs.stopModalWithResult(props, "reopen")
@@ -124,16 +138,19 @@ function ChromascopeDialog.show(context)
   end)
 
   local picSize = _savedSize
-  local labelW = 55
-  local labelColor = LrColor(0.4, 0.4, 0.4)
+  local labelW = 95
+  local labelColor = LrColor(0.35, 0.35, 0.35)
+  local rbFont = "<system/small>"
 
   local contents = f:column {
     bind_to_object = props,
-    spacing = 2,
-    margin_left = 8,
-    margin_right = 8,
-    margin_bottom = 6,
+    spacing = f:control_spacing(),
+    margin_left = 10,
+    margin_right = 10,
+    margin_bottom = 10,
+    margin_top = 2,
 
+    -- Vectorscope
     f:picture {
       value       = bind "imagePath",
       width       = picSize,
@@ -141,108 +158,51 @@ function ChromascopeDialog.show(context)
       frame_color = LrColor(0, 0, 0),
     },
 
+    f:spacer { height = 6 },
+    f:separator { fill_horizontal = 1 },
     f:spacer { height = 4 },
 
-    -- Row 1: Harmony + Size
+    -- Color Scheme (radio buttons, 2 rows)
     f:row {
       spacing = f:label_spacing(),
       f:static_text {
-        title = "Harmony",
+        title = "Color Scheme",
         width = labelW,
-        font  = "<system/small>",
+        font  = rbFont,
         text_color = labelColor,
       },
-      f:popup_menu {
-        value = bind "scheme",
-        width = 150,
-        font  = "<system/small>",
-        items = {
-          { title = "None",                value = "none" },
-          { title = "Complementary",       value = "complementary" },
-          { title = "Split Complementary", value = "splitComplementary" },
-          { title = "Triadic",             value = "triadic" },
-          { title = "Tetradic",            value = "tetradic" },
-          { title = "Analogous",           value = "analogous" },
+      f:column {
+        spacing = 1,
+        f:row {
+          spacing = f:label_spacing(),
+          f:radio_button { value = bind "scheme", title = "None",   checked_value = "none",   font = rbFont },
+          f:radio_button { value = bind "scheme", title = "Comp.",  checked_value = "complementary", font = rbFont },
+          f:radio_button { value = bind "scheme", title = "Split",  checked_value = "splitComplementary", font = rbFont },
         },
-      },
-      f:popup_menu {
-        value = bind "scopeSize",
-        width = 68,
-        font  = "<system/small>",
-        items = {
-          { title = "S",  value = "250" },
-          { title = "M",  value = "500" },
-          { title = "L",  value = "700" },
+        f:row {
+          spacing = f:label_spacing(),
+          f:radio_button { value = bind "scheme", title = "Triadic",   checked_value = "triadic",   font = rbFont },
+          f:radio_button { value = bind "scheme", title = "Tetradic",  checked_value = "tetradic",  font = rbFont },
+          f:radio_button { value = bind "scheme", title = "Analogous", checked_value = "analogous", font = rbFont },
         },
       },
     },
 
-    -- Row 2: Density
-    f:row {
-      spacing = f:label_spacing(),
-      f:static_text {
-        title = "Density",
-        width = labelW,
-        font  = "<system/small>",
-        text_color = labelColor,
-      },
-      f:popup_menu {
-        value = bind "density",
-        width = 150,
-        font  = "<system/small>",
-        items = {
-          { title = "Scatter",  value = "scatter" },
-          { title = "Heatmap",  value = "heatmap" },
-          { title = "Bloom",    value = "bloom" },
-        },
-      },
-    },
+    f:spacer { height = 2 },
 
-    -- Row 3: Rotation
+    -- Overlay Color
     f:row {
       spacing = f:label_spacing(),
       f:static_text {
-        title = "Rotation",
+        title = "Overlay Color",
         width = labelW,
-        font  = "<system/small>",
+        font  = rbFont,
         text_color = labelColor,
-      },
-      f:slider {
-        value    = bind "rotation",
-        min      = 0,
-        max      = 359,
-        integral = true,
-        width    = 160,
-      },
-      f:edit_field {
-        value       = bind "rotation",
-        width_in_digits = 3,
-        min         = 0,
-        max         = 359,
-        increment   = 1,
-        precision   = 0,
-        font        = "<system/small>",
-      },
-    },
-
-    -- Row 3: Options
-    f:row {
-      spacing = f:label_spacing(),
-      f:static_text {
-        title = "Options",
-        width = labelW,
-        font  = "<system/small>",
-        text_color = labelColor,
-      },
-      f:checkbox {
-        value = bind "skinTone",
-        title = "Skin tone",
-        font  = "<system/small>",
       },
       f:popup_menu {
         value = bind "overlayColor",
-        width = 80,
-        font  = "<system/small>",
+        width = 100,
+        font  = rbFont,
         items = {
           { title = "Yellow",  value = "yellow" },
           { title = "Cyan",    value = "cyan" },
@@ -251,6 +211,121 @@ function ChromascopeDialog.show(context)
           { title = "Orange",  value = "orange" },
           { title = "White",   value = "white" },
         },
+      },
+    },
+
+    f:spacer { height = 2 },
+
+    -- Rotation
+    f:row {
+      spacing = f:label_spacing(),
+      f:static_text {
+        title = "Rotation",
+        width = labelW,
+        font  = rbFont,
+        text_color = labelColor,
+      },
+      f:slider {
+        value    = bind "rotation",
+        min      = 0,
+        max      = 359,
+        integral = true,
+        width    = 120,
+      },
+      f:edit_field {
+        value       = bind "rotation",
+        width_in_digits = 3,
+        min         = 0,
+        max         = 359,
+        increment   = 1,
+        precision   = 0,
+        font        = rbFont,
+      },
+    },
+
+    f:spacer { height = 6 },
+    f:separator { fill_horizontal = 1 },
+    f:spacer { height = 4 },
+
+    -- Color Space
+    f:row {
+      spacing = f:label_spacing(),
+      f:static_text {
+        title = "Color Space",
+        width = labelW,
+        font  = rbFont,
+        text_color = labelColor,
+      },
+      f:popup_menu {
+        value = bind "colorSpace",
+        width = 100,
+        font  = rbFont,
+        items = {
+          { title = "YCbCr",    value = "ycbcr" },
+          { title = "CIE LUV",  value = "cieluv" },
+          { title = "HSL",      value = "hsl" },
+        },
+      },
+    },
+
+    f:spacer { height = 2 },
+
+    -- Density (radio buttons in isolated view)
+    f:row {
+      spacing = f:label_spacing(),
+      f:static_text {
+        title = "Density",
+        width = labelW,
+        font  = rbFont,
+        text_color = labelColor,
+      },
+      f:view {
+        bind_to_object = props,
+        f:row {
+          spacing = f:label_spacing(),
+          f:radio_button { value = bind "density", title = "Scatter", checked_value = "scatter", font = rbFont },
+          f:radio_button { value = bind "density", title = "Heatmap", checked_value = "heatmap", font = rbFont },
+          f:radio_button { value = bind "density", title = "Bloom",   checked_value = "bloom",   font = rbFont },
+        },
+      },
+    },
+
+    f:spacer { height = 2 },
+
+    f:row {
+      spacing = f:label_spacing(),
+      f:static_text {
+        title = "Size",
+        width = labelW,
+        font  = rbFont,
+        text_color = labelColor,
+      },
+      f:popup_menu {
+        value = bind "scopeSize",
+        width = 120,
+        font  = rbFont,
+        items = {
+          { title = "Small (250px)",   value = "250" },
+          { title = "Medium (500px)",  value = "500" },
+          { title = "Large (700px)",   value = "700" },
+        },
+      },
+    },
+
+    f:spacer { height = 2 },
+
+    -- Skin color indicator
+    f:row {
+      spacing = f:label_spacing(),
+      f:static_text {
+        title = "",
+        width = labelW,
+        font  = rbFont,
+      },
+      f:checkbox {
+        value = bind "skinTone",
+        title = "Skin color indicator",
+        font  = rbFont,
       },
     },
   }
@@ -268,6 +343,7 @@ function ChromascopeDialog.show(context)
           _savedSkinTone     = props.skinTone
           _savedOverlayColor = props.overlayColor
           _savedDensity      = props.density
+          _savedColorSpace   = props.colorSpace
         end
       end,
       resizable = false,

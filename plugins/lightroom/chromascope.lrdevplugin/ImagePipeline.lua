@@ -66,6 +66,10 @@ local function appendOverlayFlags(cmd, props)
   if density and density ~= "" and density ~= "scatter" then
     cmd = cmd .. string.format(' --density %s', density)
   end
+  local colorSpace = props.colorSpace
+  if colorSpace and colorSpace ~= "" and colorSpace ~= "ycbcr" then
+    cmd = cmd .. string.format(' --color-space %s', colorSpace)
+  end
   return cmd
 end
 

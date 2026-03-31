@@ -119,18 +119,24 @@ Lightroom's Lua SDK does not support embedded WebViews. Instead, the Rust `decod
 Lightroom Plugin (Lua)
   |-- requestJpegThumbnail  -->  JPEG thumbnail
   |-- decode decode         -->  raw RGB bytes
-  |-- decode render         -->  vectorscope JPEG (scatter plot + graticule + skin tone line)
+  |-- decode render         -->  vectorscope JPEG (configurable color space, density, harmony)
   |-- f:picture             -->  displays rendered JPEG in dialog
 ```
 
-The vectorscope image updates automatically when develop sliders change via `LrDevelopController.addAdjustmentChangeObserver`. A busy-guard with coalescing prevents overlapping renders.
+The vectorscope image updates automatically when develop sliders change via `LrDevelopController.addAdjustmentChangeObserver`. A busy-guard with coalescing prevents overlapping renders. Frame alternation (`scope_0.jpg` / `scope_1.jpg`) forces `f:picture` to release cached images and prevents memory leaks.
 
 ### Rust decode binary
 
 The binary has two subcommands:
 
 - `decode decode` -- Decodes JPEG/TIFF to raw RGB bytes (used by both Photoshop and Lightroom pipelines)
-- `decode render` -- Renders a vectorscope JPEG from raw RGB data (YCbCr BT.601 scatter plot, graticule, skin tone line)
+- `decode render` -- Renders a vectorscope JPEG from raw RGB data with configurable options:
+  - `--color-space` -- YCbCr BT.601 (default), CIE LUV, or HSL
+  - `--density` -- Scatter (default), heatmap, or bloom rendering
+  - `--scheme` -- Harmony overlay (complementary, triadic, etc.)
+  - `--rotation` -- Harmony rotation in degrees
+  - `--overlay-color` -- Zone line color (yellow, cyan, etc.)
+  - `--hide-skin-tone` -- Disable skin tone reference line
 
 ## License
 

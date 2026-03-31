@@ -77,7 +77,7 @@ npm run test:watch   # Vitest in watch mode
 
 ### Decode Binary (`packages/decode`)
 
-Rust CLI that converts JPEG/TIFF images to raw RGB bytes. Used by the Lightroom plugin (which can't read pixels from Lua).
+Rust CLI that decodes images and renders vectorscopes. Used by the Lightroom plugin (which can't read pixels or draw from Lua). Supports configurable color spaces (YCbCr, CIE LUV, HSL), density modes (scatter, heatmap, bloom), and harmony overlays.
 
 ```sh
 cd packages/decode
@@ -136,9 +136,9 @@ Lua plugin for Lightroom Classic. Uses the decode binary to read pixel data.
 
 **Key files**:
 - `Info.lua` -- Plugin metadata and menu registration
-- `ShowVectorscope.lua` -- Main dialog launcher
-- `VectorscopeDialog.lua` -- WebView container
-- `ImagePipeline.lua` -- Thumbnail export and decode binary invocation
+- `ShowChromaScope.lua` -- Main dialog launcher
+- `ChromaScopeDialog.lua` -- Floating dialog with vectorscope, controls (color space, density, harmony, rotation, size)
+- `ImagePipeline.lua` -- Thumbnail export, decode binary invocation, frame alternation
 - `EditBridge.lua` -- Maps edit commands to `LrDevelopController` calls
 - `License.lua` -- License key validation
 
@@ -146,7 +146,7 @@ Lua plugin for Lightroom Classic. Uses the decode binary to read pixel data.
 
 ### Web App (`apps/web`)
 
-Next.js 15 marketing site with licensing API and Stripe integration.
+Next.js 16 marketing site with licensing API and Stripe integration.
 
 ```sh
 cd apps/web
