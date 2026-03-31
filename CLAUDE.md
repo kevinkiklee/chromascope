@@ -62,11 +62,12 @@ npm run lint             # ESLint
 - Lightroom can't embed WebViews or read pixels from Lua.
 - The Rust `decode` binary has two subcommands:
   - `decode decode` -- Decodes JPEG/TIFF to raw RGB bytes
-  - `decode render` -- Renders a vectorscope JPEG from raw RGB (YCbCr BT.601 scatter plot, graticule, skin tone line)
+  - `decode render` -- Renders a vectorscope JPEG from raw RGB with configurable color space (`--color-space ycbcr|cieluv|hsl`), density mode (`--density scatter|heatmap|bloom`), harmony overlay, and skin tone line
 - `ImagePipeline.lua` exports a thumbnail, calls `decode decode`, then `decode render`, and displays the resulting JPEG via `f:picture`.
-- Updates are driven by `LrDevelopController.addAdjustmentChangeObserver` + a 3-second fallback poll.
+- Updates are driven by `LrDevelopController.addAdjustmentChangeObserver` + a fallback poll loop.
 - A busy-guard with coalescing prevents overlapping renders (max 1 queued).
-- Frame alternation (writing to `scope_0.jpg` / `scope_1.jpg`) forces `f:picture` to reload on each update.
+- Frame alternation (writing to `scope_0.jpg` / `scope_1.jpg`) forces `f:picture` to reload on each update. **Do NOT revert to a single-path nil-toggle** -- this causes unbounded memory growth in Lightroom (the original cause of the 40GB memory leak).
+- LrC's Lua sandbox does not expose `collectgarbage` -- do not call it.
 
 ### Licensing
 
@@ -115,8 +116,8 @@ Store in `apps/web/.env.local` (gitignored). Copy from `apps/web/.env.example` o
 ## Code Conventions
 
 - TypeScript strict mode across all packages
-- Vitest for core library tests (73 tests)
-- Rust integration tests via `cargo test --release` (3 tests)
+- Vitest for core library tests
+- Rust integration tests via `cargo test --release` (4 tests)
 - Base tsconfig in `tsconfig.base.json`, extended per package
 - Vite 6 for core library bundling
 - `vite-plugin-singlefile` produces a self-contained HTML for WebView embedding

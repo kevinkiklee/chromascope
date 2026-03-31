@@ -5,6 +5,7 @@ let getDocumentPixels, events, handleEditCommand;
 let isRefreshing = false;
 let statusBar = null;
 let scopeSize = 300;
+let lastPixels = null;
 
 // Software renderer: draws vectorscope into an RGBA pixel buffer
 function renderToBuffer(size, pixels) {
@@ -107,6 +108,36 @@ function renderToBuffer(size, pixels) {
     console.log("[renderScope] drew", total, "points on", size, "buffer");
   }
 
+  // Draw harmony overlay from core settings
+  if (window.__chromascope) {
+    var settings = window.__chromascope.getSettings();
+    if (settings && settings.harmony && settings.harmony.scheme) {
+      var scheme = settings.harmony.scheme;
+      var rot = settings.harmony.rotation || 0;
+      var zoneWidth = settings.harmony.zoneWidth || 1.0;
+
+      // Determine harmony angles based on scheme
+      var angles = [];
+      if (scheme === "complementary") angles = [0, Math.PI];
+      else if (scheme === "splitComplementary") angles = [0, Math.PI * 5/6, Math.PI * 7/6];
+      else if (scheme === "triadic") angles = [0, Math.PI * 2/3, Math.PI * 4/3];
+      else if (scheme === "tetradic") angles = [0, Math.PI/2, Math.PI, Math.PI * 3/2];
+      else if (scheme === "analogous") angles = [0, Math.PI/6, -Math.PI/6];
+
+      // Draw zone lines
+      for (var ai = 0; ai < angles.length; ai++) {
+        var angle = angles[ai] + rot;
+        var steps = Math.round(radius);
+        for (var si = 0; si < steps; si++) {
+          var dist = (si / steps) * radius;
+          var lx = Math.round(half + Math.cos(angle) * dist);
+          var ly = Math.round(half - Math.sin(angle) * dist);
+          setPixel(lx, ly, 0x5a, 0x8f, 0xd5);
+        }
+      }
+    }
+  }
+
   return buf;
 }
 
@@ -161,6 +192,7 @@ async function refresh() {
     const pixels = await getDocumentPixels();
 
     if (pixels) {
+      lastPixels = pixels;
       await renderScope(pixels);
       if (statusBar) statusBar.textContent = `${pixels.width}×${pixels.height} · ${pixels.colorProfile}`;
     } else {
@@ -184,7 +216,42 @@ async function init() {
 
   // Fixed render resolution — CSS width:100% handles display scaling
   scopeSize = 500;
+
   console.log("[main] scopeSize:", scopeSize);
+
+  // After a short delay, measure actual container width and lock its height to match (square)
+  await new Promise(function(resolve) { setTimeout(resolve, 300); });
+  var container = document.getElementById("scope-canvas-container");
+  if (container) {
+    var w = container.clientWidth || container.offsetWidth;
+    if (w > 50) {
+      container.style.height = w + "px";
+      console.log("[main] locked container height:", w);
+    }
+  }
+
+  // Hook core settings changes to re-render via software pipeline (debounced)
+  if (window.__chromascope) {
+    var settingsTimer = null;
+    var settingsRendering = false;
+    var settingsDirty = false;
+    window.__chromascope.onSettingsChanged = function() {
+      if (settingsRendering) { settingsDirty = true; return; }
+      if (settingsTimer) clearTimeout(settingsTimer);
+      settingsTimer = setTimeout(function() {
+        settingsTimer = null;
+        settingsRendering = true;
+        console.log("[main] settings changed, re-rendering");
+        renderScope(lastPixels).then(function() {
+          settingsRendering = false;
+          if (settingsDirty) {
+            settingsDirty = false;
+            window.__chromascope.onSettingsChanged();
+          }
+        });
+      }, 300);
+    };
+  }
 
   // Initial render with no data (just graticule), then fetch pixels
   await renderScope(null);

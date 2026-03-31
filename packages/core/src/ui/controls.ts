@@ -49,11 +49,11 @@ export function createControls(
       const btn = document.createElement("button");
       btn.className = `vs-btn${item.id === activeId ? " active" : ""}`;
       btn.textContent = item.label;
-      btn.dataset.id = item.id;
+      btn.setAttribute("data-vs-id", item.id);
       btn.addEventListener("click", () => {
         onChange(item.id);
         for (const b of group.querySelectorAll(".vs-btn")) {
-          b.classList.toggle("active", (b as HTMLElement).dataset.id === item.id);
+          b.classList.toggle("active", b.getAttribute("data-vs-id") === item.id);
         }
       });
       group.appendChild(btn);

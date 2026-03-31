@@ -73,6 +73,10 @@ pub struct RenderArgs {
     /// Density rendering mode (scatter, heatmap, bloom)
     #[arg(long, default_value = "scatter")]
     density: String,
+
+    /// Color space (ycbcr, cieluv, hsl)
+    #[arg(long, default_value = "ycbcr")]
+    color_space: String,
 }
 
 fn main() -> anyhow::Result<()> {
@@ -116,7 +120,7 @@ fn cmd_render(args: RenderArgs) -> anyhow::Result<()> {
         overlay_color: args.overlay_color.clone(),
     });
 
-    let scope = render::render_vectorscope(&raw, args.width, args.height, args.size, harmony.as_ref(), !args.hide_skin_tone, &args.density);
+    let scope = render::render_vectorscope(&raw, args.width, args.height, args.size, harmony.as_ref(), !args.hide_skin_tone, &args.density, &args.color_space);
 
     scope.save(&args.output)
         .map_err(|e| anyhow::anyhow!("Failed to save {:?}: {}", args.output, e))?;

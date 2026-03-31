@@ -5,7 +5,7 @@ const TWO_PI: f64 = 2.0 * PI;
 
 const BG: Rgb<u8> = Rgb([9, 9, 11]);
 const GRID: Rgb<u8> = Rgb([30, 30, 35]);
-const LABEL: Rgb<u8> = Rgb([70, 70, 75]);
+const LABEL: Rgb<u8> = Rgb([110, 110, 115]);
 const SKIN_TONE: Rgb<u8> = Rgb([180, 120, 60]);
 const SKIN_TONE_ANGLE: f64 = 123.0 * PI / 180.0;
 const ZONE_LINE_WHITE: Rgb<u8> = Rgb([200, 200, 200]);
@@ -74,8 +74,87 @@ struct ScopePoint {
     b: u8,
 }
 
-/// Map RGB pixels to YCbCr vectorscope coordinates.
-fn map_pixels(rgb_data: &[u8], width: u32, height: u32, center: f64, radius: f64) -> Vec<ScopePoint> {
+// ── Color space mapping ──
+
+/// Map a pixel to normalized x,y (-1..1) using YCbCr BT.601.
+fn map_ycbcr(r: f64, g: f64, b: f64) -> (f64, f64) {
+    let cb = -0.168736 * r - 0.331264 * g + 0.500000 * b;
+    let cr =  0.500000 * r - 0.418688 * g - 0.081312 * b;
+    (cb / 128.0, cr / 128.0)
+}
+
+/// sRGB linearization (inverse gamma).
+fn linearize(c: f64) -> f64 {
+    if c <= 0.04045 { c / 12.92 } else { ((c + 0.055) / 1.055).powf(2.4) }
+}
+
+/// Map a pixel to normalized x,y (-1..1) using CIE LUV.
+fn map_cieluv(r: f64, g: f64, b: f64) -> (f64, f64) {
+    const XN: f64 = 0.95047;
+    const YN: f64 = 1.0;
+    const ZN: f64 = 1.08883;
+    const UN: f64 = (4.0 * XN) / (XN + 15.0 * YN + 3.0 * ZN);
+    const VN: f64 = (9.0 * YN) / (XN + 15.0 * YN + 3.0 * ZN);
+    const MAX_CHROMA: f64 = 180.0;
+
+    let rl = linearize(r / 255.0);
+    let gl = linearize(g / 255.0);
+    let bl = linearize(b / 255.0);
+
+    let x_xyz = 0.4124564 * rl + 0.3575761 * gl + 0.1804375 * bl;
+    let y_xyz = 0.2126729 * rl + 0.7151522 * gl + 0.0721750 * bl;
+    let z_xyz = 0.0193339 * rl + 0.1191920 * gl + 0.9503041 * bl;
+
+    let denom = x_xyz + 15.0 * y_xyz + 3.0 * z_xyz;
+    if denom == 0.0 {
+        return (0.0, 0.0);
+    }
+
+    let u_prime = (4.0 * x_xyz) / denom;
+    let v_prime = (9.0 * y_xyz) / denom;
+
+    let yr = y_xyz / YN;
+    let l = if yr > 0.008856 { 116.0 * yr.cbrt() - 16.0 } else { 903.3 * yr };
+
+    let u_star = 13.0 * l * (u_prime - UN);
+    let v_star = 13.0 * l * (v_prime - VN);
+
+    (u_star / MAX_CHROMA, v_star / MAX_CHROMA)
+}
+
+/// Map a pixel to normalized x,y (-1..1) using HSL (hue as angle, saturation as radius).
+fn map_hsl(r: f64, g: f64, b: f64) -> (f64, f64) {
+    let rn = r / 255.0;
+    let gn = g / 255.0;
+    let bn = b / 255.0;
+
+    let max = rn.max(gn).max(bn);
+    let min = rn.min(gn).min(bn);
+    let delta = max - min;
+
+    let l = (max + min) / 2.0;
+    if delta == 0.0 {
+        return (0.0, 0.0);
+    }
+
+    let s = if l <= 0.5 { delta / (max + min) } else { delta / (2.0 - max - min) };
+
+    let hue_seg = if max == rn {
+        ((gn - bn) / delta) % 6.0
+    } else if max == gn {
+        (bn - rn) / delta + 2.0
+    } else {
+        (rn - gn) / delta + 4.0
+    };
+    let hue_rad = (hue_seg / 6.0) * TWO_PI;
+
+    let x = s * hue_rad.cos();
+    let y = s * hue_rad.sin();
+    (x, y)
+}
+
+/// Map RGB pixels to vectorscope coordinates using the specified color space.
+fn map_pixels(rgb_data: &[u8], width: u32, height: u32, center: f64, radius: f64, color_space: &str) -> Vec<ScopePoint> {
     let total = (width * height) as usize;
     let mut points = Vec::with_capacity(total);
 
@@ -85,19 +164,20 @@ fn map_pixels(rgb_data: &[u8], width: u32, height: u32, center: f64, radius: f64
         let g = rgb_data[off + 1] as f64;
         let b = rgb_data[off + 2] as f64;
 
-        let cb = -0.168736 * r - 0.331264 * g + 0.500000 * b;
-        let cr =  0.500000 * r - 0.418688 * g - 0.081312 * b;
+        let (nx, ny) = match color_space {
+            "cieluv" => map_cieluv(r, g, b),
+            "hsl" => map_hsl(r, g, b),
+            _ => map_ycbcr(r, g, b),
+        };
 
-        let norm_cb = cb / 128.0;
-        let norm_cr = cr / 128.0;
-        let dist = (norm_cb * norm_cb + norm_cr * norm_cr).sqrt();
+        let dist = (nx * nx + ny * ny).sqrt();
         if dist > 1.0 {
             continue;
         }
 
         points.push(ScopePoint {
-            px: center + norm_cb * radius,
-            py: center - norm_cr * radius,
+            px: center + nx * radius,
+            py: center - ny * radius,
             r: (r * 0.8 + 80.0).min(255.0) as u8,
             g: (g * 0.8 + 80.0).min(255.0) as u8,
             b: (b * 0.8 + 80.0).min(255.0) as u8,
@@ -238,10 +318,11 @@ pub fn render_vectorscope(
     harmony: Option<&HarmonyConfig>,
     show_skin_tone: bool,
     density_mode: &str,
+    color_space: &str,
 ) -> RgbImage {
     let mut img = RgbImage::from_pixel(size, size, BG);
     let center = size as f64 / 2.0;
-    let radius = center * 0.9;
+    let radius = center * 0.82;
 
     if let Some(config) = harmony {
         let zones = get_zones(config);
@@ -256,7 +337,7 @@ pub fn render_vectorscope(
         draw_skin_tone_line(&mut img, center, radius);
     }
 
-    let points = map_pixels(rgb_data, width, height, center, radius);
+    let points = map_pixels(rgb_data, width, height, center, radius, color_space);
 
     match density_mode {
         "bloom" => render_bloom(&mut img, &points, size),
@@ -376,60 +457,53 @@ fn draw_graticule(img: &mut RgbImage, center: f64, radius: f64, size: u32) {
 
 /// Draw degree markers every 30° as small tick marks and labels around the outer rim.
 fn draw_degree_markers(img: &mut RgbImage, center: f64, radius: f64, size: u32) {
-    // Digit bitmaps (3x5 pixels each)
+    // Digit bitmaps (3x5 base, rendered at 2x scale = 6x10 pixels)
     let digits: [[[u8; 3]; 5]; 10] = [
-        // 0
-        [[1,1,1],[1,0,1],[1,0,1],[1,0,1],[1,1,1]],
-        // 1
-        [[0,1,0],[1,1,0],[0,1,0],[0,1,0],[1,1,1]],
-        // 2
-        [[1,1,1],[0,0,1],[1,1,1],[1,0,0],[1,1,1]],
-        // 3
-        [[1,1,1],[0,0,1],[1,1,1],[0,0,1],[1,1,1]],
-        // 4
-        [[1,0,1],[1,0,1],[1,1,1],[0,0,1],[0,0,1]],
-        // 5
-        [[1,1,1],[1,0,0],[1,1,1],[0,0,1],[1,1,1]],
-        // 6
-        [[1,1,1],[1,0,0],[1,1,1],[1,0,1],[1,1,1]],
-        // 7
-        [[1,1,1],[0,0,1],[0,0,1],[0,0,1],[0,0,1]],
-        // 8
-        [[1,1,1],[1,0,1],[1,1,1],[1,0,1],[1,1,1]],
-        // 9
-        [[1,1,1],[1,0,1],[1,1,1],[0,0,1],[1,1,1]],
+        [[1,1,1],[1,0,1],[1,0,1],[1,0,1],[1,1,1]], // 0
+        [[0,1,0],[1,1,0],[0,1,0],[0,1,0],[1,1,1]], // 1
+        [[1,1,1],[0,0,1],[1,1,1],[1,0,0],[1,1,1]], // 2
+        [[1,1,1],[0,0,1],[1,1,1],[0,0,1],[1,1,1]], // 3
+        [[1,0,1],[1,0,1],[1,1,1],[0,0,1],[0,0,1]], // 4
+        [[1,1,1],[1,0,0],[1,1,1],[0,0,1],[1,1,1]], // 5
+        [[1,1,1],[1,0,0],[1,1,1],[1,0,1],[1,1,1]], // 6
+        [[1,1,1],[0,0,1],[0,0,1],[0,0,1],[0,0,1]], // 7
+        [[1,1,1],[1,0,1],[1,1,1],[1,0,1],[1,1,1]], // 8
+        [[1,1,1],[1,0,1],[1,1,1],[0,0,1],[1,1,1]], // 9
     ];
+
+    let scale = 2; // 2x rendering scale
+    let digit_w = 3 * scale;
+    let digit_h = 5 * scale;
+    let char_w = digit_w + scale; // digit width + spacing
 
     for i in 0..12 {
         let deg = i * 30;
         let angle = (deg as f64).to_radians();
 
         // Tick mark at the outer rim
-        let tick_inner = radius * 0.92;
+        let tick_inner = radius * 0.94;
         let tick_outer = radius * 1.0;
-        let steps = ((tick_outer - tick_inner) * 2.0) as u32;
+        let steps = ((tick_outer - tick_inner) * 2.5) as u32;
         for step in 0..steps {
             let t = step as f64 / steps as f64;
             let r = tick_inner + (tick_outer - tick_inner) * t;
-            // Canvas: 0° is right, clockwise
             let px = (center + r * angle.cos()) as u32;
             let py = (center - r * angle.sin()) as u32;
             if px < size && py < size {
-                blend_pixel(img, px, py, LABEL, 0.6);
+                blend_pixel(img, px, py, LABEL, 0.7);
             }
         }
 
-        // Label position just outside the rim
-        let label_r = radius * 1.08;
+        // Label position further outside the rim
+        let label_r = radius * 1.09;
         let label_cx = center + label_r * angle.cos();
         let label_cy = center - label_r * angle.sin();
 
-        // Render degree number as pixel digits
+        // Render degree number at 2x scale
         let text = format!("{}", deg);
-        let char_w = 4; // 3px digit + 1px spacing
-        let total_w = text.len() as i32 * char_w - 1;
+        let total_w = text.len() as i32 * char_w as i32 - scale as i32;
         let start_x = label_cx as i32 - total_w / 2;
-        let start_y = label_cy as i32 - 2; // center vertically (5px tall / 2)
+        let start_y = label_cy as i32 - digit_h as i32 / 2;
 
         for (ci, ch) in text.chars().enumerate() {
             let d = (ch as u8 - b'0') as usize;
@@ -438,10 +512,15 @@ fn draw_degree_markers(img: &mut RgbImage, center: f64, radius: f64, size: u32) 
             for row in 0..5 {
                 for col in 0..3 {
                     if bitmap[row][col] == 1 {
-                        let px = start_x + ci as i32 * char_w + col as i32;
-                        let py = start_y + row as i32;
-                        if px >= 0 && py >= 0 && (px as u32) < size && (py as u32) < size {
-                            blend_pixel(img, px as u32, py as u32, LABEL, 0.7);
+                        // Draw a scale x scale block for each pixel
+                        for sy in 0..scale {
+                            for sx in 0..scale {
+                                let px = start_x + ci as i32 * char_w as i32 + col as i32 * scale as i32 + sx as i32;
+                                let py = start_y + row as i32 * scale as i32 + sy as i32;
+                                if px >= 0 && py >= 0 && (px as u32) < size && (py as u32) < size {
+                                    blend_pixel(img, px as u32, py as u32, LABEL, 0.85);
+                                }
+                            }
                         }
                     }
                 }

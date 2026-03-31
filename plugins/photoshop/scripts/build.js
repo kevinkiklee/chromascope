@@ -77,7 +77,16 @@ window.__chromascope = {
     ${drawFn}();
   },
   getSettings: function() { return ${scopeVar}.settings; },
-  draw: function() { ${drawFn}(); }
+  draw: function() { ${drawFn}(); },
+  onSettingsChanged: null
+};
+// Patch scope.updateSettings to notify main.js on setting changes
+var _origUpdateSettings = ${scopeVar}.updateSettings.bind(${scopeVar});
+${scopeVar}.updateSettings = function(partial) {
+  _origUpdateSettings(partial);
+  if (window.__chromascope && typeof window.__chromascope.onSettingsChanged === 'function') {
+    window.__chromascope.onSettingsChanged(${scopeVar}.settings);
+  }
 };
 // Replace render entirely -- UXP canvas doesn't support drawing after initial render pass
 ${scopeVar}.render = function(ctx, size) {
