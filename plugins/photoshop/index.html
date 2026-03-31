@@ -7,116 +7,124 @@
     html, body {
       width: 100%; height: 100%;
       overflow: hidden;
-      background: #1a1a1a;
+      background: #232323;
       font-family: "Adobe Clean", system-ui, sans-serif;
-      color: #e0e0e0;
+      color: #b0b0b0;
     }
-    #chromascope-root { width: 100%; height: 100%; display: flex; flex-direction: column; }
-    #scope-canvas-container {
-      flex: 1;
-      min-height: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      position: relative;
-    }
-    #scope-canvas { image-rendering: pixelated; }
-    #controls-container {
-      flex-shrink: 0;
-      overflow-x: hidden;
-      overflow-y: auto;
+    /* Right padding accounts for UXP scrollbar gutter */
+    #chromascope-root {
+      width: 100%; height: 100%;
+      overflow: hidden;
     }
 
-    /* Override ALL core styles to match Photoshop native panels */
+    /* Scope image fills full usable width, square aspect */
+    #scope-canvas-container {
+      width: 100%;
+      background: #111;
+      overflow: hidden;
+    }
+    #scope-image {
+      width: 100%;
+      display: block;
+    }
+
+    /* Compact controls */
     #controls-container {
-      padding: 4px 8px !important;
-      font-size: 11px !important;
-      background: var(--uxp-host-background-color, #1e1e1e) !important;
-      border-top: 1px solid var(--uxp-host-border-color, #333) !important;
+      padding: 3px 4px;
+      background: #2b2b2b;
+      border-top: 1px solid #3a3a3a;
     }
-    .vs-control-group { margin-bottom: 2px !important; }
+
+    .vs-control-group { margin-bottom: 1px; }
+    .vs-control-group:last-child { margin-bottom: 0; }
     .vs-control-group summary {
-      font-size: 10px !important;
-      font-weight: 600 !important;
-      text-transform: uppercase !important;
-      letter-spacing: 0.5px !important;
-      color: var(--uxp-host-text-color-secondary, #999) !important;
-      padding: 3px 0 !important;
+      cursor: pointer;
+      user-select: none;
+      font-weight: 600;
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      color: #888;
+      padding: 2px 0;
     }
-    .vs-control-group[open] summary { margin-bottom: 3px !important; }
+    .vs-control-group summary:hover { color: #bbb; }
+    .vs-control-group[open] summary { margin-bottom: 2px; }
+
     .vs-control-row {
-      display: flex !important;
-      flex-direction: row !important;
-      align-items: center !important;
-      gap: 6px !important;
-      margin-bottom: 3px !important;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      margin-bottom: 1px;
     }
     .vs-control-row label {
-      flex: 0 0 auto !important;
-      width: 52px !important;
-      font-size: 10px !important;
-      color: var(--uxp-host-text-color-secondary, #999) !important;
+      flex: 0 0 38px;
+      color: #888;
+      font-size: 9px;
     }
+
     .vs-btn-group {
-      display: flex !important;
-      flex-direction: row !important;
-      flex-wrap: nowrap !important;
-      gap: 1px !important;
-      flex: 1 !important;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1px;
+      flex: 1;
+      background: #3a3a3a;
+      border-radius: 2px;
     }
     .vs-btn {
-      flex: 1 !important;
-      padding: 1px 2px !important;
-      font-size: 9px !important;
-      line-height: 16px !important;
-      border-radius: 2px !important;
-      border: 1px solid var(--uxp-host-border-color, #555) !important;
-      background: var(--uxp-host-background-color, #3a3a3a) !important;
-      color: var(--uxp-host-text-color, #ccc) !important;
-      text-align: center !important;
-      cursor: pointer !important;
+      flex: 1 1 28%;
+      padding: 0 1px;
+      border: none;
+      border-radius: 0;
+      background: #333;
+      color: #999;
+      font-size: 9px;
+      line-height: 13px;
+      min-height: 0;
+      height: 16px;
+      text-align: center;
+      cursor: pointer;
     }
-    .vs-btn:hover { background: #4a4a4a !important; }
-    .vs-btn.active {
-      background: #4a6fa5 !important;
-      border-color: #5a8fd5 !important;
-      color: #fff !important;
-    }
+    .vs-btn:hover { background: #3e3e3e; color: #ccc; }
+    .vs-btn.active { background: #4a6fa5; color: #fff; }
+
     .vs-slider-row {
-      display: flex !important;
-      flex-direction: row !important;
-      align-items: center !important;
-      gap: 4px !important;
-      margin-bottom: 2px !important;
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      margin-bottom: 1px;
     }
     .vs-slider-row label {
-      flex: 0 0 auto !important;
-      width: 52px !important;
-      font-size: 10px !important;
-      color: var(--uxp-host-text-color-secondary, #999) !important;
+      flex: 0 0 38px;
+      color: #888;
+      font-size: 9px;
     }
-    .vs-slider-row input[type=range] { flex: 1 !important; height: 12px !important; }
+    .vs-slider-row input[type="range"] {
+      flex: 1;
+      height: 8px;
+      accent-color: #5a8fd5;
+    }
     .vs-slider-row .vs-slider-value {
-      flex: 0 0 24px !important;
-      text-align: right !important;
-      font-size: 9px !important;
-      color: var(--uxp-host-text-color-secondary, #aaa) !important;
+      flex: 0 0 18px;
+      text-align: right;
+      color: #777;
+      font-size: 8px;
+      font-variant-numeric: tabular-nums;
     }
 
     #status-bar {
-      flex-shrink: 0;
-      padding: 4px 8px;
-      font-size: 11px;
-      color: #999;
-      border-top: 1px solid #444;
-      background: #1a1a1a;
+      padding: 1px 4px;
+      font-size: 9px;
+      color: #666;
+      border-top: 1px solid #3a3a3a;
+      background: #232323;
     }
   </style>
 </head>
 <body>
   <div id="chromascope-root">
     <div id="scope-canvas-container">
-      <canvas id="scope-canvas"></canvas>
+      <canvas id="scope-canvas" style="display:none;" width="1" height="1"></canvas>
+      <img id="scope-image" />
     </div>
     <div id="controls-container"></div>
     <div id="status-bar">Chromascope ready</div>

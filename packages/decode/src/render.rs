@@ -65,6 +65,171 @@ fn get_zones(config: &HarmonyConfig) -> Vec<Zone> {
         .collect()
 }
 
+/// A mapped point in vectorscope space.
+struct ScopePoint {
+    px: f64,
+    py: f64,
+    r: u8,
+    g: u8,
+    b: u8,
+}
+
+/// Map RGB pixels to YCbCr vectorscope coordinates.
+fn map_pixels(rgb_data: &[u8], width: u32, height: u32, center: f64, radius: f64) -> Vec<ScopePoint> {
+    let total = (width * height) as usize;
+    let mut points = Vec::with_capacity(total);
+
+    for i in 0..total {
+        let off = i * 3;
+        let r = rgb_data[off] as f64;
+        let g = rgb_data[off + 1] as f64;
+        let b = rgb_data[off + 2] as f64;
+
+        let cb = -0.168736 * r - 0.331264 * g + 0.500000 * b;
+        let cr =  0.500000 * r - 0.418688 * g - 0.081312 * b;
+
+        let norm_cb = cb / 128.0;
+        let norm_cr = cr / 128.0;
+        let dist = (norm_cb * norm_cb + norm_cr * norm_cr).sqrt();
+        if dist > 1.0 {
+            continue;
+        }
+
+        points.push(ScopePoint {
+            px: center + norm_cb * radius,
+            py: center - norm_cr * radius,
+            r: (r * 0.8 + 80.0).min(255.0) as u8,
+            g: (g * 0.8 + 80.0).min(255.0) as u8,
+            b: (b * 0.8 + 80.0).min(255.0) as u8,
+        });
+    }
+    points
+}
+
+/// Scatter: each point is a single bright pixel with high alpha.
+fn render_scatter(img: &mut RgbImage, points: &[ScopePoint], size: u32) {
+    for p in points {
+        let x = p.px as u32;
+        let y = p.py as u32;
+        if x < size && y < size {
+            blend_pixel(img, x, y, Rgb([p.r, p.g, p.b]), 0.9);
+        }
+    }
+}
+
+/// Bloom: each point stamps a radial glow with additive blending.
+fn render_bloom(img: &mut RgbImage, points: &[ScopePoint], size: u32) {
+    if points.is_empty() { return; }
+
+    let count = points.len() as f64;
+    let glow_radius = (size as f64 / 20.0 * (500.0 / count)).clamp(2.0, 20.0);
+    let alpha = (200.0 / count).clamp(0.01, 0.3);
+    // Use a floating-point accumulation buffer for additive blending
+    let s = size as usize;
+    let mut buf_r = vec![0.0f32; s * s];
+    let mut buf_g = vec![0.0f32; s * s];
+    let mut buf_b = vec![0.0f32; s * s];
+
+    for p in points {
+        let cx = p.px;
+        let cy = p.py;
+        let pr = p.r as f32 * alpha as f32;
+        let pg = p.g as f32 * alpha as f32;
+        let pb = p.b as f32 * alpha as f32;
+
+        let x_min = ((cx - glow_radius) as i32).max(0);
+        let x_max = ((cx + glow_radius) as i32).min(size as i32 - 1);
+        let y_min = ((cy - glow_radius) as i32).max(0);
+        let y_max = ((cy + glow_radius) as i32).min(size as i32 - 1);
+
+        for iy in y_min..=y_max {
+            for ix in x_min..=x_max {
+                let dx = ix as f64 - cx;
+                let dy = iy as f64 - cy;
+                let dist = (dx * dx + dy * dy).sqrt();
+                if dist > glow_radius { continue; }
+
+                let falloff = (1.0 - dist / glow_radius) as f32;
+                let idx = iy as usize * s + ix as usize;
+                buf_r[idx] += pr * falloff;
+                buf_g[idx] += pg * falloff;
+                buf_b[idx] += pb * falloff;
+            }
+        }
+    }
+
+    // Composite buffer onto image additively
+    for y in 0..size {
+        for x in 0..size {
+            let idx = y as usize * s + x as usize;
+            let ar = buf_r[idx];
+            let ag = buf_g[idx];
+            let ab = buf_b[idx];
+            if ar <= 0.0 && ag <= 0.0 && ab <= 0.0 { continue; }
+
+            let existing = img.get_pixel(x, y);
+            let nr = (existing[0] as f32 + ar).min(255.0) as u8;
+            let ng = (existing[1] as f32 + ag).min(255.0) as u8;
+            let nb = (existing[2] as f32 + ab).min(255.0) as u8;
+            img.put_pixel(x, y, Rgb([nr, ng, nb]));
+        }
+    }
+}
+
+/// Heatmap: bin points into a grid and color by frequency (cold→hot ramp).
+fn render_heatmap(img: &mut RgbImage, points: &[ScopePoint], size: u32) {
+    if points.is_empty() { return; }
+
+    let s = size as usize;
+    let mut density = vec![0u32; s * s];
+    let mut max_density = 0u32;
+
+    for p in points {
+        let x = p.px as u32;
+        let y = p.py as u32;
+        if x < size && y < size {
+            let idx = y as usize * s + x as usize;
+            density[idx] += 1;
+            if density[idx] > max_density {
+                max_density = density[idx];
+            }
+        }
+    }
+
+    if max_density == 0 { return; }
+    let log_max = (max_density as f64 + 1.0).ln();
+
+    // Color ramp: black → blue → cyan → green → yellow → red → white
+    let ramp: [(f64, f64, f64); 7] = [
+        (0.0, 0.0, 0.0),       // black
+        (0.0, 0.0, 200.0),     // blue
+        (0.0, 180.0, 220.0),   // cyan
+        (0.0, 200.0, 0.0),     // green
+        (220.0, 220.0, 0.0),   // yellow
+        (255.0, 60.0, 0.0),    // red
+        (255.0, 255.0, 255.0), // white
+    ];
+
+    for y in 0..size {
+        for x in 0..size {
+            let idx = y as usize * s + x as usize;
+            let d = density[idx];
+            if d == 0 { continue; }
+
+            let t = (d as f64 + 1.0).ln() / log_max;
+            let pos = t * (ramp.len() - 1) as f64;
+            let lo = (pos as usize).min(ramp.len() - 2);
+            let frac = pos - lo as f64;
+
+            let r = (ramp[lo].0 + (ramp[lo + 1].0 - ramp[lo].0) * frac) as u8;
+            let g = (ramp[lo].1 + (ramp[lo + 1].1 - ramp[lo].1) * frac) as u8;
+            let b = (ramp[lo].2 + (ramp[lo + 1].2 - ramp[lo].2) * frac) as u8;
+
+            blend_pixel(img, x, y, Rgb([r, g, b]), 0.9);
+        }
+    }
+}
+
 pub fn render_vectorscope(
     rgb_data: &[u8],
     width: u32,
@@ -72,6 +237,7 @@ pub fn render_vectorscope(
     size: u32,
     harmony: Option<&HarmonyConfig>,
     show_skin_tone: bool,
+    density_mode: &str,
 ) -> RgbImage {
     let mut img = RgbImage::from_pixel(size, size, BG);
     let center = size as f64 / 2.0;
@@ -90,36 +256,12 @@ pub fn render_vectorscope(
         draw_skin_tone_line(&mut img, center, radius);
     }
 
-    let total = (width * height) as usize;
-    for i in 0..total {
-        let off = i * 3;
-        let r = rgb_data[off] as f64;
-        let g = rgb_data[off + 1] as f64;
-        let b = rgb_data[off + 2] as f64;
+    let points = map_pixels(rgb_data, width, height, center, radius);
 
-        let cb = -0.168736 * r - 0.331264 * g + 0.500000 * b;
-        let cr =  0.500000 * r - 0.418688 * g - 0.081312 * b;
-
-        let norm_cb = cb / 128.0;
-        let norm_cr = cr / 128.0;
-
-        let dist = (norm_cb * norm_cb + norm_cr * norm_cr).sqrt();
-        if dist > 1.0 {
-            continue;
-        }
-
-        let px = center + norm_cb * radius;
-        let py = center - norm_cr * radius;
-
-        let x = px as u32;
-        let y = py as u32;
-
-        if x < size && y < size {
-            let dot_r = (r * 0.8 + 80.0).min(255.0) as u8;
-            let dot_g = (g * 0.8 + 80.0).min(255.0) as u8;
-            let dot_b = (b * 0.8 + 80.0).min(255.0) as u8;
-            blend_pixel(&mut img, x, y, Rgb([dot_r, dot_g, dot_b]), 0.9);
-        }
+    match density_mode {
+        "bloom" => render_bloom(&mut img, &points, size),
+        "heatmap" => render_heatmap(&mut img, &points, size),
+        _ => render_scatter(&mut img, &points, size),
     }
 
     img
@@ -199,7 +341,7 @@ fn draw_arc(img: &mut RgbImage, center: f64, radius: f64, start: f64, end: f64, 
             blend_pixel(img, px, py, color, alpha);
         }
         // Soft inner/outer edges
-        for r_offset in &[-1.0_f64, 1.0] {
+        for r_offset in &[-2.0_f64, -1.0, 1.0, 2.0] {
             let r = radius + r_offset;
             let ex = (center + r * angle.cos()) as u32;
             let ey = (center + r * angle.sin()) as u32;

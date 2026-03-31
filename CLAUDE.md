@@ -4,6 +4,10 @@
 
 When you solve a bug or an issue, or build a feature, run `npm run build:plugins` automatically so that I don't have to rebuild it manually.
 
+Before making changes to the Lightroom plugin, read `docs/reference/lrc-sdk-research.md` to understand the LrC SDK constraints (no WebView, no canvas, no direct pixel access, `f:picture` for image display, `LrTasks.execute` for shell commands, cooperative async via `LrTasks.startAsyncTask`).
+
+Before making changes to the Photoshop plugin, read `docs/reference/uxp-api-reference.md` to understand UXP constraints (limited canvas API — no `drawImage`/`getImageData`/`putImageData`/`toDataURL`/`toBlob`, no CSS Grid/transitions/transforms, `<select>` requires explicit `value` on `<option>`, use Spectrum UXP `<sp-*>` components for native PS styling, `imaging.encodeImageData()` with base64 for rendering to `<img>`, `executeAsModal` required for imaging calls, panel `show` fires only once).
+
 ## Project Overview
 
 Chromascope is a commercial color analysis tool for Adobe Photoshop and Lightroom Classic. It renders chrominance vectorscope plots with multiple color spaces, visualization modes, and color harmony overlays.

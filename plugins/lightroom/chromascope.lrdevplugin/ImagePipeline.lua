@@ -11,8 +11,22 @@ local _tempDir = LrPathUtils.getStandardFilePath("temp")
 local _busy    = false
 local _pendingRefresh = false
 
--- Single fixed output path — no frame alternation
-local _scopePath = LrPathUtils.child(_tempDir, "chromascope_scope.jpg")
+-- Frame alternation: two output paths to force f:picture cache eviction.
+-- Writing to the same path and nil-toggling causes Lightroom to accumulate
+-- cached image data without releasing, leading to unbounded memory growth.
+local _framePaths = {
+  LrPathUtils.child(_tempDir, "chromascope_scope_0.jpg"),
+  LrPathUtils.child(_tempDir, "chromascope_scope_1.jpg"),
+}
+local _frameIndex = 1
+local function nextScopePath()
+  _frameIndex = (_frameIndex % 2) + 1
+  return _framePaths[_frameIndex]
+end
+
+local function currentScopePath()
+  return _framePaths[_frameIndex]
+end
 
 local function getBinary()
   local pluginDir = _PLUGIN.path
@@ -48,16 +62,41 @@ local function appendOverlayFlags(cmd, props)
   if overlayColor and overlayColor ~= "" then
     cmd = cmd .. string.format(' --overlay-color %s', overlayColor)
   end
+  local density = props.density
+  if density and density ~= "" and density ~= "scatter" then
+    cmd = cmd .. string.format(' --density %s', density)
+  end
   return cmd
 end
 
+function ImagePipeline.isBusy()
+  return _busy
+end
+
 function ImagePipeline.scopePath()
-  return _scopePath
+  return currentScopePath()
+end
+
+-- Clean up stale temp files from previous sessions
+function ImagePipeline.cleanup()
+  local staleFiles = {
+    "chromascope_scope.jpg", "chromascope_base.jpg",
+    "chromascope_display_0.jpg", "chromascope_display_1.jpg",
+    "chromascope_composite.jpg", "chromascope_standalone.html",
+    "chromascope_latest.rgb", "chromascope_debug.log",
+    "chromascope_thumb.jpg", "chromascope_thumb.jpg.rgb",
+    "chromascope_black.rgb",
+  }
+  for _, name in ipairs(staleFiles) do
+    local p = LrPathUtils.child(_tempDir, name)
+    if LrFileUtils.exists(p) then LrFileUtils.delete(p) end
+  end
 end
 
 function ImagePipeline.ensurePlaceholder(props)
-  if LrFileUtils.exists(_scopePath) then
-    props.imagePath = _scopePath
+  local path = currentScopePath()
+  if LrFileUtils.exists(path) then
+    props.imagePath = path
     props.status = "Ready"
     return
   end
@@ -70,16 +109,17 @@ function ImagePipeline.ensurePlaceholder(props)
 
   LrTasks.execute(string.format(
     '"%s" render --input "%s" --output "%s" --width 8 --height 8 --size 256',
-    binary(), blackRgb, _scopePath
+    binary(), blackRgb, path
   ))
   LrFileUtils.delete(blackRgb)
-  props.imagePath = _scopePath
+  props.imagePath = path
   props.status = "Ready"
 end
 
 local function exportThumbnail(photo, outPath)
   local done, ok, errMsg = false, false, nil
   photo:requestJpegThumbnail(256, 256, function(jpegData, reason)
+    if done then return end  -- Ignore subsequent callbacks (SDK may fire multiple times)
     if not jpegData then
       errMsg = reason or "no data"
       done = true
@@ -89,6 +129,7 @@ local function exportThumbnail(photo, outPath)
     if not f then errMsg = "cannot open file"; done = true; return end
     f:write(jpegData)
     f:close()
+    jpegData = nil  -- Release reference to JPEG binary string for GC
     ok = true
     done = true
   end)
@@ -96,8 +137,8 @@ local function exportThumbnail(photo, outPath)
   return ok, errMsg
 end
 
--- Full render. Overwrites the fixed scope path in place.
--- After writing, bumps the imagePath binding to force f:picture reload.
+-- Full render. Writes to the next frame path (alternating between two files)
+-- so f:picture sees a genuinely new path and releases the old image from cache.
 function ImagePipeline.refresh(props)
   if _busy then
     _pendingRefresh = true
@@ -135,11 +176,12 @@ function ImagePipeline.refresh(props)
     return
   end
 
-  -- Render with optional harmony overlay
+  -- Render with optional harmony overlay to the NEXT frame path
+  local outPath = nextScopePath()
   local fullSize = tonumber(props.scopeSize) or 500
   local renderCmd = appendOverlayFlags(string.format(
     '"%s" render --input "%s" --output "%s" --width 128 --height 128 --size %d',
-    bin, rgbPath, _scopePath, fullSize
+    bin, rgbPath, outPath, fullSize
   ), props)
   exitCode = LrTasks.execute(renderCmd)
   -- Keep rgbPath for refreshOverlayOnly to re-use
@@ -149,10 +191,10 @@ function ImagePipeline.refresh(props)
     return
   end
 
-  -- Force f:picture to re-read by toggling the path binding
-  props.imagePath = nil
-  props.imagePath = _scopePath
+  -- Set f:picture to the new path — different from previous, so LrC releases old cache
+  props.imagePath = outPath
   props.status = "Updated"
+
   _busy = false
 
   if _pendingRefresh then
@@ -176,15 +218,20 @@ function ImagePipeline.refreshOverlayFast(props)
     return
   end
 
+  local outPath = nextScopePath()
   local renderCmd = appendOverlayFlags(string.format(
     '"%s" render --input "%s" --output "%s" --width 128 --height 128 --size 128',
-    bin, rgbPath, _scopePath
+    bin, rgbPath, outPath
   ), props)
   LrTasks.execute(renderCmd)
 
-  props.imagePath = nil
-  props.imagePath = _scopePath
+  props.imagePath = outPath
   _busy = false
+
+  if _pendingRefresh then
+    _pendingRefresh = false
+    ImagePipeline.refresh(props)
+  end
 end
 
 -- Full-quality overlay re-render at native resolution.
@@ -201,16 +248,22 @@ function ImagePipeline.refreshOverlayFull(props)
     return
   end
 
+  local outPath = nextScopePath()
   local fullSize = tonumber(props.scopeSize) or 500
   local renderCmd = appendOverlayFlags(string.format(
     '"%s" render --input "%s" --output "%s" --width 128 --height 128 --size %d',
-    bin, rgbPath, _scopePath, fullSize
+    bin, rgbPath, outPath, fullSize
   ), props)
   LrTasks.execute(renderCmd)
 
-  props.imagePath = nil
-  props.imagePath = _scopePath
+  props.imagePath = outPath
+
   _busy = false
+
+  if _pendingRefresh then
+    _pendingRefresh = false
+    ImagePipeline.refresh(props)
+  end
 end
 
 return ImagePipeline

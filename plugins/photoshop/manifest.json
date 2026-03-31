@@ -14,9 +14,9 @@
       "type": "panel",
       "id": "chromascopePanel",
       "label": { "default": "Chromascope" },
-      "minimumSize": { "width": 230, "height": 300 },
-      "preferredDockedSize": { "width": 320, "height": 450 },
-      "preferredFloatingSize": { "width": 400, "height": 550 },
+      "minimumSize": { "width": 300, "height": 500 },
+      "preferredDockedSize": { "width": 350, "height": 700 },
+      "preferredFloatingSize": { "width": 450, "height": 800 },
       "icons": [
         { "width": 23, "height": 23, "path": "icons/plugin-icon.png", "scale": [1, 2], "theme": ["all"] }
       ]

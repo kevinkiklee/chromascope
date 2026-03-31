@@ -18,6 +18,7 @@ local _savedScheme       = "none"
 local _savedRotation     = 0
 local _savedSkinTone     = false
 local _savedOverlayColor = "yellow"
+local _savedDensity      = "scatter"
 local _reopening         = false
 
 function ChromascopeDialog.show(context)
@@ -31,23 +32,33 @@ function ChromascopeDialog.show(context)
   props.rotation     = _savedRotation
   props.skinTone     = _savedSkinTone
   props.overlayColor = _savedOverlayColor
+  props.density      = _savedDensity
   props.scopeSize    = tostring(_savedSize)
 
   local stopRefresh = false
   local _settleVersion = 0
 
-  -- Overlay changes: fast render during interaction, full on settle
+  -- Overlay changes: debounce via version counter.
+  -- Only ONE settle task runs at a time — stale ones exit early.
+  -- The fast task is also versioned so rapid slider ticks don't pile up.
+  local _fastVersion = 0
+
   local function onOverlayChange()
+    -- Bump both versions — any in-flight tasks will see they're stale and exit
+    _settleVersion = _settleVersion + 1
+    _fastVersion = _fastVersion + 1
+    local fv = _fastVersion
+    local sv = _settleVersion
+
     LrTasks.startAsyncTask(function()
+      if fv ~= _fastVersion then return end  -- stale, exit immediately
       ImagePipeline.refreshOverlayFast(props)
     end)
-    _settleVersion = _settleVersion + 1
-    local v = _settleVersion
+
     LrTasks.startAsyncTask(function()
       LrTasks.sleep(0.4)
-      if v == _settleVersion then
-        ImagePipeline.refreshOverlayFull(props)
-      end
+      if sv ~= _settleVersion then return end  -- stale, exit immediately
+      ImagePipeline.refreshOverlayFull(props)
     end)
   end
 
@@ -55,6 +66,17 @@ function ChromascopeDialog.show(context)
   props:addObserver("rotation", function() onOverlayChange() end)
   props:addObserver("skinTone", function() onOverlayChange() end)
   props:addObserver("overlayColor", function() onOverlayChange() end)
+
+  -- Density mode change: full re-render
+  props:addObserver("density", function()
+    _savedDensity = props.density
+    _settleVersion = _settleVersion + 1
+    local sv = _settleVersion
+    LrTasks.startAsyncTask(function()
+      if sv ~= _settleVersion then return end
+      ImagePipeline.refresh(props)
+    end)
+  end)
 
   -- Size change: save all state and reopen
   props:addObserver("scopeSize", function()
@@ -65,25 +87,27 @@ function ChromascopeDialog.show(context)
       _savedRotation     = props.rotation
       _savedSkinTone     = props.skinTone
       _savedOverlayColor = props.overlayColor
+      _savedDensity      = props.density
       _reopening         = true
       stopRefresh        = true
       LrDialogs.stopModalWithResult(props, "reopen")
     end
   end)
 
-  -- Initial render + polling loop
+  -- Initial render + poll loop (full refresh every 5s)
   LrTasks.startAsyncTask(function()
+    ImagePipeline.cleanup()
     ImagePipeline.ensurePlaceholder(props)
     ImagePipeline.refresh(props)
     while not stopRefresh do
-      LrTasks.sleep(3)
+      LrTasks.sleep(2)
       if not stopRefresh then
         ImagePipeline.refresh(props)
       end
     end
   end)
 
-  -- Develop slider changes
+  -- Develop slider changes: full pipeline
   LrDevelopController.addAdjustmentChangeObserver(context, props, function()
     LrTasks.startAsyncTask(function()
       ImagePipeline.refresh(props)
@@ -144,7 +168,28 @@ function ChromascopeDialog.show(context)
       },
     },
 
-    -- Row 2: Rotation
+    -- Row 2: Density
+    f:row {
+      spacing = f:label_spacing(),
+      f:static_text {
+        title = "Density",
+        width = labelW,
+        font  = "<system/small>",
+        text_color = labelColor,
+      },
+      f:popup_menu {
+        value = bind "density",
+        width = 150,
+        font  = "<system/small>",
+        items = {
+          { title = "Scatter",  value = "scatter" },
+          { title = "Heatmap",  value = "heatmap" },
+          { title = "Bloom",    value = "bloom" },
+        },
+      },
+    },
+
+    -- Row 3: Rotation
     f:row {
       spacing = f:label_spacing(),
       f:static_text {
@@ -213,6 +258,7 @@ function ChromascopeDialog.show(context)
           _savedRotation     = props.rotation
           _savedSkinTone     = props.skinTone
           _savedOverlayColor = props.overlayColor
+          _savedDensity      = props.density
         end
       end,
       resizable = false,

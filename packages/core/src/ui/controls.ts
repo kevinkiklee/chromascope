@@ -11,23 +11,23 @@ export interface ControlsCallbacks {
 
 const COLOR_SPACES: Array<{ id: ColorSpaceId; label: string }> = [
   { id: "ycbcr", label: "YCbCr" },
-  { id: "cieluv", label: "CIE LUV" },
+  { id: "cieluv", label: "LUV" },
   { id: "hsl", label: "HSL" },
 ];
 
 const DENSITY_MODES: Array<{ id: DensityModeId; label: string }> = [
-  { id: "scatter", label: "Scatter" },
-  { id: "heatmap", label: "Heatmap" },
+  { id: "scatter", label: "Scat" },
+  { id: "heatmap", label: "Heat" },
   { id: "bloom", label: "Bloom" },
 ];
 
 const HARMONY_SCHEMES: Array<{ id: HarmonySchemeId | "none"; label: string }> = [
-  { id: "none", label: "None" },
-  { id: "complementary", label: "Comp" },
-  { id: "splitComplementary", label: "Split" },
-  { id: "triadic", label: "Triad" },
-  { id: "tetradic", label: "Tetra" },
-  { id: "analogous", label: "Analog" },
+  { id: "none", label: "Off" },
+  { id: "complementary", label: "Cmp" },
+  { id: "splitComplementary", label: "Spl" },
+  { id: "triadic", label: "Tri" },
+  { id: "tetradic", label: "Tet" },
+  { id: "analogous", label: "Ana" },
 ];
 
 export function createControls(
