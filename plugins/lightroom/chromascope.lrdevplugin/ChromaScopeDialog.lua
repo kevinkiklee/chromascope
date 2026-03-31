@@ -94,15 +94,24 @@ function ChromascopeDialog.show(context)
     end
   end)
 
-  -- Initial render + poll loop (full refresh every 5s)
+  -- Initial render + smart poll loop.
+  -- Every 1s, checks if develop settings changed (cheap: reads slider values).
+  -- Only calls full refresh (with requestJpegThumbnail) when settings actually changed.
+  -- Also re-renders overlay each cycle to pick up scheme/rotation changes.
   LrTasks.startAsyncTask(function()
     ImagePipeline.cleanup()
     ImagePipeline.ensurePlaceholder(props)
     ImagePipeline.refresh(props)
     while not stopRefresh do
-      LrTasks.sleep(2)
+      LrTasks.sleep(1)
       if not stopRefresh then
-        ImagePipeline.refresh(props)
+        if ImagePipeline.settingsChanged() then
+          -- Settings changed — full pipeline (thumbnail + decode + render)
+          ImagePipeline.refresh(props)
+        else
+          -- No change — cheap re-render for overlay updates only
+          ImagePipeline.refreshOverlayFull(props)
+        end
       end
     end
   end)

@@ -77,6 +77,68 @@ function ImagePipeline.scopePath()
   return currentScopePath()
 end
 
+-- Track develop settings to avoid unnecessary requestJpegThumbnail calls.
+-- getDevelopSettings() is cheap (reads stored numbers), requestJpegThumbnail is expensive (allocates JPEG).
+local _lastSettingsHash = nil
+local _lastPhotoId = nil
+
+local function hashSettings(photo)
+  -- Build a simple string hash from photo ID + key develop values
+  local id = photo.localIdentifier or 0
+  local settings = photo:getDevelopSettings()
+  if not settings then return tostring(id) end
+
+  -- Hash the most commonly changed sliders
+  local parts = {
+    tostring(id),
+    tostring(settings.Exposure2012 or 0),
+    tostring(settings.Contrast2012 or 0),
+    tostring(settings.Highlights2012 or 0),
+    tostring(settings.Shadows2012 or 0),
+    tostring(settings.Whites2012 or 0),
+    tostring(settings.Blacks2012 or 0),
+    tostring(settings.Clarity2012 or 0),
+    tostring(settings.Vibrance or 0),
+    tostring(settings.Saturation or 0),
+    tostring(settings.HueAdjustmentRed or 0),
+    tostring(settings.HueAdjustmentOrange or 0),
+    tostring(settings.HueAdjustmentYellow or 0),
+    tostring(settings.HueAdjustmentGreen or 0),
+    tostring(settings.HueAdjustmentAqua or 0),
+    tostring(settings.HueAdjustmentBlue or 0),
+    tostring(settings.HueAdjustmentPurple or 0),
+    tostring(settings.SaturationAdjustmentRed or 0),
+    tostring(settings.SaturationAdjustmentOrange or 0),
+    tostring(settings.SaturationAdjustmentYellow or 0),
+    tostring(settings.SaturationAdjustmentGreen or 0),
+    tostring(settings.SaturationAdjustmentBlue or 0),
+    tostring(settings.LuminanceAdjustmentRed or 0),
+    tostring(settings.LuminanceAdjustmentOrange or 0),
+    tostring(settings.LuminanceAdjustmentYellow or 0),
+    tostring(settings.LuminanceAdjustmentGreen or 0),
+    tostring(settings.LuminanceAdjustmentBlue or 0),
+    tostring(settings.WhiteBalance or ""),
+    tostring(settings.SplitToningHighlightHue or 0),
+    tostring(settings.SplitToningShadowHue or 0),
+  }
+  return table.concat(parts, "|")
+end
+
+-- Check if develop settings changed since last render.
+-- Returns true if a full refresh is needed.
+function ImagePipeline.settingsChanged()
+  local catalog = LrApplication.activeCatalog()
+  local photo = catalog:getTargetPhoto()
+  if not photo then return false end
+
+  local hash = hashSettings(photo)
+  if hash ~= _lastSettingsHash then
+    _lastSettingsHash = hash
+    return true
+  end
+  return false
+end
+
 -- Clean up stale temp files from previous sessions
 function ImagePipeline.cleanup()
   local staleFiles = {
