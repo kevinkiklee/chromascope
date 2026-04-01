@@ -12,20 +12,25 @@ fn binary_path() -> PathBuf {
 }
 
 /// Generate a small solid-colour JPEG for use as a test fixture.
+/// Uses atomic write (save to temp, then rename) to avoid races when
+/// multiple test threads call this concurrently on CI.
 fn ensure_test_jpeg(path: &PathBuf) {
     if path.exists() { return; }
     std::fs::create_dir_all(path.parent().unwrap()).unwrap();
+    let tmp = path.with_extension("tmp.jpg");
     let mut img = RgbImage::new(512, 512);
     for pixel in img.pixels_mut() {
         *pixel = Rgb([200u8, 100u8, 50u8]);
     }
-    img.save(path).unwrap();
+    img.save(&tmp).unwrap();
+    std::fs::rename(&tmp, path).ok(); // ok() — another thread may have won the race
 }
 
 /// Generate a multi-color test JPEG (quadrants: red, green, blue, white).
 fn ensure_multicolor_jpeg(path: &PathBuf) {
     if path.exists() { return; }
     std::fs::create_dir_all(path.parent().unwrap()).unwrap();
+    let tmp = path.with_extension("tmp.jpg");
     let mut img = RgbImage::new(256, 256);
     for y in 0..256u32 {
         for x in 0..256u32 {
@@ -38,7 +43,8 @@ fn ensure_multicolor_jpeg(path: &PathBuf) {
             img.put_pixel(x, y, pixel);
         }
     }
-    img.save(path).unwrap();
+    img.save(&tmp).unwrap();
+    std::fs::rename(&tmp, path).ok();
 }
 
 /// Create raw RGB data for a solid color.

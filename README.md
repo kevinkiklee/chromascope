@@ -2,6 +2,12 @@
 
 Real-time chrominance vectorscope for Adobe Photoshop and Lightroom Classic. Analyze color distribution, overlay harmony zones, and visualize density -- all inside your editing workflow.
 
+**[Website](https://kevinkiklee.github.io/chromascope/)** · **[Download](https://kevinkiklee.github.io/chromascope/download/)** · **[Documentation](https://kevinkiklee.github.io/chromascope/docs/)**
+
+<p align="center">
+  <img src="docs/images/colorwheel-scatter.jpg" alt="Chromascope vectorscope — full color wheel scatter plot" width="420">
+</p>
+
 ## What it does
 
 Chromascope maps every pixel in your image onto a circular vectorscope plot, showing where your colors live in chrominance space. Use it to:
@@ -12,6 +18,29 @@ Chromascope maps every pixel in your image onto a circular vectorscope plot, sho
 - Toggle scatter, heatmap, and bloom density modes for different levels of detail
 
 Works as a native panel in Photoshop (UXP) and as a floating dialog in Lightroom Classic, updating in real time as you adjust develop sliders.
+
+### Density modes
+
+Three visualization modes show chrominance distribution at different levels of detail:
+
+<p align="center">
+  <img src="docs/images/warm-scatter.jpg" alt="Scatter mode" width="220">
+  <img src="docs/images/warm-heatmap.jpg" alt="Heatmap mode" width="220">
+  <img src="docs/images/warm-bloom.jpg" alt="Bloom mode" width="220">
+</p>
+<p align="center">
+  <b>Scatter</b> · individual pixel dots &nbsp;&nbsp;&nbsp;
+  <b>Heatmap</b> · frequency as cold-to-hot gradient &nbsp;&nbsp;&nbsp;
+  <b>Bloom</b> · radial glow with additive blending
+</p>
+
+### Harmony overlays
+
+Overlay color harmony zones on the vectorscope to guide your grading decisions. Rotate the zones interactively to find the best fit for your image.
+
+<p align="center">
+  <img src="docs/images/warm-harmony.jpg" alt="Analogous harmony overlay" width="320">
+</p>
 
 ## Quick start
 
