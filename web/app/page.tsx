@@ -55,7 +55,7 @@ export default function HomePage() {
                   href="/download"
                   className="btn-primary text-white px-7 py-3 rounded-lg font-medium text-sm"
                 >
-                  Download Free Trial
+                  Download
                 </Link>
                 <Link
                   href="/features"
@@ -63,11 +63,18 @@ export default function HomePage() {
                 >
                   View Features
                 </Link>
+                <Link
+                  href="https://github.com/chromascope/chromascope"
+                  className="btn-ghost text-zinc-300 px-7 py-3 rounded-lg font-medium text-sm"
+                >
+                  GitHub
+                </Link>
               </div>
               <div className="animate-hero animate-delay-400 flex gap-6 mt-8">
                 <span className="text-xs text-zinc-600">Photoshop</span>
                 <span className="text-xs text-zinc-600">Lightroom Classic</span>
                 <span className="text-xs text-zinc-600">macOS & Windows</span>
+                <span className="text-xs text-zinc-600">Open Source</span>
               </div>
             </div>
 
@@ -236,82 +243,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── Section 5: Pricing ── */}
-      <section className="relative py-24 px-6 section-glow">
-        <div className="max-w-5xl mx-auto relative">
-          <ScrollReveal animation="up">
-            <div className="text-center mb-16">
-              <div className="gradient-badge text-xs font-semibold uppercase tracking-[0.14em] mb-4">
-                Pricing
-              </div>
-              <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-4">
-                Simple, transparent pricing
-              </h2>
-              <p className="text-zinc-500 text-lg">Start free. Upgrade when you&apos;re ready.</p>
-            </div>
-          </ScrollReveal>
-
-          <ScrollReveal animation="up" delay={100}>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-              {[
-                {
-                  name: 'Trial', price: 'Free', sub: '14 days',
-                  bullets: ['Full Pro features', 'No credit card required'],
-                  cta: 'Start Trial', href: '/download', highlight: false,
-                },
-                {
-                  name: 'Pro', price: 'TBD', sub: 'one-time or /year',
-                  bullets: ['All vectorscope features', '3 machine activations'],
-                  cta: 'Buy Pro', href: '/pricing', highlight: true,
-                },
-                {
-                  name: 'Pro + AI', price: 'TBD', sub: '/year',
-                  bullets: ['Everything in Pro', 'AI color analysis'],
-                  cta: 'Buy Pro + AI', href: '/pricing', highlight: false,
-                },
-              ].map((t) => (
-                <div
-                  key={t.name}
-                  className={`rounded-xl p-7 flex flex-col transition-all duration-300 hover:-translate-y-1 ${
-                    t.highlight
-                      ? 'card-glass-highlight glow-violet-sm animate-pulse-border'
-                      : 'card-glass hover:border-white/[0.1]'
-                  }`}
-                >
-                  {t.highlight && (
-                    <span className="gradient-badge text-[11px] font-semibold uppercase tracking-widest mb-3">
-                      Most Popular
-                    </span>
-                  )}
-                  <div className="font-semibold text-lg mb-1 text-zinc-200">{t.name}</div>
-                  <div className="text-3xl font-bold mb-0.5">{t.price}</div>
-                  <div className="text-zinc-600 text-sm mb-5">{t.sub}</div>
-                  <ul className="text-sm text-zinc-400 space-y-2 mb-8 flex-1">
-                    {t.bullets.map((b) => (
-                      <li key={b} className="flex gap-2.5">
-                        <span className="text-violet-400/80">&#10003;</span>
-                        {b}
-                      </li>
-                    ))}
-                  </ul>
-                  <Link
-                    href={t.href}
-                    className={`text-center py-2.5 rounded-lg text-sm font-medium transition-all ${
-                      t.highlight
-                        ? 'btn-primary text-white'
-                        : 'btn-ghost text-zinc-300'
-                    }`}
-                  >
-                    {t.cta}
-                  </Link>
-                </div>
-              ))}
-            </div>
-          </ScrollReveal>
-        </div>
-      </section>
-
-      {/* ── Section 6: Final CTA ── */}
+      {/* ── Section 5: Final CTA ── */}
       <section className="relative py-28 px-6 overflow-hidden">
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
           <AnimatedVectorscope size={400} className="opacity-[0.03]" />
@@ -323,20 +255,20 @@ export default function HomePage() {
               Start analyzing color today
             </h2>
             <p className="text-zinc-500 text-lg mb-10">
-              14-day free trial. No credit card required.
+              Free and open source. Download for macOS or Windows.
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Link
                 href="/download"
                 className="btn-primary text-white px-8 py-3 rounded-lg font-medium text-sm"
               >
-                Download Free Trial
+                Download
               </Link>
               <Link
-                href="/docs"
+                href="https://github.com/chromascope/chromascope"
                 className="btn-ghost text-zinc-300 px-8 py-3 rounded-lg font-medium text-sm"
               >
-                View Documentation
+                View on GitHub
               </Link>
             </div>
           </div>

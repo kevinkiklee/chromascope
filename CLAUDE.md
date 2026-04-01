@@ -2,26 +2,26 @@
 
 ## Process
 
-When you solve a bug or an issue, or build a feature, run `npm run build:plugins` automatically so that I don't have to rebuild it manually.
-
-Before making changes to the Lightroom plugin, read `docs/reference/lrc-sdk-research.md` to understand the LrC SDK constraints (no WebView, no canvas, no direct pixel access, `f:picture` for image display, `LrTasks.execute` for shell commands, cooperative async via `LrTasks.startAsyncTask`).
-
-Before making changes to the Photoshop plugin, read `docs/reference/uxp-api-reference.md` to understand UXP constraints (limited canvas API — no `drawImage`/`getImageData`/`putImageData`/`toDataURL`/`toBlob`, no CSS Grid/transitions/transforms, `<select>` requires explicit `value` on `<option>`, use Spectrum UXP `<sp-*>` components for native PS styling, `imaging.encodeImageData()` with base64 for rendering to `<img>`, `executeAsModal` required for imaging calls, panel `show` fires only once).
+- After any fix or feature, run `npm run build:plugins` automatically.
+- Before changing the Lightroom plugin, read `docs/reference/lrc-sdk-research.md` (no WebView, no canvas, no direct pixel access, `f:picture` for image display, `LrTasks.execute` for shell commands, cooperative async via `LrTasks.startAsyncTask`).
+- Before changing the Photoshop plugin, read `docs/reference/uxp-api-reference.md` (limited canvas API -- no `drawImage`/`getImageData`/`putImageData`/`toDataURL`/`toBlob`, no CSS Grid/transitions/transforms, `<select>` requires explicit `value` on `<option>`, use Spectrum UXP `<sp-*>` components, `imaging.encodeImageData()` with base64 for `<img>`, `executeAsModal` required for imaging calls, panel `show` fires only once).
 
 ## Project Overview
 
-Chromascope is an open-source color analysis tool for Adobe Photoshop and Lightroom Classic. It renders chrominance vectorscope plots with multiple color spaces, visualization modes, and color harmony overlays.
+Chromascope is an open-source color analysis tool for Adobe Photoshop and Lightroom Classic. It renders chrominance vectorscope plots with visualization modes and color harmony overlays.
 
 ## Monorepo Layout
 
-- `packages/core/` -- TypeScript core library (vectorscope math, rendering, UI controls)
-- `packages/processor/` -- Rust CLI binary (image decoding + vectorscope rendering)
-- `plugins/photoshop/` -- Photoshop UXP panel plugin (JavaScript)
-- `plugins/lightroom/` -- Lightroom Classic plugin (Lua + Rust binary)
-- `web/` -- Next.js 16 app (marketing site, pricing, licensing API, Stripe webhooks)
-- `scripts/` -- Setup, build, and deployment scripts
+```
+packages/core/        TypeScript core library (vectorscope math, rendering, UI)
+packages/processor/   Rust CLI binary (image decode + vectorscope render)
+plugins/photoshop/    Photoshop UXP panel plugin (JavaScript)
+plugins/lightroom/    Lightroom Classic plugin (Lua + Rust binary)
+web/                  Static marketing site (Next.js 16, Tailwind CSS 4)
+scripts/              Build and setup automation
+```
 
-Managed with Turborepo. Workspaces: `packages/*`, `plugins/*`, `apps/*`.
+Managed with Turborepo. Workspaces: `packages/*`, `plugins/*`, `web`.
 
 ## Key Commands
 
@@ -31,38 +31,33 @@ npx turbo test           # Run all tests
 npx turbo dev            # Start dev servers
 npm run build:plugins    # Build core + processor + assemble both plugins
 
-# Core library
 cd packages/core
 npm run dev              # Vite dev server
 npm run test             # Vitest
 npm run test:watch       # Vitest in watch mode
 
-# Rust processor binary
 cd packages/processor
 cargo build --release
 cargo test
 
-# Web app
 cd web
 npm run dev              # Next.js + Turbopack at localhost:3000
-npm run lint             # ESLint
 ```
 
-## Architecture Notes
+## Architecture
 
 ### Core + Photoshop
 
-- The core library bundles to a single HTML file via `vite-plugin-singlefile` for embedding in the Photoshop UXP WebView.
-- Host-plugin communication uses a typed message protocol defined in `packages/core/src/protocol.ts` (PixelsMessage, SettingsMessage, EditMessage).
-- Color space mappers implement the `ColorSpaceMapper` interface in `packages/core/src/types.ts`.
-- Density renderers implement the `DensityRenderer` interface in the same file.
+- Core bundles to a single HTML file via `vite-plugin-singlefile` for embedding in the Photoshop UXP WebView.
+- Host-plugin communication uses a typed message protocol in `packages/core/src/protocol.ts` (PixelsMessage, SettingsMessage, EditMessage).
+- Density renderers implement the `DensityRenderer` interface in `packages/core/src/types.ts`.
 
 ### Lightroom + Rust Renderer
 
 - Lightroom can't embed WebViews or read pixels from Lua.
 - The Rust `processor` binary has two subcommands:
   - `processor decode` -- Decodes JPEG/TIFF to raw RGB bytes
-  - `processor render` -- Renders a vectorscope JPEG from raw RGB with configurable color space (`--color-space ycbcr|cieluv|hsl`), density mode (`--density scatter|heatmap|bloom`), harmony overlay, and skin tone line
+  - `processor render` -- Renders a vectorscope JPEG from raw RGB with configurable density mode (`--density scatter|heatmap|bloom`), harmony overlay, and skin tone line
 - `ImagePipeline.lua` exports a thumbnail, calls `processor decode`, then `processor render`, and displays the resulting JPEG via `f:picture`.
 - Updates are driven by `LrDevelopController.addAdjustmentChangeObserver` + a fallback poll loop.
 - A busy-guard with coalescing prevents overlapping renders (max 1 queued).
@@ -73,75 +68,50 @@ npm run lint             # ESLint
 
 The Lightroom plugin runs for hours inside a long-lived process. Every allocation pattern that grows unboundedly will eventually crash the host. Follow these rules strictly:
 
-1. **Frame alternation is mandatory.** `f:picture` must always receive a *different* file path on each update. Writing to the same path and toggling `imagePath = nil → same_path` causes Lightroom to cache every version of the image internally without releasing. This was the root cause of a 40GB memory leak. Use `nextScopePath()` to alternate between `scope_0.jpg` and `scope_1.jpg`.
+1. **Frame alternation is mandatory.** `f:picture` must always receive a *different* file path on each update. Writing to the same path and toggling `imagePath = nil -> same_path` causes Lightroom to cache every version internally without releasing. This was the root cause of a 40GB memory leak. Use `nextScopePath()` to alternate between `scope_0.jpg` and `scope_1.jpg`.
 
-2. **Guard `requestJpegThumbnail` callbacks.** The SDK may call the callback multiple times (as higher-quality thumbnails become available). After the first callback sets `done = true`, subsequent callbacks must `return` immediately to avoid writing to closed files and retaining JPEG binary strings. Always nil out `jpegData` after writing.
+2. **Guard `requestJpegThumbnail` callbacks.** The SDK may call the callback multiple times. After the first callback sets `done = true`, subsequent callbacks must `return` immediately. Always nil out `jpegData` after writing.
 
-3. **Debounce async task creation.** Every `LrTasks.startAsyncTask` creates a Lua coroutine. Dragging a slider fires the `addAdjustmentChangeObserver` callback many times per second. Without debouncing (version counter + sleep + stale check), hundreds of coroutines accumulate. Use the `_settleVersion` / `_adjustVersion` pattern to ensure only the final value triggers work.
+3. **Debounce async task creation.** Every `LrTasks.startAsyncTask` creates a Lua coroutine. Without debouncing (version counter + sleep + stale check), hundreds of coroutines accumulate. Use the `_settleVersion` / `_adjustVersion` pattern.
 
-4. **Never accumulate data in module-level tables.** Do not append to arrays, build history logs, or cache previous results in module-scope variables. The only module-level state allowed is fixed-size: the busy flag, frame index, pending flag, and the settings hash.
+4. **Never accumulate data in module-level tables.** No appending to arrays, no history logs, no caching previous results. The only module-level state allowed is fixed-size: busy flag, frame index, pending flag, settings hash.
 
-5. **Clean up temp files on dialog open.** `ImagePipeline.cleanup()` removes stale files from previous sessions on startup. If you add new temp files, add them to the cleanup list.
+5. **Clean up temp files on dialog open.** `ImagePipeline.cleanup()` removes stale files from previous sessions. If you add new temp files, add them to the cleanup list.
 
-6. **`collectgarbage` is unavailable.** LrC's Lua sandbox blocks it. Do not call it. Rely on the patterns above to minimize GC pressure.
-
-### Licensing
-
-- License keys use format `CHRM-XXXX-XXXX-XXXX` with tiers: trial (14-day), pro, pro_ai.
-- `validateLicense(key, machineId?)` -- machineId is optional for API-only validation.
-- `tierFeatures()` returns `'ai'` for pro_ai tier (not `'ai_analysis'`).
+6. **`collectgarbage` is unavailable.** LrC's Lua sandbox blocks it. Rely on the patterns above to minimize GC pressure.
 
 ## Build Dependencies
-
-Core must build before plugins. The build order is:
 
 ```
 packages/core   -->  plugins/photoshop (copies core build output)
                      plugins/lightroom (copies core HTML + processor binary)
 packages/processor -->  plugins/lightroom (binary copied to bin/<platform>/)
-web             (independent, no core dependency)
+web             (independent)
 ```
 
-`npm run build:plugins` handles the full pipeline: core build, Rust compile, Photoshop build, and Lightroom assembly (copies core HTML + processor binary).
+`npm run build:plugins` handles the full pipeline: core build, Rust compile, Photoshop build, and Lightroom assembly.
 
 ## Web App (`web`)
 
 - **Framework**: Next.js 16 with App Router, Turbopack, React 19
 - **Styling**: Tailwind CSS 4 (CSS-first config via `@theme` in globals.css)
-- **Database**: Neon serverless Postgres (`@neondatabase/serverless`) -- lazy-initialized via Proxy
-- **Payments**: Stripe (`stripe` package) -- lazy-initialized via `getStripe()`
-- **AI**: Vercel AI SDK 6 (`ai` package) with AI Gateway
-- **Design system**: "Chromatic Energy" -- dark mode, violet-to-indigo gradients, glass-effect cards, conic-gradient logo mark
-
-### Environment Variables
-
-Store in `web/.env.local` (gitignored). Copy from `web/.env.example` or run `vercel env pull`.
-
-- `DATABASE_URL` -- Neon Postgres connection string
-- `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` -- Stripe integration
-- `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` -- Client-side Stripe key
-
-### Key Routes
-
-- `/api/stripe/checkout` -- Stripe checkout session creation
-- `/api/stripe/webhook` -- Stripe webhook handler (license creation, subscription management)
-- `/api/ai/natural-language` -- AI color adjustment endpoint
-- `/api/license/validate` -- License validation
-- `/api/license/trial` -- Trial license creation
+- **Output**: Static export (`output: 'export'` in next.config.ts)
+- **Design system**: Dark mode, violet-to-indigo gradients, glass-effect cards, conic-gradient logo mark
+- **Pages**: Home, Features, Download, Docs
+- No backend, no API routes, no database, no env vars needed
 
 ## Code Conventions
 
 - TypeScript strict mode across all packages
 - Vitest for core library tests
-- Rust integration tests via `cargo test --release` (4 tests)
+- Rust integration tests via `cargo test --release`
 - Base tsconfig in `tsconfig.base.json`, extended per package
 - Vite 6 for core library bundling
 - `vite-plugin-singlefile` produces a self-contained HTML for WebView embedding
-- Stripe and Neon clients are lazy-initialized to avoid build-time crashes when env vars are missing
 
 ## Deployment
 
-- **Platform**: Vercel
-- **Root directory**: `web`
-- **Framework**: Next.js (auto-detected)
-- Env vars must be set in Vercel dashboard or via `vercel env add`
+- **Platform**: GitHub Pages (via GitHub Actions)
+- **Workflow**: `.github/workflows/deploy-pages.yml`
+- Triggers on push to `main` when `web/` or `packages/core/` changes
+- Builds static export to `web/out/` and deploys via `actions/deploy-pages`

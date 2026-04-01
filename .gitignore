@@ -31,9 +31,15 @@ Thumbs.db
 
 # Plugin build artifacts
 plugins/lightroom/chromascope.lrdevplugin/bin/*/processor
+plugins/lightroom/chromascope.lrdevplugin/bin/*/processor.exe
+plugins/lightroom/chromascope.lrdevplugin/bin/*/decode
+plugins/lightroom/chromascope.lrdevplugin/bin/*/decode.exe
 plugins/lightroom/chromascope.lrdevplugin/core/
 plugins/photoshop/core/scope-bundle.js
 plugins/photoshop/core/test.html
+
+# Static site build output
+web/out/
 
 # Test fixtures (generated at runtime)
 packages/processor/tests/fixtures/

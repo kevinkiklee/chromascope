@@ -1,146 +1,116 @@
 # Chromascope
 
-An open-source color analysis tool for Adobe Creative Suite. Visualizes chrominance distribution on a vectorscope plot for colorists, video editors, and color grading professionals.
+Real-time chrominance vectorscope for Adobe Photoshop and Lightroom Classic. Analyze color distribution, overlay harmony zones, and visualize density -- all inside your editing workflow.
 
-## Features
+## What it does
 
-- **Multiple color spaces** -- YCbCr (BT.601), CIE LUV, HSL
-- **Visualization modes** -- Scatter plot, heatmap, bloom
-- **Color harmony overlays** -- Complementary, split-complementary, triadic, tetradic, analogous
-- **Skin tone reference line**
-- **Interactive zone rotation** and fit-to-scheme color correction
-- **AI-powered natural language color adjustments** (optional, bring your own API key)
-- **Plugin support** for Photoshop (UXP) and Lightroom Classic (Lua)
+Chromascope maps every pixel in your image onto a circular vectorscope plot, showing where your colors live in chrominance space. Use it to:
 
-## Project Structure
+- Spot color casts and imbalances at a glance
+- Check skin tones against the industry-standard reference line
+- Overlay harmony zones (complementary, triadic, analogous, etc.) and rotate them to find the right grade
+- Toggle scatter, heatmap, and bloom density modes for different levels of detail
 
-```
-chromascope/
-  packages/
-    core/        TypeScript library -- vectorscope math, rendering, UI
-    processor/   Rust binary -- image decoding, RGB extraction, vectorscope rendering
-  plugins/
-    photoshop/   Photoshop UXP panel plugin
-    lightroom/   Lightroom Classic plugin (Lua + Rust binary)
-  apps/
-    web/         Next.js marketing site, licensing API, Stripe webhooks
-  docs/          Architecture docs and guides
-  scripts/       Setup, build, and deployment scripts
-```
+Works as a native panel in Photoshop (UXP) and as a floating dialog in Lightroom Classic, updating in real time as you adjust develop sliders.
 
-## Tech Stack
-
-| Layer | Technology |
-|-------|-----------|
-| Monorepo | Turborepo |
-| Core | TypeScript, Vite 6, Vitest |
-| Processor | Rust (image crate, clap) -- decode + render subcommands |
-| Web | Next.js 16, React 19, Tailwind CSS 4, Turbopack |
-| Database | Neon (serverless Postgres) |
-| Payments | Stripe |
-| AI | Vercel AI SDK 6, AI Gateway |
-| Photoshop | Adobe UXP, batchPlay API |
-| Lightroom | Lua, LrDevelopController, Rust-rendered vectorscope |
-
-## Getting Started
+## Quick start
 
 ```sh
-./scripts/setup.sh    # Automated setup (recommended)
+git clone https://github.com/chromascope/chromascope.git
+cd chromascope
+./scripts/setup.sh
 ```
 
-Or manually:
+This installs dependencies, builds all packages, compiles the Rust binary, and runs tests. See [docs/SETUP.md](docs/SETUP.md) for prerequisites and manual setup.
+
+### Development
 
 ```sh
-npm install
-npx turbo build
-npx turbo test
+npx turbo dev              # Start all dev servers
+cd packages/core && npm run dev   # Core library only (Vite)
+cd web && npm run dev             # Marketing site (Next.js)
 ```
 
-See [docs/SETUP.md](docs/SETUP.md) for detailed setup instructions and [docs/LOCAL_DEVELOPMENT.md](docs/LOCAL_DEVELOPMENT.md) for the full development workflow guide.
-
-### Core library
+### Build plugins for distribution
 
 ```sh
-cd packages/core
-npm run dev    # Vite dev server with hot reload
-npm run test   # Vitest
+npm run build:plugins
 ```
 
-### Rust processor binary
+Builds the core library, compiles the Rust processor for all platforms, assembles the Photoshop and Lightroom plugins.
 
-```sh
-cd packages/processor
-cargo build --release
-cargo test
-```
+## How it works
 
-### Web app
+### Photoshop (UXP)
 
-```sh
-cp web/.env.example web/.env.local   # then fill in values
-cd web
-npm run dev    # Next.js + Turbopack at localhost:3000
-```
-
-Required environment variables in `web/.env.local`:
-
-| Variable | Purpose |
-|----------|---------|
-| `DATABASE_URL` | Neon Postgres connection string |
-| `STRIPE_SECRET_KEY` | Stripe server-side key |
-| `STRIPE_WEBHOOK_SECRET` | Stripe webhook signing secret |
-| `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Stripe client-side key |
-
-If the project is linked to Vercel, run `vercel env pull web/.env.local` to pull all variables automatically.
-
-### Build all plugins
-
-```sh
-npm run build:plugins    # Builds core, processor binary, Photoshop plugin, assembles Lightroom plugin
-```
-
-## Architecture
-
-### Photoshop
-
-The core library bundles to a single HTML file (`vite-plugin-singlefile`) that embeds in the Photoshop UXP panel as a WebView. The plugin communicates with the core via a typed message protocol (`packages/core/src/protocol.ts`):
+The core library bundles to a single HTML file that runs inside the UXP panel WebView. The plugin reads pixel data via the Imaging API and sends it to the core for rendering. Edits flow back through a typed message protocol.
 
 ```
-Photoshop Plugin (UXP)
-  |-- PixelsMessage   -->  Core WebView (vectorscope rendering)
-  |<-- EditMessage     --  Core WebView (apply color correction)
+Photoshop  --PixelsMessage-->  Core WebView (vectorscope)
+Photoshop  <--EditMessage---   Core WebView (color correction)
 ```
 
-### Lightroom Classic
+### Lightroom Classic (Lua + Rust)
 
-Lightroom's Lua SDK does not support embedded WebViews. Instead, the Rust `processor` binary handles both image decoding and vectorscope rendering:
+Lightroom's Lua SDK can't embed WebViews or access pixel data directly. Instead, the Rust `processor` binary handles everything outside Lua's reach:
 
 ```
-Lightroom Plugin (Lua)
-  |-- requestJpegThumbnail  -->  JPEG thumbnail
-  |-- processor decode      -->  raw RGB bytes
-  |-- processor render      -->  vectorscope JPEG (configurable color space, density, harmony)
-  |-- f:picture             -->  displays rendered JPEG in dialog
+LrC plugin
+  1. requestJpegThumbnail  -->  JPEG from catalog
+  2. processor decode      -->  raw RGB bytes
+  3. processor render      -->  vectorscope JPEG
+  4. f:picture             -->  display in dialog
 ```
 
-The vectorscope image updates automatically when develop sliders change via `LrDevelopController.addAdjustmentChangeObserver`. A busy-guard with coalescing prevents overlapping renders. Frame alternation (`scope_0.jpg` / `scope_1.jpg`) forces `f:picture` to release cached images and prevents memory leaks.
+The scope updates automatically via `LrDevelopController.addAdjustmentChangeObserver`. A busy-guard with coalescing prevents overlapping renders, and frame alternation between two output files forces Lightroom to release cached images (preventing memory leaks).
 
-### Rust processor binary
+### Processor binary
 
-The binary has two subcommands:
+The `processor` CLI has two subcommands:
 
-- `processor decode` -- Decodes JPEG/TIFF to raw RGB bytes (used by both Photoshop and Lightroom pipelines)
-- `processor render` -- Renders a vectorscope JPEG from raw RGB data with configurable options:
-  - `--color-space` -- YCbCr BT.601 (default), CIE LUV, or HSL
-  - `--density` -- Scatter (default), heatmap, or bloom rendering
-  - `--scheme` -- Harmony overlay (complementary, triadic, etc.)
-  - `--rotation` -- Harmony rotation in degrees
-  - `--overlay-color` -- Zone line color (yellow, cyan, etc.)
-  - `--hide-skin-tone` -- Disable skin tone reference line
+| Command | Purpose |
+|---------|---------|
+| `processor decode` | Decode JPEG/TIFF to raw RGB, resized to target dimensions |
+| `processor render` | Render a vectorscope JPEG from raw RGB data |
+
+Render options: `--density` (scatter, heatmap, bloom), `--scheme` (complementary, triadic, etc.), `--rotation`, `--overlay-color`, `--hide-skin-tone`.
+
+## Project structure
+
+```
+packages/core/        TypeScript vectorscope engine (math, rendering, UI)
+packages/processor/   Rust CLI (image decode + vectorscope render)
+plugins/photoshop/    Photoshop UXP panel plugin
+plugins/lightroom/    Lightroom Classic plugin (Lua + Rust binary)
+web/                  Static marketing site (Next.js)
+scripts/              Build and setup automation
+```
+
+### Tech stack
+
+| | |
+|---|---|
+| **Monorepo** | Turborepo |
+| **Core** | TypeScript, Vite 6, Vitest, Canvas 2D |
+| **Processor** | Rust, image crate, clap |
+| **Photoshop** | Adobe UXP, batchPlay, Imaging API |
+| **Lightroom** | Lua, LrDevelopController, LrTasks |
+| **Web** | Next.js 16, Tailwind CSS 4 (static export) |
+
+### Build order
+
+```
+packages/core -----> plugins/photoshop  (embeds built HTML)
+                +--> plugins/lightroom  (embeds built HTML)
+
+packages/processor -> plugins/lightroom  (binary copied to bin/<platform>/)
+
+web                  (independent)
+```
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup and guidelines.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for development workflow, commit conventions, and architecture notes.
 
 ## License
 

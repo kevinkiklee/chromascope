@@ -77,7 +77,7 @@ npm run test:watch   # Vitest in watch mode
 
 ### Processor Binary (`packages/processor`)
 
-Rust CLI that decodes images and renders vectorscopes. Used by the Lightroom plugin (which can't read pixels or draw from Lua). Supports configurable color spaces (YCbCr, CIE LUV, HSL), density modes (scatter, heatmap, bloom), and harmony overlays.
+Rust CLI that decodes images and renders vectorscopes. Used by the Lightroom plugin (which can't read pixels or draw from Lua). Supports density modes (scatter, heatmap, bloom) and harmony overlays.
 
 ```sh
 cd packages/processor
@@ -137,7 +137,7 @@ Lua plugin for Lightroom Classic. Uses the processor binary to read pixel data.
 **Key files**:
 - `Info.lua` -- Plugin metadata and menu registration
 - `ShowChromaScope.lua` -- Main dialog launcher
-- `ChromaScopeDialog.lua` -- Floating dialog with vectorscope, controls (color space, density, harmony, rotation, size)
+- `ChromaScopeDialog.lua` -- Floating dialog with vectorscope, controls (density, harmony, rotation, size)
 - `ImagePipeline.lua` -- Thumbnail export, processor binary invocation, frame alternation
 - `EditBridge.lua` -- Maps edit commands to `LrDevelopController` calls
 - `License.lua` -- License key validation
@@ -222,13 +222,6 @@ cd packages/core && npm run test:watch
 ```
 
 ## Common Tasks
-
-### Adding a new color space
-
-1. Implement `ColorSpaceMapper` interface in `packages/core/src/types.ts`
-2. Register in `packages/core/src/main.ts`
-3. Add tests in `packages/core/test/`
-4. Run `npm run test` to verify
 
 ### Adding a new density renderer
 

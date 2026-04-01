@@ -8,7 +8,7 @@ import './globals.css';
 export const metadata: Metadata = {
   title: 'Chromascope — Professional Color Analysis',
   description: 'Chrominance vectorscope plugin for Adobe Photoshop and Lightroom Classic. Analyze, grade, and perfect your color.',
-  metadataBase: new URL('https://chromascope-website.vercel.app'),
+  metadataBase: new URL('https://chromascope.github.io/chromascope'),
   openGraph: {
     title: 'Chromascope — Professional Color Analysis',
     description: 'Chrominance vectorscope plugin for Adobe Photoshop and Lightroom Classic. Analyze, grade, and perfect your color.',

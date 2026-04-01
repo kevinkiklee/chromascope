@@ -1,41 +1,23 @@
-'use client';
-import { useState } from 'react';
+import Link from 'next/link';
 
-type Platform = 'macos' | 'windows';
+const GITHUB_RELEASES = 'https://github.com/chromascope/chromascope/releases/latest';
+
+const platforms = [
+  {
+    name: 'macOS',
+    icon: '◆',
+    desc: 'Universal binary — Apple Silicon and Intel.',
+    href: `${GITHUB_RELEASES}/download/chromascope-macos.zip`,
+  },
+  {
+    name: 'Windows',
+    icon: '◇',
+    desc: 'Windows 10+ (64-bit).',
+    href: `${GITHUB_RELEASES}/download/chromascope-windows.zip`,
+  },
+];
 
 export default function DownloadPage() {
-  const [email, setEmail] = useState('');
-  const [trialKey, setTrialKey] = useState('');
-  const [licenseKey, setLicenseKey] = useState('');
-  const [platform, setPlatform] = useState<Platform>('macos');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-
-  async function handleTrial(e: React.FormEvent) {
-    e.preventDefault();
-    setLoading(true);
-    setError('');
-    const res = await fetch('/api/license/trial', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email }),
-    });
-    const data = await res.json();
-    setLoading(false);
-    if (data.key) {
-      setTrialKey(data.key);
-    } else {
-      setError(data.error ?? 'Failed to create trial');
-    }
-  }
-
-  async function handleDownload(e: React.FormEvent) {
-    e.preventDefault();
-    const key = licenseKey.trim();
-    if (!key) { setError('Enter a license key'); return; }
-    window.location.href = `/api/download/${platform}?key=${encodeURIComponent(key)}`;
-  }
-
   return (
     <div className="min-h-screen">
       {/* Header */}
@@ -48,102 +30,57 @@ export default function DownloadPage() {
           <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-4">
             Get Chromascope
           </h1>
-          <p className="text-zinc-400 text-lg">Start a free 14-day trial or download with your license key.</p>
+          <p className="text-zinc-400 text-lg">Free and open source. Choose your platform below.</p>
         </div>
       </header>
 
-      <main className="py-8 px-6 max-w-xl mx-auto space-y-6">
-        {/* Trial form */}
-        <section className="card-glass rounded-xl p-7">
-          <div className="flex items-center gap-3 mb-5">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500/10 to-indigo-500/10 border border-white/[0.06] flex items-center justify-center text-sm text-violet-400">
-              ✦
+      <main className="py-8 px-6 max-w-xl mx-auto space-y-5">
+        {platforms.map((p) => (
+          <a
+            key={p.name}
+            href={p.href}
+            className="card-glass rounded-xl p-7 flex items-center gap-5 group hover:border-white/[0.1] transition-all duration-300 block"
+          >
+            <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-violet-500/10 to-indigo-500/10 border border-white/[0.06] flex items-center justify-center text-xl text-violet-400 flex-shrink-0">
+              {p.icon}
             </div>
-            <h2 className="font-semibold text-zinc-200">Start Free Trial</h2>
-          </div>
+            <div className="flex-1">
+              <h2 className="font-semibold text-zinc-200 mb-0.5">{p.name}</h2>
+              <p className="text-zinc-500 text-sm">{p.desc}</p>
+            </div>
+            <span className="text-violet-400 text-sm font-medium group-hover:translate-x-0.5 transition-transform">
+              Download &darr;
+            </span>
+          </a>
+        ))}
 
-          {trialKey ? (
-            <div className="text-sm">
-              <p className="text-zinc-400 mb-3">Your trial key:</p>
-              <code className="block bg-zinc-900/80 rounded-lg px-4 py-3 font-mono text-violet-300 border border-white/[0.06] mb-3 text-[13px]">
-                {trialKey}
-              </code>
-              <p className="text-zinc-600 text-xs">Copy this key and use it in the download form below.</p>
+        {/* Installation instructions */}
+        <section className="card-glass rounded-xl p-7 mt-8">
+          <h2 className="font-semibold text-zinc-200 mb-4">Installation</h2>
+          <div className="space-y-4 text-sm text-zinc-400">
+            <div>
+              <h3 className="text-zinc-300 font-medium mb-1">Photoshop</h3>
+              <p>Unzip and install via the UXP Developer Tool or copy to your Creative Cloud plugins directory.</p>
             </div>
-          ) : (
-            <form onSubmit={handleTrial} className="flex gap-3">
-              <input
-                type="email"
-                required
-                placeholder="your@email.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="flex-1 bg-zinc-900/60 border border-white/[0.08] rounded-lg px-4 py-2.5 text-sm placeholder-zinc-600"
-              />
-              <button
-                type="submit"
-                disabled={loading}
-                className="btn-primary text-white px-5 py-2.5 rounded-lg text-sm font-medium disabled:opacity-50"
-              >
-                {loading ? 'Creating...' : 'Get Trial Key'}
-              </button>
-            </form>
-          )}
+            <div>
+              <h3 className="text-zinc-300 font-medium mb-1">Lightroom Classic</h3>
+              <p>
+                Unzip and copy the <code className="text-violet-300/80 bg-zinc-900/60 px-1.5 py-0.5 rounded text-xs font-mono">chromascope.lrdevplugin</code> folder
+                to your plugins directory. Enable via <strong>File &gt; Plug-in Manager &gt; Add</strong>.
+              </p>
+            </div>
+          </div>
         </section>
 
-        {/* Download form */}
-        <section className="card-glass rounded-xl p-7">
-          <div className="flex items-center gap-3 mb-5">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-500/10 to-blue-500/10 border border-white/[0.06] flex items-center justify-center text-sm text-cyan-400">
-              ↓
-            </div>
-            <h2 className="font-semibold text-zinc-200">Download with License Key</h2>
-          </div>
-
-          <form onSubmit={handleDownload} className="space-y-4">
-            <div>
-              <label className="block text-sm text-zinc-500 mb-1.5">License Key</label>
-              <input
-                type="text"
-                placeholder="CHRM-XXXX-XXXX-XXXX-XXXX"
-                value={licenseKey}
-                onChange={(e) => setLicenseKey(e.target.value)}
-                className="w-full bg-zinc-900/60 border border-white/[0.08] rounded-lg px-4 py-2.5 text-sm font-mono placeholder-zinc-700"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm text-zinc-500 mb-1.5">Platform</label>
-              <div className="flex gap-3">
-                {(['macos', 'windows'] as Platform[]).map((p) => (
-                  <button
-                    key={p}
-                    type="button"
-                    onClick={() => setPlatform(p)}
-                    className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition-all ${
-                      platform === p
-                        ? 'btn-primary text-white'
-                        : 'btn-ghost text-zinc-400'
-                    }`}
-                  >
-                    {p === 'macos' ? '◆ macOS' : '◇ Windows'}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {error && (
-              <p className="text-red-400/90 text-sm bg-red-500/5 border border-red-500/10 rounded-lg px-3 py-2">{error}</p>
-            )}
-
-            <button
-              type="submit"
-              className="w-full btn-ghost text-zinc-200 py-2.5 rounded-lg text-sm font-medium"
-            >
-              Download Chromascope
-            </button>
-          </form>
-        </section>
+        {/* Source link */}
+        <div className="text-center pt-4">
+          <p className="text-zinc-600 text-sm">
+            Or build from source on{' '}
+            <Link href="https://github.com/chromascope/chromascope" className="text-violet-400 hover:text-violet-300 transition-colors">
+              GitHub
+            </Link>
+          </p>
+        </div>
       </main>
     </div>
   );

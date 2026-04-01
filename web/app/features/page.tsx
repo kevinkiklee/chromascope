@@ -133,25 +133,19 @@ export default function FeaturesPage() {
         </div>
       </section>
 
-      {/* AI Features */}
+      {/* CTA */}
       <section className="relative py-16 px-6 border-t border-white/[0.06] section-glow">
-        <div className="max-w-6xl mx-auto relative">
-          <div className="card-glass-highlight rounded-xl p-8 md:p-10 glow-violet-sm">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="gradient-badge text-[11px] font-semibold uppercase tracking-[0.14em]">Pro + AI</div>
-            </div>
-            <h2 className="text-xl font-bold tracking-tight mb-3">AI-Powered Color Analysis</h2>
-            <p className="text-zinc-400 text-sm leading-relaxed max-w-2xl mb-6">
-              Automatic color cast detection, reference image matching, and intelligent grading
-              suggestions based on vectorscope data. Available with the Pro + AI tier.
-            </p>
-            <Link
-              href="/pricing"
-              className="btn-primary inline-block text-white px-6 py-2.5 rounded-lg text-sm font-medium"
-            >
-              View Pro + AI Pricing
-            </Link>
-          </div>
+        <div className="max-w-6xl mx-auto relative text-center">
+          <h2 className="text-xl font-bold tracking-tight mb-3">Ready to try it?</h2>
+          <p className="text-zinc-400 text-sm leading-relaxed max-w-2xl mx-auto mb-6">
+            Free and open source. Available for Photoshop and Lightroom Classic on macOS and Windows.
+          </p>
+          <Link
+            href="/download"
+            className="btn-primary inline-block text-white px-6 py-2.5 rounded-lg text-sm font-medium"
+          >
+            Download Chromascope
+          </Link>
         </div>
       </section>
     </div>

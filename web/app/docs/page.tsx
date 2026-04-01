@@ -22,14 +22,9 @@ const sections = [
     content: `Scatter plots each pixel as a point. Heatmap accumulates pixel frequency and maps it to color — denser regions appear brighter. Bloom applies a glow effect to high-density clusters, making dominant color populations visually distinct.`,
   },
   {
-    id: 'license-faq',
-    title: 'License FAQ',
-    content: `Your license supports up to 3 machine activations. To move to a new machine, deactivate one of your existing machines from the Account page. Trial licenses are valid for 14 days from the date of creation. Pro licenses do not expire. Pro + AI licenses are annual subscriptions.`,
-  },
-  {
     id: 'troubleshooting',
     title: 'Troubleshooting',
-    content: `If the panel does not update, ensure the plugin is connected (check the status indicator in the panel header). For license errors, verify your key on the Account page. If you reach the machine activation limit, deactivate an unused machine. Contact support via the email in your license confirmation.`,
+    content: `If the panel does not update, ensure the plugin is connected (check the status indicator in the panel header). For Lightroom, check that the processor binary is in the correct bin/ directory for your platform. File issues on GitHub if you encounter problems.`,
   },
 ];
 

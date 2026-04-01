@@ -2,10 +2,9 @@ import Link from 'next/link';
 
 const footerLinks = [
   { href: '/features', label: 'Features' },
-  { href: '/pricing', label: 'Pricing' },
   { href: '/download', label: 'Download' },
   { href: '/docs', label: 'Docs' },
-  { href: '/account', label: 'Account' },
+  { href: 'https://github.com/chromascope/chromascope', label: 'GitHub' },
 ];
 
 export function Footer() {
