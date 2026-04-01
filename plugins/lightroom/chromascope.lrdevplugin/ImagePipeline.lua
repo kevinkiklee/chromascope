@@ -194,6 +194,8 @@ local function exportThumbnail(photo, outPath)
     ok = true
     done = true
   end)
+  -- Cooperative wait: LrTasks.sleep yields the coroutine, letting LrC process
+  -- the thumbnail request. Without this, the callback would never fire.
   while not done do LrTasks.sleep(0.05) end
   return ok, errMsg
 end
@@ -245,7 +247,8 @@ function ImagePipeline.refresh(props)
     bin, rgbPath, outPath, fullSize
   ), props)
   exitCode = LrTasks.execute(renderCmd)
-  -- Keep rgbPath for refreshOverlayOnly to re-use
+  -- Keep rgbPath on disk — refreshOverlayFast/Full re-use it to skip the
+  -- expensive decode step when only the overlay settings changed.
   if exitCode ~= 0 then
     props.status = string.format("Render failed (%s)", tostring(exitCode))
     _busy = false
