@@ -28,7 +28,7 @@ jobs:
         with:
           workspaces: packages/processor
 
-      - run: npm ci
+      - run: npm install --no-package-lock
       - run: npm run build:plugins
 
       - uses: actions/upload-artifact@v4
@@ -55,7 +55,7 @@ jobs:
         with:
           workspaces: packages/processor
 
-      - run: npm ci
+      - run: npm install --no-package-lock
       - run: npx turbo run build --filter=@chromascope/core
       - run: npx turbo run build --filter=@chromascope/photoshop
 

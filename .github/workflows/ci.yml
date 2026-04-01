@@ -16,7 +16,7 @@ jobs:
         with:
           node-version: 20
           cache: npm
-      - run: npm ci
+      - run: npm install --no-package-lock
       - run: npx turbo build --filter=@chromascope/core
       - run: npx turbo test --filter=@chromascope/core
 
@@ -41,6 +41,6 @@ jobs:
         with:
           node-version: 20
           cache: npm
-      - run: npm ci
+      - run: npm install --no-package-lock
       - run: npx turbo build --filter=@chromascope/web
       - run: npx turbo lint --filter=@chromascope/web
