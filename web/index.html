@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Chromascope — Professional Color Analysis</title>
+  <meta name="description" content="Chrominance vectorscope plugin for Adobe Photoshop and Lightroom Classic. Analyze, grade, and perfect your color.">
+  <meta property="og:title" content="Chromascope — Professional Color Analysis">
+  <meta property="og:description" content="Chrominance vectorscope plugin for Adobe Photoshop and Lightroom Classic.">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary_large_image">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>tailwind.config={theme:{extend:{colors:{brand:'#6366f1'}}}}</script>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body class="bg-zinc-950 text-zinc-100 antialiased">
+
+  <!-- Nav -->
+  <nav class="border-b border-white/[0.06] px-6 py-4">
+    <div class="max-w-6xl mx-auto flex items-center justify-between">
+      <a href="./" class="flex items-center gap-2.5">
+        <div class="w-6 h-6 rounded-full" style="background:conic-gradient(from 0deg,#f43f5e,#f97316,#eab308,#22c55e,#06b6d4,#8b5cf6,#f43f5e);filter:blur(0.3px)"></div>
+        <span class="font-bold text-lg tracking-tight gradient-text-subtle">Chromascope</span>
+      </a>
+      <div class="flex items-center gap-1">
+        <a href="features/" class="px-3 py-1.5 rounded-md text-sm text-zinc-500 hover:text-zinc-300 transition-colors">Features</a>
+        <a href="download/" class="px-3 py-1.5 rounded-md text-sm text-zinc-500 hover:text-zinc-300 transition-colors">Download</a>
+        <a href="docs/" class="px-3 py-1.5 rounded-md text-sm text-zinc-500 hover:text-zinc-300 transition-colors">Docs</a>
+        <a href="download/" class="btn-primary text-white px-4 py-1.5 rounded-lg text-sm font-medium ml-3">Get Started</a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="min-h-screen">
+
+    <!-- Hero -->
+    <section class="relative overflow-hidden">
+      <div class="absolute top-[-120px] right-[20%] w-[500px] h-[400px] bg-[radial-gradient(ellipse,rgba(139,92,246,0.08)_0%,transparent_70%)] pointer-events-none"></div>
+      <div class="absolute bottom-[-80px] left-[10%] w-[400px] h-[300px] bg-[radial-gradient(ellipse,rgba(6,182,212,0.04)_0%,transparent_70%)] pointer-events-none"></div>
+      <div class="max-w-6xl mx-auto px-6 py-24 md:py-32">
+        <div class="flex flex-col md:flex-row items-center gap-16">
+          <div class="flex-1 max-w-xl">
+            <div class="animate-hero gradient-badge text-xs font-semibold uppercase tracking-[0.14em] mb-5">Professional Color Analysis</div>
+            <h1 class="animate-hero animate-delay-100 text-5xl md:text-6xl font-bold tracking-tight leading-[1.08] mb-6">
+              See your color<br><span class="gradient-text">like never before.</span>
+            </h1>
+            <p class="animate-hero animate-delay-200 text-lg text-zinc-400 leading-relaxed mb-10 max-w-md">
+              Chrominance vectorscope for Photoshop and Lightroom Classic. Analyze, grade, and perfect your color across six professional color spaces.
+            </p>
+            <div class="animate-hero animate-delay-300 flex gap-3 flex-wrap">
+              <a href="download/" class="btn-primary text-white px-7 py-3 rounded-lg font-medium text-sm">Download</a>
+              <a href="features/" class="btn-ghost text-zinc-300 px-7 py-3 rounded-lg font-medium text-sm">View Features</a>
+              <a href="https://github.com/kevinkiklee/chromascope" class="btn-ghost text-zinc-300 px-7 py-3 rounded-lg font-medium text-sm">GitHub</a>
+            </div>
+            <div class="animate-hero animate-delay-400 flex gap-6 mt-8">
+              <span class="text-xs text-zinc-600">Photoshop</span>
+              <span class="text-xs text-zinc-600">Lightroom Classic</span>
+              <span class="text-xs text-zinc-600">macOS &amp; Windows</span>
+              <span class="text-xs text-zinc-600">Open Source</span>
+            </div>
+          </div>
+          <!-- Vectorscope illustration -->
+          <div class="animate-hero animate-delay-300 flex-1 max-w-md relative flex items-center justify-center">
+            <svg width="280" height="280" viewBox="0 0 280 280" aria-hidden="true" class="opacity-80">
+              <circle cx="140" cy="140" r="130" fill="none" stroke="rgba(99,102,241,0.15)" stroke-width="1"/>
+              <circle cx="140" cy="140" r="86" fill="none" stroke="rgba(99,102,241,0.08)" stroke-width="0.5" stroke-dasharray="4 4"/>
+              <circle cx="140" cy="140" r="43" fill="none" stroke="rgba(99,102,241,0.06)" stroke-width="0.5" stroke-dasharray="3 4"/>
+              <line x1="23" y1="140" x2="257" y2="140" stroke="rgba(99,102,241,0.08)" stroke-width="0.5"/>
+              <line x1="140" y1="23" x2="140" y2="257" stroke="rgba(99,102,241,0.08)" stroke-width="0.5"/>
+              <line x1="140" y1="140" x2="186" y2="56" stroke="rgba(251,191,36,0.4)" stroke-width="1"/>
+              <circle cx="140" cy="140" r="3" fill="#f472b6" style="--orbit-radius:91px;animation:orbit 18s linear infinite;filter:drop-shadow(0 0 4px #f472b6)"/>
+              <circle cx="140" cy="140" r="3" fill="#818cf8" style="--orbit-radius:72px;animation:orbit 22s linear infinite;animation-delay:-5s;filter:drop-shadow(0 0 4px #818cf8)"/>
+              <circle cx="140" cy="140" r="3" fill="#22d3ee" style="--orbit-radius:104px;animation:orbit 26s linear infinite;animation-delay:-12s;filter:drop-shadow(0 0 4px #22d3ee)"/>
+              <circle cx="140" cy="140" r="3" fill="#a78bfa" style="--orbit-radius:59px;animation:orbit 20s linear infinite;animation-delay:-8s;filter:drop-shadow(0 0 4px #a78bfa)"/>
+              <circle cx="140" cy="140" r="3" fill="#fbbf24" style="--orbit-radius:81px;animation:orbit 24s linear infinite;animation-delay:-16s;filter:drop-shadow(0 0 4px #fbbf24)"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Value Props -->
+    <section class="py-24 px-6">
+      <div class="max-w-2xl mx-auto flex flex-col gap-5">
+        <div data-reveal="up" class="card-glass rounded-xl p-6 flex gap-4 items-start">
+          <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-violet-500/10 to-indigo-500/10 border border-violet-500/20 flex items-center justify-center flex-shrink-0 text-lg">&#127919;</div>
+          <div>
+            <h3 class="font-semibold text-[15px] text-zinc-200 mb-1">Stop guessing at color balance</h3>
+            <p class="text-zinc-500 text-sm leading-relaxed">See exactly where your chrominance sits across six professional color spaces. No more eyeballing — know your color is right.</p>
+          </div>
+        </div>
+        <div data-reveal="up" data-reveal-delay="100" class="card-glass rounded-xl p-6 flex gap-4 items-start">
+          <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-violet-500/10 to-indigo-500/10 border border-violet-500/20 flex items-center justify-center flex-shrink-0 text-lg">&#9889;</div>
+          <div>
+            <h3 class="font-semibold text-[15px] text-zinc-200 mb-1">Stay in your editing workflow</h3>
+            <p class="text-zinc-500 text-sm leading-relaxed">Runs inside Photoshop and Lightroom Classic. No round-tripping, no exports, no separate windows.</p>
+          </div>
+        </div>
+        <div data-reveal="up" data-reveal-delay="200" class="card-glass rounded-xl p-6 flex gap-4 items-start">
+          <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-violet-500/10 to-indigo-500/10 border border-violet-500/20 flex items-center justify-center flex-shrink-0 text-lg">&#128269;</div>
+          <div>
+            <h3 class="font-semibold text-[15px] text-zinc-200 mb-1">Catch problems before your client does</h3>
+            <p class="text-zinc-500 text-sm leading-relaxed">Skin tone line, harmony zones, and density heatmaps reveal color issues invisible to the naked eye.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Feature Showcase -->
+    <section class="relative py-24 px-6 section-glow">
+      <div class="max-w-6xl mx-auto relative">
+        <div class="text-center mb-20" data-reveal="up">
+          <div class="gradient-badge text-xs font-semibold uppercase tracking-[0.14em] mb-4">Features</div>
+          <h2 class="text-3xl md:text-4xl font-bold tracking-tight">Everything inside Chromascope</h2>
+        </div>
+        <div class="flex flex-col gap-16">
+          <div data-reveal="left" class="flex flex-col md:flex-row items-center gap-12">
+            <div class="flex-1">
+              <div class="text-xs font-semibold uppercase tracking-[0.14em] text-violet-400 mb-3">Color Spaces</div>
+              <h3 class="text-2xl font-bold tracking-tight text-zinc-100 mb-3">Six professional color spaces</h3>
+              <p class="text-zinc-400 leading-relaxed mb-5">YCbCr BT.601 &amp; BT.709, CIE LUV, HSL, and more. Switch instantly to match your grading workflow.</p>
+              <div class="flex flex-wrap gap-2">
+                <span class="bg-violet-500/10 text-violet-300 text-xs px-3 py-1 rounded-md border border-violet-500/15">YCbCr 601</span>
+                <span class="bg-violet-500/10 text-violet-300 text-xs px-3 py-1 rounded-md border border-violet-500/15">YCbCr 709</span>
+                <span class="bg-violet-500/10 text-violet-300 text-xs px-3 py-1 rounded-md border border-violet-500/15">CIE LUV</span>
+                <span class="bg-violet-500/10 text-violet-300 text-xs px-3 py-1 rounded-md border border-violet-500/15">HSL</span>
+              </div>
+            </div>
+          </div>
+          <div data-reveal="right" class="flex flex-col md:flex-row items-center gap-12">
+            <div class="flex-1">
+              <div class="text-xs font-semibold uppercase tracking-[0.14em] text-violet-400 mb-3">Density Modes</div>
+              <h3 class="text-2xl font-bold tracking-tight text-zinc-100 mb-3">Three ways to visualize density</h3>
+              <p class="text-zinc-400 leading-relaxed mb-5">Scatter, Heatmap, and Bloom. Each reveals different characteristics of your image's color distribution.</p>
+              <div class="flex flex-wrap gap-2">
+                <span class="bg-violet-500/10 text-violet-300 text-xs px-3 py-1 rounded-md border border-violet-500/15">Scatter</span>
+                <span class="bg-violet-500/10 text-violet-300 text-xs px-3 py-1 rounded-md border border-violet-500/15">Heatmap</span>
+                <span class="bg-violet-500/10 text-violet-300 text-xs px-3 py-1 rounded-md border border-violet-500/15">Bloom</span>
+              </div>
+            </div>
+          </div>
+          <div data-reveal="left" class="flex flex-col md:flex-row items-center gap-12">
+            <div class="flex-1">
+              <div class="text-xs font-semibold uppercase tracking-[0.14em] text-violet-400 mb-3">Color Harmony</div>
+              <h3 class="text-2xl font-bold tracking-tight text-zinc-100 mb-3">Seven harmony zone overlays</h3>
+              <p class="text-zinc-400 leading-relaxed mb-5">Complementary, analogous, triadic, and more. See how your colors relate at a glance.</p>
+              <div class="flex flex-wrap gap-2">
+                <span class="bg-violet-500/10 text-violet-300 text-xs px-3 py-1 rounded-md border border-violet-500/15">Complementary</span>
+                <span class="bg-violet-500/10 text-violet-300 text-xs px-3 py-1 rounded-md border border-violet-500/15">Analogous</span>
+                <span class="bg-violet-500/10 text-violet-300 text-xs px-3 py-1 rounded-md border border-violet-500/15">Triadic</span>
+                <span class="bg-violet-500/10 text-violet-300 text-xs px-3 py-1 rounded-md border border-violet-500/15">Split-Complementary</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Final CTA -->
+    <section class="relative py-28 px-6 overflow-hidden">
+      <div data-reveal="up" class="relative max-w-lg mx-auto text-center">
+        <h2 class="text-3xl md:text-4xl font-bold tracking-tight mb-4">Start analyzing color today</h2>
+        <p class="text-zinc-500 text-lg mb-10">Free and open source. Download for macOS or Windows.</p>
+        <div class="flex flex-col sm:flex-row gap-3 justify-center">
+          <a href="download/" class="btn-primary text-white px-8 py-3 rounded-lg font-medium text-sm">Download</a>
+          <a href="https://github.com/kevinkiklee/chromascope" class="btn-ghost text-zinc-300 px-8 py-3 rounded-lg font-medium text-sm">View on GitHub</a>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- Footer -->
+  <footer class="border-t border-white/[0.06] py-12 px-6">
+    <div class="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+      <div class="flex items-center gap-2.5">
+        <div class="w-5 h-5 rounded-full opacity-60" style="background:conic-gradient(from 0deg,#f43f5e,#f97316,#eab308,#22c55e,#06b6d4,#8b5cf6,#f43f5e)"></div>
+        <span class="text-sm text-zinc-500 font-medium">Chromascope</span>
+      </div>
+      <div class="flex gap-6 text-sm">
+        <a href="features/" class="text-zinc-500 hover:text-zinc-300 transition-colors">Features</a>
+        <a href="download/" class="text-zinc-500 hover:text-zinc-300 transition-colors">Download</a>
+        <a href="docs/" class="text-zinc-500 hover:text-zinc-300 transition-colors">Docs</a>
+        <a href="https://github.com/kevinkiklee/chromascope" class="text-zinc-500 hover:text-zinc-300 transition-colors">GitHub</a>
+      </div>
+      <p class="text-zinc-600 text-xs">&copy; 2025 Chromascope</p>
+    </div>
+  </footer>
+
+  <script src="js/scroll-reveal.js"></script>
+</body>
+</html>

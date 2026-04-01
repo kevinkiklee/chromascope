@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Documentation — Chromascope</title>
+  <meta name="description" content="Installation, usage, and troubleshooting for Chromascope.">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>tailwind.config={theme:{extend:{colors:{brand:'#6366f1'}}}}</script>
+  <link rel="stylesheet" href="../css/styles.css">
+</head>
+<body class="bg-zinc-950 text-zinc-100 antialiased">
+
+  <!-- Nav -->
+  <nav class="border-b border-white/[0.06] px-6 py-4">
+    <div class="max-w-6xl mx-auto flex items-center justify-between">
+      <a href="../" class="flex items-center gap-2.5">
+        <div class="w-6 h-6 rounded-full" style="background:conic-gradient(from 0deg,#f43f5e,#f97316,#eab308,#22c55e,#06b6d4,#8b5cf6,#f43f5e);filter:blur(0.3px)"></div>
+        <span class="font-bold text-lg tracking-tight gradient-text-subtle">Chromascope</span>
+      </a>
+      <div class="flex items-center gap-1">
+        <a href="../features/" class="px-3 py-1.5 rounded-md text-sm text-zinc-500 hover:text-zinc-300 transition-colors">Features</a>
+        <a href="../download/" class="px-3 py-1.5 rounded-md text-sm text-zinc-500 hover:text-zinc-300 transition-colors">Download</a>
+        <a href="./" class="px-3 py-1.5 rounded-md text-sm text-zinc-100 bg-white/[0.04]">Docs</a>
+        <a href="../download/" class="btn-primary text-white px-4 py-1.5 rounded-lg text-sm font-medium ml-3">Get Started</a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="min-h-screen">
+    <div class="max-w-6xl mx-auto px-6 py-16 flex gap-12">
+
+      <!-- Sidebar -->
+      <aside class="hidden md:block w-48 shrink-0">
+        <nav class="sticky top-8 space-y-0.5">
+          <div class="gradient-badge text-[11px] font-semibold uppercase tracking-[0.14em] mb-4">Documentation</div>
+          <a href="#installation" class="block text-sm text-zinc-500 hover:text-zinc-200 py-1.5 px-3 rounded-md hover:bg-white/[0.03] transition-all">Installation</a>
+          <a href="#getting-started" class="block text-sm text-zinc-500 hover:text-zinc-200 py-1.5 px-3 rounded-md hover:bg-white/[0.03] transition-all">Getting Started</a>
+          <a href="#color-spaces" class="block text-sm text-zinc-500 hover:text-zinc-200 py-1.5 px-3 rounded-md hover:bg-white/[0.03] transition-all">Color Spaces</a>
+          <a href="#density-modes" class="block text-sm text-zinc-500 hover:text-zinc-200 py-1.5 px-3 rounded-md hover:bg-white/[0.03] transition-all">Density Modes</a>
+          <a href="#troubleshooting" class="block text-sm text-zinc-500 hover:text-zinc-200 py-1.5 px-3 rounded-md hover:bg-white/[0.03] transition-all">Troubleshooting</a>
+        </nav>
+      </aside>
+
+      <!-- Content -->
+      <main class="flex-1 max-w-2xl">
+        <div class="mb-12">
+          <div class="gradient-badge text-xs font-semibold uppercase tracking-[0.14em] mb-4">Docs</div>
+          <h1 class="text-3xl md:text-4xl font-bold tracking-tight">Documentation</h1>
+        </div>
+
+        <div class="space-y-14">
+          <section id="installation">
+            <h2 class="text-lg font-semibold mb-3 text-zinc-200">Installation</h2>
+            <p class="text-zinc-400 text-[15px] leading-relaxed">Download the plugin for your platform from the <a href="../download/" class="text-violet-400 hover:text-violet-300">Download page</a>. For Photoshop, install via the UXP Developer Tool or the Creative Cloud plugin manager. For Lightroom Classic, copy the plugin folder to your Lightroom plugins directory and enable it via Plug-in Manager.</p>
+          </section>
+
+          <section id="getting-started">
+            <h2 class="text-lg font-semibold mb-3 text-zinc-200">Getting Started</h2>
+            <p class="text-zinc-400 text-[15px] leading-relaxed">Open the Chromascope panel in Photoshop (Window &rarr; Plugins &rarr; Chromascope) or Lightroom Classic (Window &rarr; Panels &rarr; Chromascope). The panel activates automatically when you open a document or select a photo. Use the toolbar to switch color spaces and density modes.</p>
+          </section>
+
+          <section id="color-spaces">
+            <h2 class="text-lg font-semibold mb-3 text-zinc-200">Color Spaces</h2>
+            <p class="text-zinc-400 text-[15px] leading-relaxed">YCbCr separates luminance from chrominance — useful for broadcast-compliant grading. CIE LUV is perceptually uniform, making it ideal for precise colorimetric analysis. HSL (Hue-Saturation-Lightness) provides an intuitive view suitable for artistic workflows.</p>
+          </section>
+
+          <section id="density-modes">
+            <h2 class="text-lg font-semibold mb-3 text-zinc-200">Density Modes</h2>
+            <p class="text-zinc-400 text-[15px] leading-relaxed">Scatter plots each pixel as a point. Heatmap accumulates pixel frequency and maps it to color — denser regions appear brighter. Bloom applies a glow effect to high-density clusters, making dominant color populations visually distinct.</p>
+          </section>
+
+          <section id="troubleshooting">
+            <h2 class="text-lg font-semibold mb-3 text-zinc-200">Troubleshooting</h2>
+            <p class="text-zinc-400 text-[15px] leading-relaxed">If the panel does not update, ensure the plugin is connected (check the status indicator in the panel header). For Lightroom, check that the processor binary is in the correct bin/ directory for your platform. File issues on <a href="https://github.com/kevinkiklee/chromascope/issues" class="text-violet-400 hover:text-violet-300">GitHub</a> if you encounter problems.</p>
+          </section>
+        </div>
+      </main>
+
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="border-t border-white/[0.06] py-12 px-6">
+    <div class="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+      <div class="flex items-center gap-2.5">
+        <div class="w-5 h-5 rounded-full opacity-60" style="background:conic-gradient(from 0deg,#f43f5e,#f97316,#eab308,#22c55e,#06b6d4,#8b5cf6,#f43f5e)"></div>
+        <span class="text-sm text-zinc-500 font-medium">Chromascope</span>
+      </div>
+      <div class="flex gap-6 text-sm">
+        <a href="../features/" class="text-zinc-500 hover:text-zinc-300 transition-colors">Features</a>
+        <a href="../download/" class="text-zinc-500 hover:text-zinc-300 transition-colors">Download</a>
+        <a href="./" class="text-zinc-500 hover:text-zinc-300 transition-colors">Docs</a>
+        <a href="https://github.com/kevinkiklee/chromascope" class="text-zinc-500 hover:text-zinc-300 transition-colors">GitHub</a>
+      </div>
+      <p class="text-zinc-600 text-xs">&copy; 2025 Chromascope</p>
+    </div>
+  </footer>
+
+</body>
+</html>

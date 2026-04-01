@@ -9,8 +9,7 @@
   "packageManager": "npm@11.11.0",
   "workspaces": [
     "packages/*",
-    "plugins/*",
-    "web"
+    "plugins/*"
   ],
   "devDependencies": {
     "turbo": "^2"

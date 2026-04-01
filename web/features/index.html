@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Features — Chromascope</title>
+  <meta name="description" content="Color spaces, density modes, harmony overlays, and platform support in Chromascope.">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>tailwind.config={theme:{extend:{colors:{brand:'#6366f1'}}}}</script>
+  <link rel="stylesheet" href="../css/styles.css">
+</head>
+<body class="bg-zinc-950 text-zinc-100 antialiased">
+
+  <!-- Nav -->
+  <nav class="border-b border-white/[0.06] px-6 py-4">
+    <div class="max-w-6xl mx-auto flex items-center justify-between">
+      <a href="../" class="flex items-center gap-2.5">
+        <div class="w-6 h-6 rounded-full" style="background:conic-gradient(from 0deg,#f43f5e,#f97316,#eab308,#22c55e,#06b6d4,#8b5cf6,#f43f5e);filter:blur(0.3px)"></div>
+        <span class="font-bold text-lg tracking-tight gradient-text-subtle">Chromascope</span>
+      </a>
+      <div class="flex items-center gap-1">
+        <a href="./" class="px-3 py-1.5 rounded-md text-sm text-zinc-100 bg-white/[0.04]">Features</a>
+        <a href="../download/" class="px-3 py-1.5 rounded-md text-sm text-zinc-500 hover:text-zinc-300 transition-colors">Download</a>
+        <a href="../docs/" class="px-3 py-1.5 rounded-md text-sm text-zinc-500 hover:text-zinc-300 transition-colors">Docs</a>
+        <a href="../download/" class="btn-primary text-white px-4 py-1.5 rounded-lg text-sm font-medium ml-3">Get Started</a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="min-h-screen">
+    <header class="relative py-20 px-6 text-center overflow-hidden">
+      <div class="absolute top-[-60px] left-1/2 -translate-x-1/2 w-[500px] h-[250px] bg-[radial-gradient(ellipse,rgba(139,92,246,0.07)_0%,transparent_70%)] pointer-events-none"></div>
+      <div class="relative max-w-2xl mx-auto">
+        <div class="gradient-badge text-xs font-semibold uppercase tracking-[0.14em] mb-4">Features</div>
+        <h1 class="text-4xl md:text-5xl font-bold tracking-tight mb-4">Everything inside Chromascope</h1>
+        <p class="text-zinc-400 text-lg">Professional-grade color analysis for creative workflows.</p>
+      </div>
+    </header>
+
+    <!-- Color Spaces -->
+    <section class="py-16 px-6 border-t border-white/[0.06]">
+      <div class="max-w-6xl mx-auto">
+        <div class="mb-10">
+          <div class="gradient-badge text-[11px] font-semibold uppercase tracking-[0.14em] mb-2">Analysis</div>
+          <h2 class="text-2xl font-bold tracking-tight">Color Spaces</h2>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+          <div class="card-glass rounded-xl p-6">
+            <h3 class="font-semibold text-[15px] mb-2 text-zinc-200">YCbCr (BT.601)</h3>
+            <p class="text-zinc-500 text-sm leading-relaxed">Broadcast-standard color space used in video production. Separates luma (Y) from chroma (Cb, Cr) for precise saturation analysis.</p>
+          </div>
+          <div class="card-glass rounded-xl p-6">
+            <h3 class="font-semibold text-[15px] mb-2 text-zinc-200">CIE LUV</h3>
+            <p class="text-zinc-500 text-sm leading-relaxed">Perceptually uniform color space where equal distances represent equal perceived color differences. Ideal for colorimetric work.</p>
+          </div>
+          <div class="card-glass rounded-xl p-6">
+            <h3 class="font-semibold text-[15px] mb-2 text-zinc-200">HSL</h3>
+            <p class="text-zinc-500 text-sm leading-relaxed">Hue-Saturation-Lightness — an intuitive representation of color suitable for artistic grading workflows.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Density Modes -->
+    <section class="py-16 px-6 border-t border-white/[0.06]">
+      <div class="max-w-6xl mx-auto">
+        <div class="mb-10">
+          <div class="gradient-badge text-[11px] font-semibold uppercase tracking-[0.14em] mb-2">Visualization</div>
+          <h2 class="text-2xl font-bold tracking-tight">Density Modes</h2>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+          <div class="card-glass rounded-xl p-6">
+            <h3 class="font-semibold text-[15px] mb-2 text-zinc-200">Scatter</h3>
+            <p class="text-zinc-500 text-sm leading-relaxed">Each pixel plotted as a point on the vectorscope. Provides an unweighted view of the full color gamut in the image.</p>
+          </div>
+          <div class="card-glass rounded-xl p-6">
+            <h3 class="font-semibold text-[15px] mb-2 text-zinc-200">Heatmap</h3>
+            <p class="text-zinc-500 text-sm leading-relaxed">Pixel density is accumulated and color-mapped — areas with more pixels glow brighter, revealing dominant hues at a glance.</p>
+          </div>
+          <div class="card-glass rounded-xl p-6">
+            <h3 class="font-semibold text-[15px] mb-2 text-zinc-200">Bloom</h3>
+            <p class="text-zinc-500 text-sm leading-relaxed">Glow effect applied to high-density clusters, making tightly grouped color populations visually distinctive.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Graticule & Overlays -->
+    <section class="py-16 px-6 border-t border-white/[0.06]">
+      <div class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-5">
+        <div class="card-glass rounded-xl p-8">
+          <div class="gradient-badge text-[11px] font-semibold uppercase tracking-[0.14em] mb-2">Overlays</div>
+          <h2 class="text-xl font-bold tracking-tight mb-3">Graticule</h2>
+          <p class="text-zinc-500 text-sm leading-relaxed">Configurable circular grid with saturation rings at standard intervals, hue labels at 30&deg; increments, and a fine angular grid.</p>
+        </div>
+        <div class="card-glass rounded-xl p-8">
+          <div class="gradient-badge text-[11px] font-semibold uppercase tracking-[0.14em] mb-2">Reference</div>
+          <h2 class="text-xl font-bold tracking-tight mb-3">Skin Tone Line</h2>
+          <p class="text-zinc-500 text-sm leading-relaxed">Industry-standard reference line for accurate skin tone reproduction. Essential for portrait retouching and broadcast-compliant color work.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Color Harmony -->
+    <section class="py-16 px-6 border-t border-white/[0.06]">
+      <div class="max-w-6xl mx-auto">
+        <div class="card-glass rounded-xl p-8 md:p-10">
+          <div class="gradient-badge text-[11px] font-semibold uppercase tracking-[0.14em] mb-2">Interactive</div>
+          <h2 class="text-xl font-bold tracking-tight mb-3">Color Harmony Zones</h2>
+          <p class="text-zinc-500 text-sm leading-relaxed max-w-2xl mb-6">Overlay complementary, split-complementary, triadic, tetradic, and analogous harmony zones. Rotate zones interactively and use fit-to-scheme to push colors toward your chosen harmony.</p>
+          <div class="flex flex-wrap gap-2">
+            <span class="text-xs px-3 py-1.5 rounded-full border border-white/[0.06] text-zinc-400 bg-white/[0.02]">Complementary</span>
+            <span class="text-xs px-3 py-1.5 rounded-full border border-white/[0.06] text-zinc-400 bg-white/[0.02]">Split-complementary</span>
+            <span class="text-xs px-3 py-1.5 rounded-full border border-white/[0.06] text-zinc-400 bg-white/[0.02]">Triadic</span>
+            <span class="text-xs px-3 py-1.5 rounded-full border border-white/[0.06] text-zinc-400 bg-white/[0.02]">Tetradic</span>
+            <span class="text-xs px-3 py-1.5 rounded-full border border-white/[0.06] text-zinc-400 bg-white/[0.02]">Analogous</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Platform Support -->
+    <section class="py-16 px-6 border-t border-white/[0.06]">
+      <div class="max-w-6xl mx-auto">
+        <div class="mb-10">
+          <div class="gradient-badge text-[11px] font-semibold uppercase tracking-[0.14em] mb-2">Integrations</div>
+          <h2 class="text-2xl font-bold tracking-tight">Platform Support</h2>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <div class="card-glass rounded-xl p-6">
+            <h3 class="font-semibold text-[15px] mb-2 text-zinc-200">Adobe Photoshop</h3>
+            <p class="text-zinc-500 text-sm leading-relaxed">UXP panel plugin. Samples the active document on each pixel-level edit event. Supports all document color modes.</p>
+          </div>
+          <div class="card-glass rounded-xl p-6">
+            <h3 class="font-semibold text-[15px] mb-2 text-zinc-200">Lightroom Classic</h3>
+            <p class="text-zinc-500 text-sm leading-relaxed">LrC SDK panel plugin. Responds to photo selection and develop module slider changes in real time.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="relative py-16 px-6 border-t border-white/[0.06] section-glow">
+      <div class="max-w-6xl mx-auto relative text-center">
+        <h2 class="text-xl font-bold tracking-tight mb-3">Ready to try it?</h2>
+        <p class="text-zinc-400 text-sm leading-relaxed max-w-2xl mx-auto mb-6">Free and open source. Available for Photoshop and Lightroom Classic on macOS and Windows.</p>
+        <a href="../download/" class="btn-primary text-white px-6 py-2.5 rounded-lg text-sm font-medium">Download Chromascope</a>
+      </div>
+    </section>
+  </div>
+
+  <!-- Footer -->
+  <footer class="border-t border-white/[0.06] py-12 px-6">
+    <div class="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+      <div class="flex items-center gap-2.5">
+        <div class="w-5 h-5 rounded-full opacity-60" style="background:conic-gradient(from 0deg,#f43f5e,#f97316,#eab308,#22c55e,#06b6d4,#8b5cf6,#f43f5e)"></div>
+        <span class="text-sm text-zinc-500 font-medium">Chromascope</span>
+      </div>
+      <div class="flex gap-6 text-sm">
+        <a href="./" class="text-zinc-500 hover:text-zinc-300 transition-colors">Features</a>
+        <a href="../download/" class="text-zinc-500 hover:text-zinc-300 transition-colors">Download</a>
+        <a href="../docs/" class="text-zinc-500 hover:text-zinc-300 transition-colors">Docs</a>
+        <a href="https://github.com/kevinkiklee/chromascope" class="text-zinc-500 hover:text-zinc-300 transition-colors">GitHub</a>
+      </div>
+      <p class="text-zinc-600 text-xs">&copy; 2025 Chromascope</p>
+    </div>
+  </footer>
+
+</body>
+</html>

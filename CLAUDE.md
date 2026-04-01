@@ -91,14 +91,12 @@ web             (independent)
 
 `npm run build:plugins` handles the full pipeline: core build, Rust compile, Photoshop build, and Lightroom assembly.
 
-## Web App (`web`)
+## Website (`web/`)
 
-- **Framework**: Next.js 16 with App Router, Turbopack, React 19
-- **Styling**: Tailwind CSS 4 (CSS-first config via `@theme` in globals.css)
-- **Output**: Static export (`output: 'export'` in next.config.ts)
-- **Design system**: Dark mode, violet-to-indigo gradients, glass-effect cards, conic-gradient logo mark
-- **Pages**: Home, Features, Download, Docs
-- No backend, no API routes, no database, no env vars needed
+- **Static HTML** -- no build step, no Node.js dependencies
+- **Styling**: Tailwind CSS via CDN + custom CSS in `web/css/styles.css`
+- **Pages**: `index.html`, `features/`, `download/`, `docs/`
+- Scroll animations via `web/js/scroll-reveal.js` (IntersectionObserver)
 
 ## Code Conventions
 
@@ -111,7 +109,6 @@ web             (independent)
 
 ## Deployment
 
-- **Platform**: GitHub Pages (via GitHub Actions)
+- **Website**: GitHub Pages -- just copies `web/` directory, no build needed
 - **Workflow**: `.github/workflows/deploy-pages.yml`
-- Triggers on push to `main` when `web/` or `packages/core/` changes
-- Builds static export to `web/out/` and deploys via `actions/deploy-pages`
+- Triggers on push to `main` when `web/` changes
