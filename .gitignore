@@ -4,7 +4,6 @@ node_modules/
 # Build output
 dist/
 build/
-.next/
 target/
 *.tsbuildinfo
 
@@ -15,9 +14,6 @@ target/
 .env
 .env*.local
 *.pem
-
-# Vercel
-.vercel/
 
 # OS
 .DS_Store
