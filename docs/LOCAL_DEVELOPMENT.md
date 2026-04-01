@@ -56,7 +56,7 @@ npm run test:watch   # Vitest in watch mode
 
 ### Processor Binary (`packages/processor`)
 
-Rust CLI that decodes images and renders vectorscopes. Used by the Lightroom plugin (which can't read pixels or draw from Lua). Supports density modes (scatter, heatmap, bloom) and harmony overlays.
+Rust CLI that decodes images and renders vectorscopes. Used by the Lightroom plugin (which can't read pixels or draw from Lua). Supports density modes (scatter, bloom) and harmony overlays.
 
 ```sh
 cd packages/processor

@@ -11,22 +11,20 @@ Chromascope maps every pixel in your image onto a circular vectorscope plot, sho
 - Spot color casts and imbalances at a glance
 - Check skin tones against the industry-standard reference line
 - Overlay harmony zones (complementary, triadic, analogous, etc.) and rotate them to find the right grade
-- Toggle scatter, heatmap, and bloom density modes for different levels of detail
+- Toggle scatter and bloom density modes for different levels of detail
 
 Works as a native panel in Photoshop (UXP) and as a floating dialog in Lightroom Classic, updating in real time as you adjust develop sliders.
 
 ### Density modes
 
-Three visualization modes show chrominance distribution at different levels of detail:
+Two visualization modes show chrominance distribution at different levels of detail:
 
 <p align="center">
-  <img src="docs/images/warm-scatter.jpg" alt="Scatter mode" width="220">
-  <img src="docs/images/warm-heatmap.jpg" alt="Heatmap mode" width="220">
-  <img src="docs/images/warm-bloom.jpg" alt="Bloom mode" width="220">
+  <img src="docs/images/warm-scatter.jpg" alt="Scatter mode" width="260">
+  <img src="docs/images/warm-bloom.jpg" alt="Bloom mode" width="260">
 </p>
 <p align="center">
-  <b>Scatter</b> · individual pixel dots &nbsp;&nbsp;&nbsp;
-  <b>Heatmap</b> · frequency as cold-to-hot gradient &nbsp;&nbsp;&nbsp;
+  <b>Scatter</b> · individual pixel dots &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
   <b>Bloom</b> · radial glow with additive blending
 </p>
 
@@ -97,7 +95,7 @@ The `processor` CLI has two subcommands:
 | `processor decode` | Decode JPEG/TIFF to raw RGB, resized to target dimensions |
 | `processor render` | Render a vectorscope JPEG from raw RGB data |
 
-Render options: `--density` (scatter, heatmap, bloom), `--scheme` (complementary, triadic, etc.), `--rotation`, `--overlay-color`, `--hide-skin-tone`.
+Render options: `--density` (scatter, bloom), `--scheme` (complementary, triadic, etc.), `--rotation`, `--overlay-color`, `--hide-skin-tone`.
 
 ## Project structure
 

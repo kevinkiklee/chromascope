@@ -8,7 +8,7 @@
 
 ## Project Overview
 
-Chromascope is an open-source chrominance vectorscope for Adobe Photoshop and Lightroom Classic (macOS and Windows). It plots pixel color on a circular graph with multiple color spaces, density visualizations, and harmony overlays.
+Chromascope is an open-source chrominance vectorscope for Adobe Photoshop and Lightroom Classic (macOS and Windows). It plots pixel color on a circular graph with density visualizations and harmony overlays.
 
 ## Monorepo Layout
 
@@ -62,7 +62,7 @@ cargo test
 - Lua SDK. Cannot embed WebViews or read pixels directly.
 - The Rust `processor` binary does the heavy lifting:
   - `processor decode` — JPEG/TIFF → raw RGB bytes (128x128)
-  - `processor render` — RGB → vectorscope JPEG with configurable color space, density mode, harmony overlay, skin tone line
+  - `processor render` — RGB → vectorscope JPEG with configurable density mode, harmony overlay, skin tone line
 - `ImagePipeline.lua` orchestrates: export thumbnail → decode → render → display via `f:picture`.
 - Updates via `LrDevelopController.addAdjustmentChangeObserver` + 1s poll fallback.
 - Busy-guard with coalescing prevents overlapping renders (max 1 queued).
