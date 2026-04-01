@@ -4,10 +4,6 @@ Real-time chrominance vectorscope for Adobe Photoshop and Lightroom Classic. Ana
 
 **[Website](https://kevinkiklee.github.io/chromascope/)** · **[Download](https://kevinkiklee.github.io/chromascope/download/)** · **[Documentation](https://kevinkiklee.github.io/chromascope/docs/)**
 
-<p align="center">
-  <img src="docs/images/colorwheel-scatter.jpg" alt="Chromascope vectorscope — full color wheel scatter plot" width="420">
-</p>
-
 ## What it does
 
 Chromascope maps every pixel in your image onto a circular vectorscope plot, showing where your colors live in chrominance space. Use it to:

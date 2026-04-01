@@ -44,5 +44,8 @@ web/out/
 # Test fixtures (generated at runtime)
 packages/processor/tests/fixtures/
 
+# Claude Code
+.claude/
+
 # Superpowers
 .superpowers/
