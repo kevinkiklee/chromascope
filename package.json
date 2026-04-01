@@ -20,6 +20,7 @@
     "dev": "turbo run dev",
     "test": "turbo run test",
     "lint": "turbo run lint",
-    "build:plugins": "bash scripts/build-plugins.sh"
+    "build:plugins": "bash scripts/build-plugins.sh",
+    "package:release": "bash scripts/package-release.sh"
   }
 }

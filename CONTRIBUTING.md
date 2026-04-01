@@ -101,6 +101,48 @@ Open an issue describing:
 - Your proposed solution
 - Any alternatives you've considered
 
+## Releasing
+
+Releases are automated via GitHub Actions. Maintainers create a release by tagging a commit:
+
+```sh
+git tag v1.0.0
+git push --tags
+```
+
+This triggers the [release workflow](.github/workflows/release.yml), which:
+
+1. Builds the core library and Rust processor on **macOS** and **Windows** runners (native binaries, no cross-compilation)
+2. Assembles both plugins (Photoshop UXP + Lightroom Classic)
+3. Packages platform-specific ZIPs (`chromascope-macos.zip`, `chromascope-windows.zip`)
+4. Creates a GitHub Release with auto-generated release notes, the ZIPs, and SHA-256 checksums
+
+The [download page](https://chromascope.dev/download) links to the latest GitHub Release, so new downloads are available immediately after the workflow completes.
+
+### Version bumping
+
+Version numbers are currently set in several places. Update all of them before tagging:
+
+| File | Field |
+|------|-------|
+| `packages/core/package.json` | `version` |
+| `packages/processor/package.json` | `version` |
+| `packages/processor/Cargo.toml` | `version` |
+| `plugins/photoshop/package.json` | `version` |
+| `plugins/photoshop/manifest.json` | `version` |
+| `plugins/lightroom/chromascope.lrdevplugin/Info.lua` | `VERSION` |
+
+### Local packaging (for testing)
+
+You can build and package locally without pushing a tag:
+
+```sh
+npm run build:plugins      # Build everything
+npm run package:release    # Create ZIPs in dist/
+```
+
+Inspect the output in `dist/` before tagging.
+
 ## Code Style
 
 - TypeScript: strict mode, no explicit `any`
