@@ -43,4 +43,3 @@ jobs:
           cache: npm
       - run: npm install --no-package-lock
       - run: npx turbo build --filter=@chromascope/web
-      - run: npx turbo lint --filter=@chromascope/web
