@@ -1,6 +1,6 @@
 # Chromascope
 
-A professional color analysis tool for Adobe Creative Suite. Visualizes chrominance distribution on a vectorscope plot for colorists, video editors, and color grading professionals.
+An open-source color analysis tool for Adobe Creative Suite. Visualizes chrominance distribution on a vectorscope plot for colorists, video editors, and color grading professionals.
 
 ## Features
 
@@ -9,7 +9,7 @@ A professional color analysis tool for Adobe Creative Suite. Visualizes chromina
 - **Color harmony overlays** -- Complementary, split-complementary, triadic, tetradic, analogous
 - **Skin tone reference line**
 - **Interactive zone rotation** and fit-to-scheme color correction
-- **AI-powered natural language color adjustments** (Pro+AI tier)
+- **AI-powered natural language color adjustments** (optional, bring your own API key)
 - **Plugin support** for Photoshop (UXP) and Lightroom Classic (Lua)
 
 ## Project Structure
@@ -18,7 +18,7 @@ A professional color analysis tool for Adobe Creative Suite. Visualizes chromina
 chromascope/
   packages/
     core/        TypeScript library -- vectorscope math, rendering, UI
-    decode/      Rust binary -- image decoding, RGB extraction, vectorscope rendering
+    processor/   Rust binary -- image decoding, RGB extraction, vectorscope rendering
   plugins/
     photoshop/   Photoshop UXP panel plugin
     lightroom/   Lightroom Classic plugin (Lua + Rust binary)
@@ -34,7 +34,7 @@ chromascope/
 |-------|-----------|
 | Monorepo | Turborepo |
 | Core | TypeScript, Vite 6, Vitest |
-| Decode | Rust (image crate, clap) -- decode + render subcommands |
+| Processor | Rust (image crate, clap) -- decode + render subcommands |
 | Web | Next.js 16, React 19, Tailwind CSS 4, Turbopack |
 | Database | Neon (serverless Postgres) |
 | Payments | Stripe |
@@ -66,10 +66,10 @@ npm run dev    # Vite dev server with hot reload
 npm run test   # Vitest
 ```
 
-### Rust decode binary
+### Rust processor binary
 
 ```sh
-cd packages/decode
+cd packages/processor
 cargo build --release
 cargo test
 ```
@@ -77,12 +77,12 @@ cargo test
 ### Web app
 
 ```sh
-cp apps/web/.env.example apps/web/.env.local   # then fill in values
-cd apps/web
+cp web/.env.example web/.env.local   # then fill in values
+cd web
 npm run dev    # Next.js + Turbopack at localhost:3000
 ```
 
-Required environment variables in `apps/web/.env.local`:
+Required environment variables in `web/.env.local`:
 
 | Variable | Purpose |
 |----------|---------|
@@ -91,12 +91,12 @@ Required environment variables in `apps/web/.env.local`:
 | `STRIPE_WEBHOOK_SECRET` | Stripe webhook signing secret |
 | `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Stripe client-side key |
 
-If the project is linked to Vercel, run `vercel env pull apps/web/.env.local` to pull all variables automatically.
+If the project is linked to Vercel, run `vercel env pull web/.env.local` to pull all variables automatically.
 
 ### Build all plugins
 
 ```sh
-npm run build:plugins    # Builds core, decode binary, Photoshop plugin, assembles Lightroom plugin
+npm run build:plugins    # Builds core, processor binary, Photoshop plugin, assembles Lightroom plugin
 ```
 
 ## Architecture
@@ -113,24 +113,24 @@ Photoshop Plugin (UXP)
 
 ### Lightroom Classic
 
-Lightroom's Lua SDK does not support embedded WebViews. Instead, the Rust `decode` binary handles both image decoding and vectorscope rendering:
+Lightroom's Lua SDK does not support embedded WebViews. Instead, the Rust `processor` binary handles both image decoding and vectorscope rendering:
 
 ```
 Lightroom Plugin (Lua)
   |-- requestJpegThumbnail  -->  JPEG thumbnail
-  |-- decode decode         -->  raw RGB bytes
-  |-- decode render         -->  vectorscope JPEG (configurable color space, density, harmony)
+  |-- processor decode      -->  raw RGB bytes
+  |-- processor render      -->  vectorscope JPEG (configurable color space, density, harmony)
   |-- f:picture             -->  displays rendered JPEG in dialog
 ```
 
 The vectorscope image updates automatically when develop sliders change via `LrDevelopController.addAdjustmentChangeObserver`. A busy-guard with coalescing prevents overlapping renders. Frame alternation (`scope_0.jpg` / `scope_1.jpg`) forces `f:picture` to release cached images and prevents memory leaks.
 
-### Rust decode binary
+### Rust processor binary
 
 The binary has two subcommands:
 
-- `decode decode` -- Decodes JPEG/TIFF to raw RGB bytes (used by both Photoshop and Lightroom pipelines)
-- `decode render` -- Renders a vectorscope JPEG from raw RGB data with configurable options:
+- `processor decode` -- Decodes JPEG/TIFF to raw RGB bytes (used by both Photoshop and Lightroom pipelines)
+- `processor render` -- Renders a vectorscope JPEG from raw RGB data with configurable options:
   - `--color-space` -- YCbCr BT.601 (default), CIE LUV, or HSL
   - `--density` -- Scatter (default), heatmap, or bloom rendering
   - `--scheme` -- Harmony overlay (complementary, triadic, etc.)
@@ -138,6 +138,10 @@ The binary has two subcommands:
   - `--overlay-color` -- Zone line color (yellow, cyan, etc.)
   - `--hide-skin-tone` -- Disable skin tone reference line
 
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup and guidelines.
+
 ## License
 
-Proprietary. License keys follow the format `CHRM-XXXX-XXXX-XXXX` with tiered access (Trial, Pro, Pro+AI) and up to 3 machine activations per key.
+MIT. See [LICENSE](LICENSE) for details.

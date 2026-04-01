@@ -18,7 +18,7 @@ const DEFAULT_SETTINGS: ChromascopeSettings = {
   harmony: {
     scheme: null,
     rotation: 0,
-    zoneWidth: 1.0,
+    zoneWidth: 0.1,
     pullStrengths: [],
   },
 };

@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Build a production-ready Next.js marketing site at `apps/web/` that serves landing, features, pricing, download, docs, and account pages, backed by a license server (Neon Postgres) and Stripe for paid tier checkout, webhooks, and subscription lifecycle management.
+**Goal:** Build a production-ready Next.js marketing site at `web/` that serves landing, features, pricing, download, docs, and account pages, backed by a license server (Neon Postgres) and Stripe for paid tier checkout, webhooks, and subscription lifecycle management.
 
 **Architecture:** Next.js App Router on Vercel. Server Components by default; `'use client'` only for interactive UI. License keys are UUIDs stored in Neon Postgres via `@neondatabase/serverless`. Stripe handles checkout sessions and subscription webhooks. Downloads are gated behind license validation. Three tiers: Trial (14-day free), Pro (one-time or annual), Pro + AI (subscription).
 
@@ -16,7 +16,7 @@
 ## File Map
 
 ```
-apps/web/
+web/
 ├── package.json
 ├── next.config.ts
 ├── tsconfig.json
@@ -55,14 +55,14 @@ apps/web/
 ### Task 1: Next.js App Scaffold
 
 **Files:**
-- Create: `apps/web/package.json`
-- Create: `apps/web/next.config.ts`
-- Create: `apps/web/tsconfig.json`
-- Create: `apps/web/tailwind.config.ts`
-- Create: `apps/web/postcss.config.mjs`
-- Create: `apps/web/app/layout.tsx`
+- Create: `web/package.json`
+- Create: `web/next.config.ts`
+- Create: `web/tsconfig.json`
+- Create: `web/tailwind.config.ts`
+- Create: `web/postcss.config.mjs`
+- Create: `web/app/layout.tsx`
 
-- [ ] **Step 1: Create apps/web/package.json**
+- [ ] **Step 1: Create web/package.json**
 
 ```json
 {
@@ -95,7 +95,7 @@ apps/web/
 }
 ```
 
-- [ ] **Step 2: Create apps/web/next.config.ts**
+- [ ] **Step 2: Create web/next.config.ts**
 
 ```ts
 import type { NextConfig } from 'next';
@@ -109,7 +109,7 @@ const nextConfig: NextConfig = {
 export default nextConfig;
 ```
 
-- [ ] **Step 3: Create apps/web/tsconfig.json**
+- [ ] **Step 3: Create web/tsconfig.json**
 
 ```json
 {
@@ -138,7 +138,7 @@ export default nextConfig;
 }
 ```
 
-- [ ] **Step 4: Create apps/web/tailwind.config.ts**
+- [ ] **Step 4: Create web/tailwind.config.ts**
 
 ```ts
 import type { Config } from 'tailwindcss';
@@ -170,7 +170,7 @@ const config: Config = {
 export default config;
 ```
 
-- [ ] **Step 5: Create apps/web/postcss.config.mjs**
+- [ ] **Step 5: Create web/postcss.config.mjs**
 
 ```js
 const config = {
@@ -183,7 +183,7 @@ const config = {
 export default config;
 ```
 
-- [ ] **Step 6: Create apps/web/app/layout.tsx**
+- [ ] **Step 6: Create web/app/layout.tsx**
 
 Root layout with dark theme applied via `<html className="dark">`, Geist Sans + Mono fonts loaded from the `geist` package, global Tailwind CSS import, and base metadata.
 
@@ -209,7 +209,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 }
 ```
 
-Also create `apps/web/app/globals.css`:
+Also create `web/app/globals.css`:
 
 ```css
 @tailwind base;
@@ -222,9 +222,9 @@ Also create `apps/web/app/globals.css`:
 ### Task 2: Landing Page
 
 **Files:**
-- Create: `apps/web/app/page.tsx`
+- Create: `web/app/page.tsx`
 
-- [ ] **Step 1: Create apps/web/app/page.tsx**
+- [ ] **Step 1: Create web/app/page.tsx**
 
 Server Component. Sections in order:
 1. **Nav** — logo left, links (Features, Pricing, Download, Docs), "Get Started" CTA button right.
@@ -354,9 +354,9 @@ export default function HomePage() {
 ### Task 3: Features Page
 
 **Files:**
-- Create: `apps/web/app/features/page.tsx`
+- Create: `web/app/features/page.tsx`
 
-- [ ] **Step 1: Create apps/web/app/features/page.tsx**
+- [ ] **Step 1: Create web/app/features/page.tsx**
 
 Server Component. Detailed capability showcase with one full-width section per major feature group. Use same Nav/Footer components extracted from the landing page (or inline them for now). Sections:
 
@@ -486,9 +486,9 @@ export default function FeaturesPage() {
 ### Task 4: Pricing Page
 
 **Files:**
-- Create: `apps/web/app/pricing/page.tsx`
+- Create: `web/app/pricing/page.tsx`
 
-- [ ] **Step 1: Create apps/web/app/pricing/page.tsx**
+- [ ] **Step 1: Create web/app/pricing/page.tsx**
 
 Server Component for the outer layout. `'use client'` child component `<CheckoutButton>` for the Stripe redirect. Three tier cards side by side. Clicking a paid tier's CTA POSTs to `/api/stripe/checkout` (or redirects to a Stripe Payment Link). Trial CTA links to `/download`.
 
@@ -619,7 +619,7 @@ export default function PricingPage() {
 }
 ```
 
-- [ ] **Step 2: Create apps/web/app/pricing/CheckoutButton.tsx**
+- [ ] **Step 2: Create web/app/pricing/CheckoutButton.tsx**
 
 ```tsx
 'use client';
@@ -648,7 +648,7 @@ export default function CheckoutButton({ priceId, label }: { priceId: string; la
 }
 ```
 
-Also create the checkout session route `apps/web/app/api/stripe/checkout/route.ts`:
+Also create the checkout session route `web/app/api/stripe/checkout/route.ts`:
 
 ```ts
 import { NextRequest, NextResponse } from 'next/server';
@@ -672,10 +672,10 @@ export async function POST(req: NextRequest) {
 ### Task 5: DB + License Library
 
 **Files:**
-- Create: `apps/web/lib/db.ts`
-- Create: `apps/web/lib/license.ts`
+- Create: `web/lib/db.ts`
+- Create: `web/lib/license.ts`
 
-- [ ] **Step 1: Create apps/web/lib/db.ts**
+- [ ] **Step 1: Create web/lib/db.ts**
 
 Neon Postgres client using `@neondatabase/serverless`. Export `sql` tagged-template query helper and a `runMigration()` function that creates both tables if they do not exist.
 
@@ -715,7 +715,7 @@ export async function runMigration() {
 }
 ```
 
-- [ ] **Step 2: Create apps/web/lib/license.ts**
+- [ ] **Step 2: Create web/lib/license.ts**
 
 Key generation, validation, activation, and deactivation logic. Limit: 3 machine activations per license. Trial licenses auto-expire in 14 days.
 
@@ -852,11 +852,11 @@ function tierFeatures(tier: string): string[] {
 ### Task 6: License API Routes
 
 **Files:**
-- Create: `apps/web/app/api/license/validate/route.ts`
-- Create: `apps/web/app/api/license/activate/route.ts`
-- Create: `apps/web/app/api/license/deactivate/route.ts`
+- Create: `web/app/api/license/validate/route.ts`
+- Create: `web/app/api/license/activate/route.ts`
+- Create: `web/app/api/license/deactivate/route.ts`
 
-- [ ] **Step 1: Create apps/web/app/api/license/validate/route.ts**
+- [ ] **Step 1: Create web/app/api/license/validate/route.ts**
 
 ```ts
 import { NextRequest, NextResponse } from 'next/server';
@@ -885,7 +885,7 @@ export async function POST(req: NextRequest) {
 }
 ```
 
-- [ ] **Step 2: Create apps/web/app/api/license/activate/route.ts**
+- [ ] **Step 2: Create web/app/api/license/activate/route.ts**
 
 ```ts
 import { NextRequest, NextResponse } from 'next/server';
@@ -909,7 +909,7 @@ export async function POST(req: NextRequest) {
 }
 ```
 
-- [ ] **Step 3: Create apps/web/app/api/license/deactivate/route.ts**
+- [ ] **Step 3: Create web/app/api/license/deactivate/route.ts**
 
 ```ts
 import { NextRequest, NextResponse } from 'next/server';
@@ -938,10 +938,10 @@ export async function POST(req: NextRequest) {
 ### Task 7: Stripe Library + Webhook Route
 
 **Files:**
-- Create: `apps/web/lib/stripe.ts`
-- Create: `apps/web/app/api/stripe/webhook/route.ts`
+- Create: `web/lib/stripe.ts`
+- Create: `web/app/api/stripe/webhook/route.ts`
 
-- [ ] **Step 1: Create apps/web/lib/stripe.ts**
+- [ ] **Step 1: Create web/lib/stripe.ts**
 
 ```ts
 import Stripe from 'stripe';
@@ -961,7 +961,7 @@ export async function constructWebhookEvent(payload: string, sig: string): Promi
 }
 ```
 
-- [ ] **Step 2: Create apps/web/app/api/stripe/webhook/route.ts**
+- [ ] **Step 2: Create web/app/api/stripe/webhook/route.ts**
 
 Handles three events:
 - `checkout.session.completed` — create paid license, send email (stubbed).
@@ -1041,10 +1041,10 @@ export async function POST(req: NextRequest) {
 ### Task 8: Download Page + Gated Download API
 
 **Files:**
-- Create: `apps/web/app/download/page.tsx`
-- Create: `apps/web/app/api/download/[platform]/route.ts`
+- Create: `web/app/download/page.tsx`
+- Create: `web/app/api/download/[platform]/route.ts`
 
-- [ ] **Step 1: Create apps/web/app/download/page.tsx**
+- [ ] **Step 1: Create web/app/download/page.tsx**
 
 `'use client'` component (needs state for license key input + platform selection). Flow:
 1. User enters email → POST `/api/license/trial` to generate trial key (add this lightweight route).
@@ -1187,7 +1187,7 @@ export default function DownloadPage() {
 }
 ```
 
-- [ ] **Step 2: Create apps/web/app/api/license/trial/route.ts**
+- [ ] **Step 2: Create web/app/api/license/trial/route.ts**
 
 ```ts
 import { NextRequest, NextResponse } from 'next/server';
@@ -1202,7 +1202,7 @@ export async function POST(req: NextRequest) {
 }
 ```
 
-- [ ] **Step 3: Create apps/web/app/api/download/[platform]/route.ts**
+- [ ] **Step 3: Create web/app/api/download/[platform]/route.ts**
 
 Validate the license key, then redirect to a signed download URL (or a static asset URL stored in `DOWNLOAD_URL_MACOS` / `DOWNLOAD_URL_WINDOWS` env vars).
 
@@ -1242,9 +1242,9 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ plat
 ### Task 9: Account Page
 
 **Files:**
-- Create: `apps/web/app/account/page.tsx`
+- Create: `web/app/account/page.tsx`
 
-- [ ] **Step 1: Create apps/web/app/account/page.tsx**
+- [ ] **Step 1: Create web/app/account/page.tsx**
 
 Server Component that fetches license + activation data for a given license key passed via query param (`?key=...`). Shows tier, expiry, machine list, and a Stripe billing portal link. If no key, shows a form to look up by key or email.
 
@@ -1372,9 +1372,9 @@ function LicenseLookupForm() {
 ### Task 10: Docs Page
 
 **Files:**
-- Create: `apps/web/app/docs/page.tsx`
+- Create: `web/app/docs/page.tsx`
 
-- [ ] **Step 1: Create apps/web/app/docs/page.tsx**
+- [ ] **Step 1: Create web/app/docs/page.tsx**
 
 Server Component. Sections: Installation, Getting Started, Color Spaces reference, Density Modes reference, License FAQ, Troubleshooting.
 
@@ -1467,13 +1467,13 @@ export default function DocsPage() {
 - [ ] **Step 1: Install dependencies**
 
 ```bash
-cd /Users/iser/workspace/vectorscope/apps/web
+cd /Users/iser/workspace/vectorscope/web
 npm install
 ```
 
 - [ ] **Step 2: Set required environment variables**
 
-Create `apps/web/.env.local` (not committed — add to `.gitignore`):
+Create `web/.env.local` (not committed — add to `.gitignore`):
 
 ```
 DATABASE_URL=postgres://...                  # Neon connection string
@@ -1493,7 +1493,7 @@ In a one-off script or route, call `runMigration()` from `lib/db.ts` to create t
 - [ ] **Step 4: Start dev server and verify pages load**
 
 ```bash
-cd /Users/iser/workspace/vectorscope/apps/web
+cd /Users/iser/workspace/vectorscope/web
 npm run dev
 ```
 
@@ -1541,7 +1541,7 @@ Verify the webhook handler logs a new license key without errors.
 - [ ] **Step 7: Build check**
 
 ```bash
-cd /Users/iser/workspace/vectorscope/apps/web
+cd /Users/iser/workspace/vectorscope/web
 npm run build
 ```
 

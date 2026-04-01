@@ -3,15 +3,52 @@ const { imaging, core } = require("photoshop");
 
 let getDocumentPixels, events, handleEditCommand;
 let isRefreshing = false;
-let statusBar = null;
 let scopeSize = 300;
 let lastPixels = null;
+
+// Minimal 3x5 bitmap font for digits 0-9 and degree symbol
+var FONT = {
+  '0': [0x7,0x5,0x5,0x5,0x7], '1': [0x2,0x6,0x2,0x2,0x7],
+  '2': [0x7,0x1,0x7,0x4,0x7], '3': [0x7,0x1,0x7,0x1,0x7],
+  '4': [0x5,0x5,0x7,0x1,0x1], '5': [0x7,0x4,0x7,0x1,0x7],
+  '6': [0x7,0x4,0x7,0x5,0x7], '7': [0x7,0x1,0x1,0x1,0x1],
+  '8': [0x7,0x5,0x7,0x5,0x7], '9': [0x7,0x5,0x7,0x1,0x7],
+  '\xB0': [0x7,0x5,0x7,0x0,0x0] // degree symbol
+};
+
+function drawChar(buf, size, ch, ox, oy, r, g, b) {
+  var glyph = FONT[ch];
+  if (!glyph) return;
+  for (var row = 0; row < 5; row++) {
+    for (var col = 0; col < 3; col++) {
+      if (glyph[row] & (4 >> col)) {
+        var px = Math.round(ox + col);
+        var py = Math.round(oy + row);
+        if (px >= 0 && px < size && py >= 0 && py < size) {
+          var idx = (py * size + px) * 4;
+          buf[idx] = r; buf[idx+1] = g; buf[idx+2] = b; buf[idx+3] = 255;
+        }
+      }
+    }
+  }
+}
+
+function drawString(buf, size, str, cx, cy, r, g, b) {
+  // cx, cy is the center of the string
+  var charW = 4; // 3px char + 1px gap
+  var totalW = str.length * charW - 1;
+  var ox = cx - totalW / 2;
+  var oy = cy - 2.5;
+  for (var i = 0; i < str.length; i++) {
+    drawChar(buf, size, str[i], ox + i * charW, oy, r, g, b);
+  }
+}
 
 // Software renderer: draws vectorscope into an RGBA pixel buffer
 function renderToBuffer(size, pixels) {
   const buf = new Uint8Array(size * size * 4);
   const half = size / 2;
-  const radius = size * 0.45;
+  const radius = size * 0.40;
 
   // Fill background #111111
   for (var i = 0; i < size * size; i++) {
@@ -53,6 +90,24 @@ function renderToBuffer(size, pixels) {
     setPixel(half, cy, 0x2a, 0x2a, 0x2a);
   }
 
+  // Degree labels around the outer rim
+  var labelRadius = radius * 1.08;
+  var degrees = [0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330];
+  for (var di = 0; di < degrees.length; di++) {
+    var deg = degrees[di];
+    var da = deg * Math.PI / 180;
+    var lx = half + Math.cos(da) * labelRadius;
+    var ly = half - Math.sin(da) * labelRadius;
+    drawString(buf, size, String(deg) + '\xB0', lx, ly, 0x66, 0x66, 0x66);
+    // Small tick mark at the rim
+    var tickInner = radius * 0.97;
+    var tickOuter = radius * 1.02;
+    for (var ti = 0; ti < 5; ti++) {
+      var td = tickInner + (tickOuter - tickInner) * ti / 4;
+      setPixel(half + Math.cos(da) * td, half - Math.sin(da) * td, 0x55, 0x55, 0x55);
+    }
+  }
+
   // Color targets at actual YCbCr BT.601 chrominance positions
   // Each: [cb, cr, R, G, B] where cb/cr are normalized to [-1,1]
   // Computed from BT.601: Cb = (-0.168736*R - 0.331264*G + 0.5*B)*2
@@ -85,54 +140,170 @@ function renderToBuffer(size, pixels) {
   setPixel(half, half + 1, 0x55, 0x55, 0x55);
   setPixel(half, half - 1, 0x55, 0x55, 0x55);
 
-  // Scatter plot
+  // Get density mode from core settings
+  var densityMode = "scatter";
+  if (window.__chromascope) {
+    var settings = window.__chromascope.getSettings();
+    if (settings && settings.densityMode) densityMode = settings.densityMode;
+  }
+
+  // Map RGB pixel to YCbCr BT.601 scope coordinates
+  // Returns [cb, cr] normalized to [-1, 1]
+  function mapToScope(r255, g255, b255) {
+    var cb = (-0.168736 * r255 - 0.331264 * g255 + 0.5 * b255) * 2;
+    var cr = (0.5 * r255 - 0.418688 * g255 - 0.081312 * b255) * 2;
+    return [cb, cr];
+  }
+
+  // Plot pixels
   if (pixels) {
     var data = pixels.data;
     var total = pixels.width * pixels.height;
 
-    for (var pi = 0; pi < total; pi++) {
-      var ri = data[pi * 3], gi = data[pi * 3 + 1], bi = data[pi * 3 + 2];
-      var r255 = ri / 255, g255 = gi / 255, b255 = bi / 255;
-      var cb = (-0.168736 * r255 - 0.331264 * g255 + 0.5 * b255) * 2;
-      var cr = (0.5 * r255 - 0.418688 * g255 - 0.081312 * b255) * 2;
-      var px = Math.round(half + cb * radius);
-      var py = Math.round(half - cr * radius);
-      if (px >= 0 && px < size && py >= 0 && py < size) {
-        var idx = (py * size + px) * 4;
-        buf[idx] = ri;
-        buf[idx + 1] = gi;
-        buf[idx + 2] = bi;
-        buf[idx + 3] = 255;
+    if (densityMode === "heatmap" || densityMode === "bloom") {
+      if (densityMode === "heatmap") {
+        // Accumulate density map for heatmap
+        var density = new Uint32Array(size * size);
+        var maxDensity = 0;
+        for (var pi = 0; pi < total; pi++) {
+          var ri = data[pi * 3], gi = data[pi * 3 + 1], bi = data[pi * 3 + 2];
+          var sc = mapToScope(ri / 255, gi / 255, bi / 255);
+          var px = Math.round(half + sc[0] * radius);
+          var py = Math.round(half - sc[1] * radius);
+          if (px >= 0 && px < size && py >= 0 && py < size) {
+            var di = py * size + px;
+            density[di]++;
+            if (density[di] > maxDensity) maxDensity = density[di];
+          }
+        }
+      }
+
+      if (densityMode === "bloom") {
+        // Bloom: additive colored glow per point (matches Rust renderer)
+        var glowR = Math.min(20, Math.max(2, size / 20 * (500 / total)));
+        var alpha = Math.min(0.3, Math.max(0.01, 200 / total));
+        var bloomR = new Float32Array(size * size);
+        var bloomG = new Float32Array(size * size);
+        var bloomB = new Float32Array(size * size);
+
+        for (var pi2 = 0; pi2 < total; pi2++) {
+          var ri2 = data[pi2 * 3], gi2 = data[pi2 * 3 + 1], bi2 = data[pi2 * 3 + 2];
+          var sc2 = mapToScope(ri2 / 255, gi2 / 255, bi2 / 255);
+          var cx2 = half + sc2[0] * radius;
+          var cy2 = half - sc2[1] * radius;
+          var pr = ri2 * alpha, pg = gi2 * alpha, pb = bi2 * alpha;
+
+          var xMin = Math.max(0, Math.floor(cx2 - glowR));
+          var xMax = Math.min(size - 1, Math.ceil(cx2 + glowR));
+          var yMin = Math.max(0, Math.floor(cy2 - glowR));
+          var yMax = Math.min(size - 1, Math.ceil(cy2 + glowR));
+
+          for (var iy = yMin; iy <= yMax; iy++) {
+            for (var ix = xMin; ix <= xMax; ix++) {
+              var ddx = ix - cx2, ddy = iy - cy2;
+              var dist = Math.sqrt(ddx * ddx + ddy * ddy);
+              if (dist > glowR) continue;
+              var falloff = 1.0 - dist / glowR;
+              var bi3 = iy * size + ix;
+              bloomR[bi3] += pr * falloff;
+              bloomG[bi3] += pg * falloff;
+              bloomB[bi3] += pb * falloff;
+            }
+          }
+        }
+
+        // Composite bloom onto buffer additively
+        for (var ci = 0; ci < size * size; ci++) {
+          if (bloomR[ci] <= 0 && bloomG[ci] <= 0 && bloomB[ci] <= 0) continue;
+          var idx = ci * 4;
+          buf[idx] = Math.min(255, Math.round(buf[idx] + bloomR[ci]));
+          buf[idx+1] = Math.min(255, Math.round(buf[idx+1] + bloomG[ci]));
+          buf[idx+2] = Math.min(255, Math.round(buf[idx+2] + bloomB[ci]));
+          buf[idx+3] = 255;
+        }
+      } else {
+        // Heatmap: density accumulation with color ramp
+        // Render density to color
+        if (maxDensity > 0) {
+          var logMax = Math.log(maxDensity + 1);
+          for (var dy = 0; dy < size; dy++) {
+            for (var dx = 0; dx < size; dx++) {
+              var dv = density[dy * size + dx];
+              if (dv === 0) continue;
+              var t = Math.log(dv + 1) / logMax;
+              var idx = (dy * size + dx) * 4;
+              // Black → blue → cyan → green → yellow → red
+              if (t < 0.2)      { var s = t/0.2;       buf[idx]=0;                    buf[idx+1]=0;                    buf[idx+2]=Math.round(s*255); }
+              else if (t < 0.4) { var s = (t-0.2)/0.2; buf[idx]=0;                    buf[idx+1]=Math.round(s*255);    buf[idx+2]=255; }
+              else if (t < 0.6) { var s = (t-0.4)/0.2; buf[idx]=0;                    buf[idx+1]=255;                  buf[idx+2]=Math.round((1-s)*255); }
+              else if (t < 0.8) { var s = (t-0.6)/0.2; buf[idx]=Math.round(s*255);    buf[idx+1]=255;                  buf[idx+2]=0; }
+              else              { var s = (t-0.8)/0.2; buf[idx]=255;                   buf[idx+1]=Math.round((1-s)*255); buf[idx+2]=0; }
+              buf[idx + 3] = 255;
+            }
+          }
+        }
+      }
+    } else {
+      // Scatter mode: direct pixel plotting
+      for (var pi = 0; pi < total; pi++) {
+        var ri = data[pi * 3], gi = data[pi * 3 + 1], bi = data[pi * 3 + 2];
+        var sc = mapToScope(ri / 255, gi / 255, bi / 255);
+        var px = Math.round(half + sc[0] * radius);
+        var py = Math.round(half - sc[1] * radius);
+        if (px >= 0 && px < size && py >= 0 && py < size) {
+          var idx = (py * size + px) * 4;
+          buf[idx] = ri;
+          buf[idx + 1] = gi;
+          buf[idx + 2] = bi;
+          buf[idx + 3] = 255;
+        }
       }
     }
-    console.log("[renderScope] drew", total, "points on", size, "buffer");
+    console.log("[renderScope] drew", total, "points as", densityMode, "on", size, "buffer");
   }
 
-  // Draw harmony overlay from core settings
-  if (window.__chromascope) {
-    var settings = window.__chromascope.getSettings();
-    if (settings && settings.harmony && settings.harmony.scheme) {
-      var scheme = settings.harmony.scheme;
-      var rot = settings.harmony.rotation || 0;
-      var zoneWidth = settings.harmony.zoneWidth || 1.0;
+  return buf;
+}
 
-      // Determine harmony angles based on scheme
-      var angles = [];
-      if (scheme === "complementary") angles = [0, Math.PI];
-      else if (scheme === "splitComplementary") angles = [0, Math.PI * 5/6, Math.PI * 7/6];
-      else if (scheme === "triadic") angles = [0, Math.PI * 2/3, Math.PI * 4/3];
-      else if (scheme === "tetradic") angles = [0, Math.PI/2, Math.PI, Math.PI * 3/2];
-      else if (scheme === "analogous") angles = [0, Math.PI/6, -Math.PI/6];
+// Draw harmony overlay onto a copy of the base buffer
+function applyHarmonyOverlay(baseBuf, size) {
+  if (!window.__chromascope) return baseBuf;
+  var hSettings = window.__chromascope.getSettings();
+  if (!hSettings || !hSettings.harmony || !hSettings.harmony.scheme) return baseBuf;
 
-      // Draw zone lines
-      for (var ai = 0; ai < angles.length; ai++) {
-        var angle = angles[ai] + rot;
-        var steps = Math.round(radius);
-        for (var si = 0; si < steps; si++) {
-          var dist = (si / steps) * radius;
-          var lx = Math.round(half + Math.cos(angle) * dist);
-          var ly = Math.round(half - Math.sin(angle) * dist);
-          setPixel(lx, ly, 0x5a, 0x8f, 0xd5);
+  var buf = new Uint8Array(baseBuf); // Copy base buffer
+  var half = size / 2;
+  var radius = size * 0.40;
+  var scheme = hSettings.harmony.scheme;
+  var rot = hSettings.harmony.rotation || 0;
+  var zoneWidth = hSettings.harmony.zoneWidth || 1.0;
+  var baseHalfWidth = Math.PI / 12;
+  var halfWidth = baseHalfWidth * zoneWidth;
+
+  var baseAngles = [];
+  if (scheme === "complementary") baseAngles = [0, Math.PI];
+  else if (scheme === "splitComplementary") baseAngles = [0, Math.PI - Math.PI/12, Math.PI + Math.PI/12];
+  else if (scheme === "triadic") baseAngles = [0, Math.PI*2/3, Math.PI*4/3];
+  else if (scheme === "tetradic") baseAngles = [0, Math.PI/2, Math.PI, Math.PI*3/2];
+  else if (scheme === "analogous") baseAngles = [0, Math.PI/6, -Math.PI/6];
+
+  for (var ai = 0; ai < baseAngles.length; ai++) {
+    var centerAngle = baseAngles[ai] + rot;
+    for (var wy = 0; wy < size; wy++) {
+      for (var wx = 0; wx < size; wx++) {
+        var wdx = wx - half;
+        var wdy = -(wy - half);
+        var wdist = Math.sqrt(wdx * wdx + wdy * wdy);
+        if (wdist < 2 || wdist > radius) continue;
+        var pAngle = Math.atan2(wdy, wdx);
+        var aDiff = pAngle - centerAngle;
+        while (aDiff > Math.PI) aDiff -= Math.PI * 2;
+        while (aDiff < -Math.PI) aDiff += Math.PI * 2;
+        if (Math.abs(aDiff) <= halfWidth) {
+          var idx = (wy * size + wx) * 4;
+          buf[idx] = Math.min(255, Math.round(buf[idx] * 0.8 + 0x5a * 0.2));
+          buf[idx+1] = Math.min(255, Math.round(buf[idx+1] * 0.8 + 0x8f * 0.2));
+          buf[idx+2] = Math.min(255, Math.round(buf[idx+2] * 0.8 + 0xd5 * 0.2));
         }
       }
     }
@@ -140,6 +311,9 @@ function renderToBuffer(size, pixels) {
 
   return buf;
 }
+
+// Cached base buffer (without overlay)
+var cachedBaseBuf = null;
 
 // Encode RGBA buffer to base64 JPEG via Photoshop Imaging API and display in <img>
 async function displayScope(rgbaBuf, size) {
@@ -172,14 +346,21 @@ async function displayScope(rgbaBuf, size) {
     imageData.dispose();
 
     img.src = "data:image/jpeg;base64," + jpegData;
-    console.log("[renderScope] displayed scope image");
   } catch (e) {
     console.error("[renderScope] encode failed:", e);
   }
 }
 
-async function renderScope(pixels) {
-  var buf = renderToBuffer(scopeSize, pixels);
+async function renderScope(pixels, overlayOnly) {
+  var buf;
+  if (overlayOnly && cachedBaseBuf) {
+    // Fast path: reuse cached base, only re-draw overlay
+    buf = applyHarmonyOverlay(cachedBaseBuf, scopeSize);
+  } else {
+    // Full render: build base + apply overlay
+    cachedBaseBuf = renderToBuffer(scopeSize, pixels);
+    buf = applyHarmonyOverlay(cachedBaseBuf, scopeSize);
+  }
   await displayScope(buf, scopeSize);
 }
 
@@ -188,19 +369,19 @@ async function refresh() {
   isRefreshing = true;
 
   try {
-    if (statusBar) statusBar.textContent = "Refreshing...";
+
     const pixels = await getDocumentPixels();
 
     if (pixels) {
       lastPixels = pixels;
       await renderScope(pixels);
-      if (statusBar) statusBar.textContent = `${pixels.width}×${pixels.height} · ${pixels.colorProfile}`;
+
     } else {
-      if (statusBar) statusBar.textContent = "No document open";
+
     }
   } catch (err) {
     console.error("Chromascope refresh error:", err);
-    if (statusBar) statusBar.textContent = "Error: " + String(err);
+
   } finally {
     isRefreshing = false;
   }
@@ -212,7 +393,7 @@ async function init() {
   events = require("./src/events.js");
   handleEditCommand = require("./src/edits.js").handleEditCommand;
 
-  statusBar = document.getElementById("status-bar");
+
 
   // Fixed render resolution — CSS width:100% handles display scaling
   scopeSize = 500;
@@ -242,7 +423,7 @@ async function init() {
         settingsTimer = null;
         settingsRendering = true;
         console.log("[main] settings changed, re-rendering");
-        renderScope(lastPixels).then(function() {
+        renderScope(lastPixels, false).then(function() {
           settingsRendering = false;
           if (settingsDirty) {
             settingsDirty = false;
@@ -251,6 +432,31 @@ async function init() {
         });
       }, 300);
     };
+  }
+
+  // Click-to-rotate overlay on the scope image
+  var scopeContainer = document.getElementById("scope-canvas-container");
+  if (scopeContainer && window.__chromascope) {
+    scopeContainer.addEventListener("click", function(e) {
+      var settings = window.__chromascope.getSettings();
+      if (!settings || !settings.harmony || !settings.harmony.scheme) return;
+
+      var rect = scopeContainer.getBoundingClientRect();
+      var cx = rect.left + rect.width / 2;
+      var cy = rect.top + rect.height / 2;
+      var dx = e.clientX - cx;
+      var dy = -(e.clientY - cy);
+      var angle = Math.atan2(dy, dx);
+
+      window.__chromascope.updateSettings({
+        harmony: {
+          scheme: settings.harmony.scheme,
+          rotation: angle,
+          zoneWidth: settings.harmony.zoneWidth,
+          pullStrengths: settings.harmony.pullStrengths
+        }
+      });
+    });
   }
 
   // Initial render with no data (just graticule), then fetch pixels

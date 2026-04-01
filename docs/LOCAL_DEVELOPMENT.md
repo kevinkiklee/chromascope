@@ -29,7 +29,7 @@ npx turbo test
 
 ## Environment Variables
 
-The web app (`apps/web`) requires secrets in `apps/web/.env.local`:
+The web app (`web`) requires secrets in `web/.env.local`:
 
 ```sh
 # Neon Postgres
@@ -44,7 +44,7 @@ NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY="pk_test_..."
 If you have a linked Vercel project, pull env vars directly:
 
 ```sh
-cd apps/web
+cd web
 vercel env pull .env.local
 ```
 
@@ -75,19 +75,19 @@ npm run test:watch   # Vitest in watch mode
 
 **Build dependency**: Plugins depend on the built core library. After modifying core, rebuild before testing plugins.
 
-### Decode Binary (`packages/decode`)
+### Processor Binary (`packages/processor`)
 
 Rust CLI that decodes images and renders vectorscopes. Used by the Lightroom plugin (which can't read pixels or draw from Lua). Supports configurable color spaces (YCbCr, CIE LUV, HSL), density modes (scatter, heatmap, bloom), and harmony overlays.
 
 ```sh
-cd packages/decode
+cd packages/processor
 
 cargo build             # Debug build
 cargo build --release   # Optimized build (for distribution)
 cargo test              # Run Rust tests
 ```
 
-The release binary goes to `target/release/decode`. For Lightroom integration, copy it to the appropriate platform directory:
+The release binary goes to `target/release/processor`. For Lightroom integration, copy it to the appropriate platform directory:
 
 ```
 plugins/lightroom/chromascope.lrdevplugin/bin/
@@ -124,11 +124,11 @@ npm run dev           # Watch mode (rebuilds on change)
 
 ### Lightroom Plugin (`plugins/lightroom`)
 
-Lua plugin for Lightroom Classic. Uses the decode binary to read pixel data.
+Lua plugin for Lightroom Classic. Uses the processor binary to read pixel data.
 
 **Installing for development**:
 
-1. Build the decode binary: `cd packages/decode && cargo build --release`
+1. Build the processor binary: `cd packages/processor && cargo build --release`
 2. Copy the binary to the plugin's `bin/` directory for your platform
 3. Build the core library: `cd packages/core && npm run build`
 4. In Lightroom, go to **File > Plug-in Manager > Add**
@@ -138,18 +138,18 @@ Lua plugin for Lightroom Classic. Uses the decode binary to read pixel data.
 - `Info.lua` -- Plugin metadata and menu registration
 - `ShowChromaScope.lua` -- Main dialog launcher
 - `ChromaScopeDialog.lua` -- Floating dialog with vectorscope, controls (color space, density, harmony, rotation, size)
-- `ImagePipeline.lua` -- Thumbnail export, decode binary invocation, frame alternation
+- `ImagePipeline.lua` -- Thumbnail export, processor binary invocation, frame alternation
 - `EditBridge.lua` -- Maps edit commands to `LrDevelopController` calls
 - `License.lua` -- License key validation
 
 **Note**: The `.lrdevplugin` extension tells Lightroom this is a development plugin (reloads on each launch). Rename to `.lrplugin` for distribution.
 
-### Web App (`apps/web`)
+### Web App (`web`)
 
 Next.js 16 marketing site with licensing API and Stripe integration.
 
 ```sh
-cd apps/web
+cd web
 
 npm run dev           # Dev server at http://localhost:3000
 npm run build         # Production build
@@ -189,11 +189,11 @@ packages/core (build)
     |
     +-- plugins/photoshop (build)    # copies core build output
     |
-    +-- plugins/lightroom            # manual: copy core + decode binary
+    +-- plugins/lightroom            # manual: copy core + processor binary
     |
-    +-- apps/web (build)             # independent, no core dependency
+    +-- web (build)             # independent, no core dependency
 
-packages/decode (cargo build)
+packages/processor (cargo build)
     |
     +-- plugins/lightroom            # manual: copy binary to bin/
 ```
@@ -202,7 +202,7 @@ Run the full pipeline:
 
 ```sh
 npx turbo build                      # TypeScript packages
-cd packages/decode && cargo build --release   # Rust binary (separate)
+cd packages/processor && cargo build --release   # Rust binary (separate)
 ```
 
 ## Testing
@@ -214,8 +214,8 @@ npx turbo test
 # Core library only
 cd packages/core && npm run test
 
-# Rust decode tests
-cd packages/decode && cargo test
+# Rust processor tests
+cd packages/processor && cargo test
 
 # Watch mode (core)
 cd packages/core && npm run test:watch
@@ -251,14 +251,14 @@ stripe login
 stripe listen --forward-to localhost:3000/api/stripe/webhook
 ```
 
-Copy the webhook signing secret from the CLI output into `apps/web/.env.local` as `STRIPE_WEBHOOK_SECRET`.
+Copy the webhook signing secret from the CLI output into `web/.env.local` as `STRIPE_WEBHOOK_SECRET`.
 
 ## Troubleshooting
 
 | Problem | Solution |
 |---------|----------|
 | `Module not found` in plugins | Rebuild core first: `cd packages/core && npm run build` |
-| Decode binary not found (Lightroom) | Copy release binary to the correct `bin/<platform>/` directory |
+| Processor binary not found (Lightroom) | Copy release binary to the correct `bin/<platform>/` directory |
 | Stale core in Photoshop | Rebuild core, rebuild plugin, then reload in Photoshop |
 | Stripe webhook errors locally | Ensure `stripe listen` is running and secret is in `.env.local` |
 | Vite HMR not working | Check port conflicts; default is 5173 for core dev server |

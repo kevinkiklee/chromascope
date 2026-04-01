@@ -4,20 +4,20 @@
 
 **Goal:** Build a model-agnostic AI backend on Next.js API routes (Vercel) that exposes five endpoints for scene analysis, style matching, natural-language adjustments, smart-fit weighting, and palette extraction — all gated behind Pro+AI license validation and a per-key rate limiter.
 
-**Architecture:** `apps/web/lib/ai/` contains the provider abstraction, AI Gateway cloud implementation, structured system prompts, and rate limiter. Five Next.js App Router route handlers under `apps/web/app/api/ai/` each validate the license tier, check the rate limit, call the provider via `generateText` with `Output.object()`, and return typed JSON.
+**Architecture:** `web/lib/ai/` contains the provider abstraction, AI Gateway cloud implementation, structured system prompts, and rate limiter. Five Next.js App Router route handlers under `web/app/api/ai/` each validate the license tier, check the rate limit, call the provider via `generateText` with `Output.object()`, and return typed JSON.
 
 **Tech Stack:** Next.js 15 App Router, Vercel AI SDK v6 (`ai` package), Zod, Vercel AI Gateway (model string prefix `anthropic/claude-sonnet-4.6`), TypeScript
 
 **Reference docs:**
 - Design spec: `docs/superpowers/specs/2026-03-29-vectorscope-plugin-design.md`
-- Existing license helper: `apps/web/lib/license.ts`
+- Existing license helper: `web/lib/license.ts`
 
 ---
 
 ## File Map
 
 ```
-apps/web/
+web/
 ├── app/api/ai/
 │   ├── scene-analyze/route.ts       # POST — scene type, subject, harmony suggestion
 │   ├── style-match/route.ts         # POST — HSL/Color Grading/Curves deltas
@@ -37,13 +37,13 @@ apps/web/
 ## Task 1: AI Provider Interface + Cloud Provider
 
 **Files:**
-- Create: `apps/web/lib/ai/provider.ts`
-- Create: `apps/web/lib/ai/cloud-provider.ts`
+- Create: `web/lib/ai/provider.ts`
+- Create: `web/lib/ai/cloud-provider.ts`
 
 - [ ] **Step 1: Define `ModelProvider` interface and types in `provider.ts`**
 
 ```typescript
-// apps/web/lib/ai/provider.ts
+// web/lib/ai/provider.ts
 import { z } from 'zod'
 
 export interface ModelOptions {
@@ -84,7 +84,7 @@ The AI SDK v6 routes plain `"provider/model"` strings through AI Gateway automat
 Use `generateText` with `experimental_output: Output.object({ schema })` for structured JSON output. Both imports come from `'ai'`.
 
 ```typescript
-// apps/web/lib/ai/cloud-provider.ts
+// web/lib/ai/cloud-provider.ts
 import { generateText, Output } from 'ai'
 import { z } from 'zod'
 import type { ModelProvider, ModelOptions, AnalysisResult } from './provider'
@@ -143,7 +143,7 @@ vercel env pull .env.local         # Provisions VERCEL_OIDC_TOKEN (~24h JWT)
 The `ai` package reads `VERCEL_OIDC_TOKEN` automatically — no code changes needed. Re-run `vercel env pull` when the token expires.
 
 **Alternative (static key — CI / non-Vercel environments):**
-Create `apps/web/.env.local.example`:
+Create `web/.env.local.example`:
 ```
 # AI Gateway auth (OIDC is the default and recommended method):
 #   vercel link && vercel env pull .env.local   → writes VERCEL_OIDC_TOKEN automatically
@@ -157,14 +157,14 @@ Create `apps/web/.env.local.example`:
 ## Task 2: System Prompts
 
 **Files:**
-- Create: `apps/web/lib/ai/prompts.ts`
+- Create: `web/lib/ai/prompts.ts`
 
 - [ ] **Step 1: Write a structured system prompt for each endpoint**
 
 Each prompt is a plain string exported as a named constant. Prompts instruct the model to output JSON matching the schema defined in the corresponding route.
 
 ```typescript
-// apps/web/lib/ai/prompts.ts
+// web/lib/ai/prompts.ts
 
 export const SCENE_ANALYZE_PROMPT = `
 You are a professional colorist analyzing a downsampled (256x256) image.
@@ -216,14 +216,14 @@ Respond ONLY with a valid JSON object matching the provided schema.
 ## Task 3: Rate Limiter
 
 **Files:**
-- Create: `apps/web/lib/ai/rate-limit.ts`
+- Create: `web/lib/ai/rate-limit.ts`
 
 - [ ] **Step 1: Implement a simple in-memory token bucket rate limiter**
 
 Keyed by API key string. Limits: 10 requests/minute burst, 100 requests/day. Uses a two-bucket approach (minute + day). The module exports a single `checkRateLimit` function that mutates the in-memory store and returns `{ allowed: boolean; reason?: string }`.
 
 ```typescript
-// apps/web/lib/ai/rate-limit.ts
+// web/lib/ai/rate-limit.ts
 
 const BURST_LIMIT = 10       // per minute
 const DAILY_LIMIT = 100      // per day
@@ -298,14 +298,14 @@ export function checkRateLimit(apiKey: string): RateLimitResult {
 ## Task 4: Scene Analyze Route
 
 **Files:**
-- Create: `apps/web/app/api/ai/scene-analyze/route.ts`
+- Create: `web/app/api/ai/scene-analyze/route.ts`
 
 - [ ] **Step 1: Implement `POST /api/ai/scene-analyze`**
 
 Input: `{ image: string }` (base64 JPEG, 256x256). Output: scene type, subjects, suggested harmony type + rotation.
 
 ```typescript
-// apps/web/app/api/ai/scene-analyze/route.ts
+// web/app/api/ai/scene-analyze/route.ts
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { validateLicense } from '@/lib/license'
@@ -365,7 +365,7 @@ export async function POST(req: NextRequest) {
 ## Task 5: Style Match Route
 
 **Files:**
-- Create: `apps/web/app/api/ai/style-match/route.ts`
+- Create: `web/app/api/ai/style-match/route.ts`
 
 - [ ] **Step 1: Implement `POST /api/ai/style-match`**
 
@@ -374,7 +374,7 @@ Input: `{ current: string, reference: string, apiKey: string }` (both base64 256
 This route must send two images in a single call, so it calls `generateText` directly rather than through `CloudProvider` (which has a single-image signature). Auth follows the same OIDC-first resolution as `CloudProvider` — no extra config required.
 
 ```typescript
-// apps/web/app/api/ai/style-match/route.ts
+// web/app/api/ai/style-match/route.ts
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { generateText, Output } from 'ai'
@@ -464,14 +464,14 @@ export async function POST(req: NextRequest) {
 ## Task 6: Natural Language Route
 
 **Files:**
-- Create: `apps/web/app/api/ai/natural-language/route.ts`
+- Create: `web/app/api/ai/natural-language/route.ts`
 
 - [ ] **Step 1: Implement `POST /api/ai/natural-language`**
 
 Input: `{ state: VectorscopeState, prompt: string, apiKey: string }`. Output: adjustment deltas keyed to the active edit mode.
 
 ```typescript
-// apps/web/app/api/ai/natural-language/route.ts
+// web/app/api/ai/natural-language/route.ts
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { createProvider } from '@/lib/ai/provider'
@@ -542,14 +542,14 @@ export async function POST(req: NextRequest) {
 ## Task 7: Smart Fit Route
 
 **Files:**
-- Create: `apps/web/app/api/ai/smart-fit/route.ts`
+- Create: `web/app/api/ai/smart-fit/route.ts`
 
 - [ ] **Step 1: Implement `POST /api/ai/smart-fit`**
 
 Input: `{ image: string, harmony: HarmonyConfig, apiKey: string }`. Output: 256 per-block adjustment weights (16x16 grid) plus a list of preserved key color regions.
 
 ```typescript
-// apps/web/app/api/ai/smart-fit/route.ts
+// web/app/api/ai/smart-fit/route.ts
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { createProvider } from '@/lib/ai/provider'
@@ -618,14 +618,14 @@ export async function POST(req: NextRequest) {
 ## Task 8: Palette Extract Route
 
 **Files:**
-- Create: `apps/web/app/api/ai/palette-extract/route.ts`
+- Create: `web/app/api/ai/palette-extract/route.ts`
 
 - [ ] **Step 1: Implement `POST /api/ai/palette-extract`**
 
 Input: `{ image: string, apiKey: string }` (base64 256x256). Output: dominant colors, grading directions, overlay presets.
 
 ```typescript
-// apps/web/app/api/ai/palette-extract/route.ts
+// web/app/api/ai/palette-extract/route.ts
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { createProvider } from '@/lib/ai/provider'
@@ -690,17 +690,17 @@ export async function POST(req: NextRequest) {
 - [ ] **Step 1: Confirm all files exist**
 
 ```bash
-ls apps/web/lib/ai/
+ls web/lib/ai/
 # Expected: provider.ts  cloud-provider.ts  prompts.ts  rate-limit.ts
 
-ls apps/web/app/api/ai/
+ls web/app/api/ai/
 # Expected: scene-analyze/  style-match/  natural-language/  smart-fit/  palette-extract/
 ```
 
 - [ ] **Step 2: TypeScript type-check**
 
 ```bash
-cd apps/web && npx tsc --noEmit
+cd web && npx tsc --noEmit
 ```
 
 No errors expected. If `@ai-sdk/openai` is missing, install it:
@@ -746,3 +746,36 @@ Call any endpoint with an API key that does not have the `ai` feature. Expect HT
 - **Image size enforcement:** The spec mandates 256x256 downsamples. Enforcement (reject oversized payloads) can be added by checking `imageBuffer.byteLength > 256 * 256 * 4` before calling the provider.
 - **LocalProvider:** Reserved for future implementation when users can supply a local model endpoint URL. `createProvider('local')` currently throws; a `LocalProvider` class can be added to `lib/ai/` without changing any route code.
 - **AI Gateway model string:** `'anthropic/claude-sonnet-4.6'` is used throughout. To swap models (e.g. for cost or speed), update the string in `cloud-provider.ts` only — routes are model-agnostic.
+
+---
+
+## Future: FOSS + BYOM (Bring Your Own Model)
+
+> **Status:** Planned — do not implement yet.
+
+Chromascope will be fully open-sourced (FOSS) with the exception of the cloud AI backend hosted on Vercel. The cloud AI endpoints above will remain a hosted convenience service, but users will have two self-service alternatives:
+
+### 1. Local Model Connection
+
+Users can point the plugin at a local model server (Ollama, llama.cpp, LM Studio, vLLM, etc.) running on their machine or LAN. The `LocalProvider` class (currently a stub in `provider.ts`) will:
+
+- Accept a base URL (e.g. `http://localhost:11434/v1`) configured in plugin settings
+- Use the same `ModelProvider` interface — no route changes needed
+- Support any OpenAI-compatible chat/completions API
+- Run entirely offline with zero data leaving the user's machine
+
+### 2. Bring Your Own API Key
+
+Users can supply their own API key for any supported cloud provider (OpenAI, Anthropic, Google, etc.) and hit the provider directly from the plugin — bypassing the Chromascope cloud backend entirely. This means:
+
+- No Chromascope license required for AI features
+- No rate limits imposed by Chromascope
+- User pays their own provider costs
+- The `createProvider()` factory gains a `'byokey'` type that configures a direct provider connection with the user's credentials
+
+### Licensing Implications
+
+- The core library, plugins, and all rendering/analysis code will be FOSS (license TBD — likely MIT or AGPLv3)
+- The cloud AI backend (`web/app/api/ai/*`) will be open-source too, but the *hosted instance* on Vercel is the commercial offering (convenience, no setup, managed rate limits)
+- License tiers (trial/pro/pro_ai) apply only to the hosted cloud service — self-hosted users are unrestricted
+- The `ModelProvider` interface is the abstraction boundary: cloud, local, and BYOK providers all implement it identically

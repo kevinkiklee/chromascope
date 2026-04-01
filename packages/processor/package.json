@@ -1,0 +1,15 @@
+{
+  "name": "@chromascope/processor",
+  "version": "0.1.0",
+  "private": true,
+  "license": "MIT",
+  "scripts": {
+    "build": "cargo build",
+    "build:release": "cargo build --release",
+    "build:all-platforms": "cargo build --release && cargo build --release --target x86_64-apple-darwin && cross build --release --target x86_64-pc-windows-gnu",
+    "copy:macos-arm64": "cp target/release/processor ../../plugins/lightroom/chromascope.lrdevplugin/bin/macos-arm64/processor",
+    "copy:macos-x64": "cp target/x86_64-apple-darwin/release/processor ../../plugins/lightroom/chromascope.lrdevplugin/bin/macos-x64/processor",
+    "copy:win-x64": "cp target/x86_64-pc-windows-gnu/release/processor.exe ../../plugins/lightroom/chromascope.lrdevplugin/bin/win-x64/processor.exe",
+    "test": "cargo test --release"
+  }
+}

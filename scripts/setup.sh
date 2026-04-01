@@ -51,12 +51,12 @@ else
   MISSING+=("npm")
 fi
 
-# Rust / Cargo (optional but needed for decode package)
+# Rust / Cargo (optional but needed for processor package)
 if command -v cargo &>/dev/null; then
   ok "Cargo $(cargo --version | awk '{print $2}')"
   HAS_RUST=true
 else
-  warn "Cargo not found -- packages/decode will not build (install via https://rustup.rs)"
+  warn "Cargo not found -- packages/processor will not build (install via https://rustup.rs)"
   HAS_RUST=false
 fi
 
@@ -83,12 +83,12 @@ npx turbo build
 ok "Turbo build complete"
 echo ""
 
-# ─── 4. Build Rust decode binary ──────────────────────────────────────
+# ─── 4. Build Rust processor binary ───────────────────────────────────
 
 if [ "$HAS_RUST" = true ]; then
-  info "Building Rust decode binary (release)..."
-  (cd packages/decode && cargo build --release)
-  ok "Rust binary built at packages/decode/target/release/decode"
+  info "Building Rust processor binary (release)..."
+  (cd packages/processor && cargo build --release)
+  ok "Rust binary built at packages/processor/target/release/processor"
   echo ""
 fi
 
@@ -101,8 +101,8 @@ echo ""
 
 # ─── 6. Set up web app .env.local ─────────────────────────────────────
 
-ENV_FILE="apps/web/.env.local"
-ENV_EXAMPLE="apps/web/.env.example"
+ENV_FILE="web/.env.local"
+ENV_EXAMPLE="web/.env.example"
 
 if [ ! -f "$ENV_FILE" ]; then
   if [ -f "$ENV_EXAMPLE" ]; then
@@ -134,16 +134,16 @@ echo "========================================="
 echo ""
 echo "  Next steps:"
 echo ""
-echo "  1. Fill in apps/web/.env.local with your"
+echo "  1. Fill in web/.env.local with your"
 echo "     Neon and Stripe credentials."
 echo ""
 echo "  2. Start developing:"
 echo "     npx turbo dev          # all dev servers"
 echo "     cd packages/core && npm run dev   # core only"
-echo "     cd apps/web && npm run dev        # web only"
+echo "     cd web && npm run dev        # web only"
 echo ""
 if [ "$HAS_RUST" = false ]; then
   echo "  3. Install Rust (https://rustup.rs) to build"
-  echo "     the decode binary for Lightroom."
+  echo "     the processor binary for Lightroom."
   echo ""
 fi

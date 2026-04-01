@@ -47,8 +47,8 @@ jsCode = jsCode.replace(
 );
 
 // Find the minified variable names for scope instance, controls, and draw function
-// Pattern: X=new ue,Y=Se(  where X=scope, Y=controls
-const varMatch = jsCode.match(/([A-Za-z]+)=new ue,([A-Za-z]+)=Se\(/);
+// Pattern: X=new CLASS,Y=FUNC(  where X=scope, Y=controls
+const varMatch = jsCode.match(/([A-Za-z]+)=new [A-Za-z]+,([A-Za-z]+)=[A-Za-z]+\(/);
 if (!varMatch) {
   console.error("Could not find scope/controls variable names in minified code!");
   process.exit(1);
@@ -64,7 +64,7 @@ console.log(`  Detected minified vars: scope=${scopeVar}, controls=${ctrlVar}, d
 
 // Replace the message-based API with a direct window API.
 jsCode = jsCode.replace(
-  /fe\(e=>\{switch[\s\S]*?\}\}\);/,
+  /[A-Za-z]+\(e=>\{switch[\s\S]*?\}\}\);/,
   `
 window.__chromascope = {
   setPixels: function(pixelData) {

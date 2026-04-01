@@ -37,7 +37,7 @@ local function getBinary()
     if handle then handle:close() end
     platform = (arch == "arm64") and "macos-arm64" or "macos-x64"
   end
-  local ext = WIN_ENV and "decode.exe" or "decode"
+  local ext = WIN_ENV and "processor.exe" or "processor"
   return LrPathUtils.child(LrPathUtils.child(LrPathUtils.child(pluginDir, "bin"), platform), ext)
 end
 

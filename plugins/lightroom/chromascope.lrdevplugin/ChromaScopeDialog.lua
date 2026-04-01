@@ -116,23 +116,37 @@ function ChromascopeDialog.show(context)
     ImagePipeline.cleanup()
     ImagePipeline.ensurePlaceholder(props)
     ImagePipeline.refresh(props)
+    -- Track overlay state to avoid re-rendering when nothing changed
+    local lastOverlayHash = ""
     while not stopRefresh do
-      LrTasks.sleep(2)
+      LrTasks.sleep(0.5)
       if not stopRefresh then
         if ImagePipeline.settingsChanged() then
-          -- Develop settings changed — full pipeline with new thumbnail
           ImagePipeline.refresh(props)
         else
-          -- No develop change — re-render with cached RGB for overlay updates
-          ImagePipeline.refreshOverlayFull(props)
+          -- Only re-render overlay if overlay settings changed
+          local oh = tostring(props.scheme) .. tostring(props.rotation) ..
+            tostring(props.skinTone) .. tostring(props.overlayColor) ..
+            tostring(props.density) .. tostring(props.colorSpace)
+          if oh ~= lastOverlayHash then
+            lastOverlayHash = oh
+            ImagePipeline.refreshOverlayFull(props)
+          end
         end
       end
     end
   end)
 
-  -- Develop slider changes: full pipeline
+  -- Develop slider changes: debounced full pipeline.
+  -- Without debounce, dragging a slider fires hundreds of startAsyncTask per second,
+  -- accumulating Lua coroutines and causing unbounded memory growth.
+  local _adjustVersion = 0
   LrDevelopController.addAdjustmentChangeObserver(context, props, function()
+    _adjustVersion = _adjustVersion + 1
+    local av = _adjustVersion
     LrTasks.startAsyncTask(function()
+      LrTasks.sleep(0.3)
+      if av ~= _adjustVersion then return end  -- stale, exit immediately
       ImagePipeline.refresh(props)
     end)
   end)
@@ -247,29 +261,6 @@ function ChromascopeDialog.show(context)
     f:separator { fill_horizontal = 1 },
     f:spacer { height = 4 },
 
-    -- Color Space
-    f:row {
-      spacing = f:label_spacing(),
-      f:static_text {
-        title = "Color Space",
-        width = labelW,
-        font  = rbFont,
-        text_color = labelColor,
-      },
-      f:popup_menu {
-        value = bind "colorSpace",
-        width = 100,
-        font  = rbFont,
-        items = {
-          { title = "YCbCr",    value = "ycbcr" },
-          { title = "CIE LUV",  value = "cieluv" },
-          { title = "HSL",      value = "hsl" },
-        },
-      },
-    },
-
-    f:spacer { height = 2 },
-
     -- Density (radio buttons in isolated view)
     f:row {
       spacing = f:label_spacing(),
@@ -284,7 +275,6 @@ function ChromascopeDialog.show(context)
         f:row {
           spacing = f:label_spacing(),
           f:radio_button { value = bind "density", title = "Scatter", checked_value = "scatter", font = rbFont },
-          f:radio_button { value = bind "density", title = "Heatmap", checked_value = "heatmap", font = rbFont },
           f:radio_button { value = bind "density", title = "Bloom",   checked_value = "bloom",   font = rbFont },
         },
       },

@@ -86,7 +86,7 @@ Create `package.json`:
   "workspaces": [
     "packages/*",
     "plugins/*",
-    "apps/*"
+    "web"
   ],
   "devDependencies": {
     "turbo": "^2"

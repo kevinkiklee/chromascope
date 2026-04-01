@@ -10,15 +10,15 @@ Before making changes to the Photoshop plugin, read `docs/reference/uxp-api-refe
 
 ## Project Overview
 
-Chromascope is a commercial color analysis tool for Adobe Photoshop and Lightroom Classic. It renders chrominance vectorscope plots with multiple color spaces, visualization modes, and color harmony overlays.
+Chromascope is an open-source color analysis tool for Adobe Photoshop and Lightroom Classic. It renders chrominance vectorscope plots with multiple color spaces, visualization modes, and color harmony overlays.
 
 ## Monorepo Layout
 
 - `packages/core/` -- TypeScript core library (vectorscope math, rendering, UI controls)
-- `packages/decode/` -- Rust CLI binary (image decoding + vectorscope rendering)
+- `packages/processor/` -- Rust CLI binary (image decoding + vectorscope rendering)
 - `plugins/photoshop/` -- Photoshop UXP panel plugin (JavaScript)
 - `plugins/lightroom/` -- Lightroom Classic plugin (Lua + Rust binary)
-- `apps/web/` -- Next.js 16 app (marketing site, pricing, licensing API, Stripe webhooks)
+- `web/` -- Next.js 16 app (marketing site, pricing, licensing API, Stripe webhooks)
 - `scripts/` -- Setup, build, and deployment scripts
 
 Managed with Turborepo. Workspaces: `packages/*`, `plugins/*`, `apps/*`.
@@ -29,7 +29,7 @@ Managed with Turborepo. Workspaces: `packages/*`, `plugins/*`, `apps/*`.
 npx turbo build          # Build all packages
 npx turbo test           # Run all tests
 npx turbo dev            # Start dev servers
-npm run build:plugins    # Build core + decode + assemble both plugins
+npm run build:plugins    # Build core + processor + assemble both plugins
 
 # Core library
 cd packages/core
@@ -37,13 +37,13 @@ npm run dev              # Vite dev server
 npm run test             # Vitest
 npm run test:watch       # Vitest in watch mode
 
-# Rust decode binary
-cd packages/decode
+# Rust processor binary
+cd packages/processor
 cargo build --release
 cargo test
 
 # Web app
-cd apps/web
+cd web
 npm run dev              # Next.js + Turbopack at localhost:3000
 npm run lint             # ESLint
 ```
@@ -60,14 +60,30 @@ npm run lint             # ESLint
 ### Lightroom + Rust Renderer
 
 - Lightroom can't embed WebViews or read pixels from Lua.
-- The Rust `decode` binary has two subcommands:
-  - `decode decode` -- Decodes JPEG/TIFF to raw RGB bytes
-  - `decode render` -- Renders a vectorscope JPEG from raw RGB with configurable color space (`--color-space ycbcr|cieluv|hsl`), density mode (`--density scatter|heatmap|bloom`), harmony overlay, and skin tone line
-- `ImagePipeline.lua` exports a thumbnail, calls `decode decode`, then `decode render`, and displays the resulting JPEG via `f:picture`.
+- The Rust `processor` binary has two subcommands:
+  - `processor decode` -- Decodes JPEG/TIFF to raw RGB bytes
+  - `processor render` -- Renders a vectorscope JPEG from raw RGB with configurable color space (`--color-space ycbcr|cieluv|hsl`), density mode (`--density scatter|heatmap|bloom`), harmony overlay, and skin tone line
+- `ImagePipeline.lua` exports a thumbnail, calls `processor decode`, then `processor render`, and displays the resulting JPEG via `f:picture`.
 - Updates are driven by `LrDevelopController.addAdjustmentChangeObserver` + a fallback poll loop.
 - A busy-guard with coalescing prevents overlapping renders (max 1 queued).
 - Frame alternation (writing to `scope_0.jpg` / `scope_1.jpg`) forces `f:picture` to reload on each update. **Do NOT revert to a single-path nil-toggle** -- this causes unbounded memory growth in Lightroom (the original cause of the 40GB memory leak).
 - LrC's Lua sandbox does not expose `collectgarbage` -- do not call it.
+
+### Memory Leak Prevention (Lightroom)
+
+The Lightroom plugin runs for hours inside a long-lived process. Every allocation pattern that grows unboundedly will eventually crash the host. Follow these rules strictly:
+
+1. **Frame alternation is mandatory.** `f:picture` must always receive a *different* file path on each update. Writing to the same path and toggling `imagePath = nil → same_path` causes Lightroom to cache every version of the image internally without releasing. This was the root cause of a 40GB memory leak. Use `nextScopePath()` to alternate between `scope_0.jpg` and `scope_1.jpg`.
+
+2. **Guard `requestJpegThumbnail` callbacks.** The SDK may call the callback multiple times (as higher-quality thumbnails become available). After the first callback sets `done = true`, subsequent callbacks must `return` immediately to avoid writing to closed files and retaining JPEG binary strings. Always nil out `jpegData` after writing.
+
+3. **Debounce async task creation.** Every `LrTasks.startAsyncTask` creates a Lua coroutine. Dragging a slider fires the `addAdjustmentChangeObserver` callback many times per second. Without debouncing (version counter + sleep + stale check), hundreds of coroutines accumulate. Use the `_settleVersion` / `_adjustVersion` pattern to ensure only the final value triggers work.
+
+4. **Never accumulate data in module-level tables.** Do not append to arrays, build history logs, or cache previous results in module-scope variables. The only module-level state allowed is fixed-size: the busy flag, frame index, pending flag, and the settings hash.
+
+5. **Clean up temp files on dialog open.** `ImagePipeline.cleanup()` removes stale files from previous sessions on startup. If you add new temp files, add them to the cleanup list.
+
+6. **`collectgarbage` is unavailable.** LrC's Lua sandbox blocks it. Do not call it. Rely on the patterns above to minimize GC pressure.
 
 ### Licensing
 
@@ -81,14 +97,14 @@ Core must build before plugins. The build order is:
 
 ```
 packages/core   -->  plugins/photoshop (copies core build output)
-                     plugins/lightroom (copies core HTML + decode binary)
-packages/decode -->  plugins/lightroom (binary copied to bin/<platform>/)
-apps/web             (independent, no core dependency)
+                     plugins/lightroom (copies core HTML + processor binary)
+packages/processor -->  plugins/lightroom (binary copied to bin/<platform>/)
+web             (independent, no core dependency)
 ```
 
-`npm run build:plugins` handles the full pipeline: core build, Rust compile, Photoshop build, and Lightroom assembly (copies core HTML + decode binary).
+`npm run build:plugins` handles the full pipeline: core build, Rust compile, Photoshop build, and Lightroom assembly (copies core HTML + processor binary).
 
-## Web App (`apps/web`)
+## Web App (`web`)
 
 - **Framework**: Next.js 16 with App Router, Turbopack, React 19
 - **Styling**: Tailwind CSS 4 (CSS-first config via `@theme` in globals.css)
@@ -99,7 +115,7 @@ apps/web             (independent, no core dependency)
 
 ### Environment Variables
 
-Store in `apps/web/.env.local` (gitignored). Copy from `apps/web/.env.example` or run `vercel env pull`.
+Store in `web/.env.local` (gitignored). Copy from `web/.env.example` or run `vercel env pull`.
 
 - `DATABASE_URL` -- Neon Postgres connection string
 - `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` -- Stripe integration
@@ -125,7 +141,7 @@ Store in `apps/web/.env.local` (gitignored). Copy from `apps/web/.env.example` o
 
 ## Deployment
 
-- **Platform**: Vercel (project: `iser/chromascope-website`)
-- **Root directory**: `apps/web`
+- **Platform**: Vercel
+- **Root directory**: `web`
 - **Framework**: Next.js (auto-detected)
 - Env vars must be set in Vercel dashboard or via `vercel env add`

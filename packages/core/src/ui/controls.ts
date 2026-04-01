@@ -16,8 +16,7 @@ const COLOR_SPACES: Array<{ id: ColorSpaceId; label: string }> = [
 ];
 
 const DENSITY_MODES: Array<{ id: DensityModeId; label: string }> = [
-  { id: "scatter", label: "Scat" },
-  { id: "heatmap", label: "Heat" },
+  { id: "scatter", label: "Scatter" },
   { id: "bloom", label: "Bloom" },
 ];
 
@@ -108,19 +107,6 @@ export function createControls(
   displayGroup.open = true;
   displayGroup.innerHTML = "<summary>Display</summary>";
 
-  const csRow = document.createElement("div");
-  csRow.className = "vs-control-row";
-  const csLabel = document.createElement("label");
-  csLabel.textContent = "Color Space";
-  csRow.appendChild(csLabel);
-  csRow.appendChild(
-    renderButtonGroup(COLOR_SPACES, current.colorSpace, (id) => {
-      current.colorSpace = id;
-      callbacks.onSettingsChange({ colorSpace: id });
-    }),
-  );
-  displayGroup.appendChild(csRow);
-
   const dmRow = document.createElement("div");
   dmRow.className = "vs-control-row";
   const dmLabel = document.createElement("label");
@@ -172,7 +158,7 @@ export function createControls(
   );
 
   harmonyGroup.appendChild(
-    renderSlider("Zone Width", 0.2, 3.0, 0.1,
+    renderSlider("Zone Width", 0.1, 3.0, 0.1,
       current.harmony.zoneWidth,
       (v) => v.toFixed(1),
       (v) => {

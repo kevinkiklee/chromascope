@@ -1,7 +1,7 @@
 # Marketing Website Redesign — Homepage
 
 **Date:** 2026-03-30
-**Scope:** Homepage only (`apps/web/app/page.tsx` + new components)
+**Scope:** Homepage only (`web/app/page.tsx` + new components)
 **Goal:** Premium, product-forward redesign targeting professional colorists. Blackmagic/DaVinci aesthetic — dark, technical, editorial. Hybrid approach: product screenshot placeholders + animated vectorscope accents + scroll-triggered animations.
 
 ---
@@ -163,21 +163,21 @@ All animations gated behind `@media (prefers-reduced-motion: no-preference)`.
 
 | File | Change |
 |------|--------|
-| `apps/web/app/page.tsx` | Rewrite with new 6-section layout |
-| `apps/web/app/globals.css` | Add animation keyframes and utility classes |
-| `apps/web/components/scroll-reveal.tsx` | New client component (Intersection Observer wrapper) |
-| `apps/web/components/animated-vectorscope.tsx` | New client component (SVG with CSS orbit animation) |
-| `apps/web/components/product-screenshot.tsx` | New component (image placeholder / next/image) |
+| `web/app/page.tsx` | Rewrite with new 6-section layout |
+| `web/app/globals.css` | Add animation keyframes and utility classes |
+| `web/components/scroll-reveal.tsx` | New client component (Intersection Observer wrapper) |
+| `web/components/animated-vectorscope.tsx` | New client component (SVG with CSS orbit animation) |
+| `web/components/product-screenshot.tsx` | New component (image placeholder / next/image) |
 
 ### Files NOT Changed
 
-- `apps/web/app/features/page.tsx` — no changes
-- `apps/web/app/pricing/page.tsx` — no changes (pricing section is embedded in homepage)
-- `apps/web/app/download/page.tsx` — no changes
-- `apps/web/app/docs/page.tsx` — no changes
-- `apps/web/app/account/page.tsx` — no changes
-- `apps/web/components/nav-bar.tsx` — no changes
-- `apps/web/components/footer.tsx` — no changes
+- `web/app/features/page.tsx` — no changes
+- `web/app/pricing/page.tsx` — no changes (pricing section is embedded in homepage)
+- `web/app/download/page.tsx` — no changes
+- `web/app/docs/page.tsx` — no changes
+- `web/app/account/page.tsx` — no changes
+- `web/components/nav-bar.tsx` — no changes
+- `web/components/footer.tsx` — no changes
 
 ### Dependencies
 

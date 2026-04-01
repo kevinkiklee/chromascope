@@ -12,18 +12,31 @@ target/
 .turbo/
 
 # Environment
+.env
 .env*.local
+*.pem
 
 # Vercel
 .vercel/
 
 # OS
 .DS_Store
+Thumbs.db
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
 
 # Plugin build artifacts
-plugins/lightroom/chromascope.lrdevplugin/bin/*/decode
+plugins/lightroom/chromascope.lrdevplugin/bin/*/processor
 plugins/lightroom/chromascope.lrdevplugin/core/
 plugins/photoshop/core/scope-bundle.js
+plugins/photoshop/core/test.html
+
+# Test fixtures (generated at runtime)
+packages/processor/tests/fixtures/
 
 # Superpowers
 .superpowers/

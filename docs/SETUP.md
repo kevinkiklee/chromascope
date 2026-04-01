@@ -6,7 +6,7 @@
 |------|---------|----------|---------|
 | Node.js | 18+ | Yes | [nodejs.org](https://nodejs.org) or `nvm install 18` |
 | npm | 9+ (ships with Node 18+) | Yes | Bundled with Node.js |
-| Rust / Cargo | stable | Only for `packages/decode` | [rustup.rs](https://rustup.rs) |
+| Rust / Cargo | stable | Only for `packages/processor` | [rustup.rs](https://rustup.rs) |
 | Turbo | 2+ | Auto-installed via npm | `npx turbo` |
 
 ## Quick Start (automated)
@@ -22,9 +22,9 @@ This will:
 1. Verify Node.js and npm are installed (warns if Rust is missing).
 2. Run `npm install` for all workspaces.
 3. Build every package via `npx turbo build`.
-4. Build the Rust decode binary in release mode (if Cargo is available).
+4. Build the Rust processor binary in release mode (if Cargo is available).
 5. Run all tests via `npx turbo test`.
-6. Create `apps/web/.env.local` with placeholder keys if it doesn't exist.
+6. Create `web/.env.local` with placeholder keys if it doesn't exist.
 
 After the script finishes, fill in your environment variables and start developing.
 
@@ -51,20 +51,20 @@ npx turbo build
 Turborepo will build in dependency order:
 
 - `packages/core` -- TypeScript core library (outputs a single HTML file via Vite)
-- `packages/decode` -- Rust binary (`cargo build`; skipped if Cargo is missing)
+- `packages/processor` -- Rust binary (`cargo build`; skipped if Cargo is missing)
 - `plugins/photoshop` -- Photoshop UXP plugin (copies core build into `core/`)
-- `apps/web` -- Next.js production build
+- `web` -- Next.js production build
 
-### 3. Build the Rust decode binary (Lightroom only)
+### 3. Build the Rust processor binary (Lightroom only)
 
 Skip this if you're only working on the core library or web app.
 
 ```sh
-cd packages/decode
+cd packages/processor
 cargo build --release
 ```
 
-The binary lands at `packages/decode/target/release/decode`. To copy it into the Lightroom plugin for your platform:
+The binary lands at `packages/processor/target/release/processor`. To copy it into the Lightroom plugin for your platform:
 
 ```sh
 # macOS ARM (Apple Silicon)
@@ -79,10 +79,10 @@ npm run copy:win-x64
 
 ### 4. Configure the web app
 
-Create `apps/web/.env.local` from the example file:
+Create `web/.env.local` from the example file:
 
 ```sh
-cp apps/web/.env.example apps/web/.env.local
+cp web/.env.example web/.env.local
 ```
 
 Fill in the values:
@@ -100,7 +100,7 @@ Fill in the values:
 npx turbo test
 ```
 
-This runs Vitest for `packages/core` and `cargo test` for `packages/decode`.
+This runs Vitest for `packages/core` and `cargo test` for `packages/processor`.
 
 ## Development
 
@@ -120,7 +120,7 @@ cd packages/core
 npm run dev
 
 # Web app -- Next.js + Turbopack at http://localhost:3000
-cd apps/web
+cd web
 npm run dev
 
 # Photoshop plugin -- watch mode
@@ -141,7 +141,7 @@ npm run test:watch
 chromascope/
   packages/
     core/          @chromascope/core    -- vectorscope math, rendering, UI
-    decode/        @chromascope/decode  -- Rust JPEG/TIFF decoder
+    processor/     @chromascope/processor -- Rust image processor
   plugins/
     photoshop/     @chromascope/photoshop -- UXP panel plugin
     lightroom/     chromascope.lrdevplugin -- Lua plugin + embedded binary
@@ -158,9 +158,9 @@ chromascope/
 packages/core  <──  plugins/photoshop  (embeds built HTML in WebView)
                 <──  plugins/lightroom  (embeds built HTML in WebView)
 
-packages/decode  <──  plugins/lightroom  (calls binary at runtime for pixel data)
+packages/processor <── plugins/lightroom  (calls binary at runtime for pixel data)
 
-apps/web             (standalone -- no internal dependencies)
+web             (standalone -- no internal dependencies)
 ```
 
 ## Troubleshooting
@@ -168,11 +168,11 @@ apps/web             (standalone -- no internal dependencies)
 **`npm install` fails with workspace errors**
 Make sure you're on npm 9+ (`npm -v`). Older npm versions don't handle workspaces well.
 
-**Turbo build fails on `packages/decode`**
-Install Rust via [rustup.rs](https://rustup.rs). If you don't need the decode binary, you can build other packages individually: `npx turbo build --filter=@chromascope/core`.
+**Turbo build fails on `packages/processor`**
+Install Rust via [rustup.rs](https://rustup.rs). If you don't need the processor binary, you can build other packages individually: `npx turbo build --filter=@chromascope/core`.
 
 **Web app crashes on startup**
-Check that `apps/web/.env.local` exists and has valid values. The Stripe client throws immediately if `STRIPE_SECRET_KEY` is empty.
+Check that `web/.env.local` exists and has valid values. The Stripe client throws immediately if `STRIPE_SECRET_KEY` is empty.
 
 **Photoshop plugin doesn't show updated core**
 Rebuild the core library first (`cd packages/core && npm run build`), then rebuild the Photoshop plugin. The plugin build copies the core's single-file HTML output.
