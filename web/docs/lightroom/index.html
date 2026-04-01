@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Lightroom Classic Manual — Chromascope</title>
+  <meta name="description" content="Complete user manual for Chromascope in Adobe Lightroom Classic.">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>tailwind.config={theme:{extend:{colors:{brand:'#6366f1'}}}}</script>
+  <link rel="stylesheet" href="../../css/styles.css">
+</head>
+<body class="bg-zinc-950 text-zinc-100 antialiased">
+
+  <!-- Nav -->
+  <nav class="border-b border-white/[0.06] px-6 py-4">
+    <div class="max-w-6xl mx-auto flex items-center justify-between">
+      <a href="../../" class="flex items-center gap-2.5">
+        <div class="w-6 h-6 rounded-full" style="background:conic-gradient(from 0deg,#f43f5e,#f97316,#eab308,#22c55e,#06b6d4,#8b5cf6,#f43f5e);filter:blur(0.3px)"></div>
+        <span class="font-bold text-lg tracking-tight gradient-text-subtle">Chromascope</span>
+      </a>
+      <div class="flex items-center gap-1">
+        <a href="../../download/" class="px-3 py-1.5 rounded-md text-sm text-zinc-500 hover:text-zinc-300 transition-colors">Download</a>
+        <a href="../" class="px-3 py-1.5 rounded-md text-sm text-zinc-100 bg-white/[0.04]">Docs</a>
+        <a href="https://github.com/kevinkiklee/chromascope" class="px-3 py-1.5 rounded-md text-sm text-zinc-500 hover:text-zinc-300 transition-colors">GitHub</a>
+        <a href="../../download/" class="btn-primary text-white px-4 py-1.5 rounded-lg text-sm font-medium ml-3">Download</a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="min-h-screen">
+    <div class="max-w-6xl mx-auto px-6 py-16 flex gap-12">
+
+      <!-- Sidebar -->
+      <aside class="hidden md:block w-52 shrink-0">
+        <nav class="sticky top-8 space-y-0.5">
+          <a href="../" class="block text-xs text-zinc-600 hover:text-zinc-400 mb-4 transition-colors">&larr; All docs</a>
+          <div class="gradient-badge text-[11px] font-semibold uppercase tracking-[0.14em] mb-3">Lightroom Classic</div>
+          <a href="#installation" class="block text-sm text-zinc-500 hover:text-zinc-200 py-1.5 px-3 rounded-md hover:bg-white/[0.03] transition-all">Installation</a>
+          <a href="#launching" class="block text-sm text-zinc-500 hover:text-zinc-200 py-1.5 px-3 rounded-md hover:bg-white/[0.03] transition-all">Launching Chromascope</a>
+          <a href="#the-dialog" class="block text-sm text-zinc-500 hover:text-zinc-200 py-1.5 px-3 rounded-md hover:bg-white/[0.03] transition-all">The Dialog</a>
+          <a href="#reading-the-vectorscope" class="block text-sm text-zinc-500 hover:text-zinc-200 py-1.5 px-3 rounded-md hover:bg-white/[0.03] transition-all">Reading the Vectorscope</a>
+          <a href="#density-modes" class="block text-sm text-zinc-500 hover:text-zinc-200 py-1.5 px-3 rounded-md hover:bg-white/[0.03] transition-all">Density Modes</a>
+          <a href="#harmony-overlays" class="block text-sm text-zinc-500 hover:text-zinc-200 py-1.5 px-3 rounded-md hover:bg-white/[0.03] transition-all">Harmony Overlays</a>
+          <a href="#skin-tone-line" class="block text-sm text-zinc-500 hover:text-zinc-200 py-1.5 px-3 rounded-md hover:bg-white/[0.03] transition-all">Skin Tone Line</a>
+          <a href="#real-time-updates" class="block text-sm text-zinc-500 hover:text-zinc-200 py-1.5 px-3 rounded-md hover:bg-white/[0.03] transition-all">Real-Time Updates</a>
+          <a href="#display-size" class="block text-sm text-zinc-500 hover:text-zinc-200 py-1.5 px-3 rounded-md hover:bg-white/[0.03] transition-all">Display Size</a>
+          <a href="#overlay-color" class="block text-sm text-zinc-500 hover:text-zinc-200 py-1.5 px-3 rounded-md hover:bg-white/[0.03] transition-all">Overlay Color</a>
+          <a href="#how-it-works" class="block text-sm text-zinc-500 hover:text-zinc-200 py-1.5 px-3 rounded-md hover:bg-white/[0.03] transition-all">How It Works</a>
+          <a href="#troubleshooting" class="block text-sm text-zinc-500 hover:text-zinc-200 py-1.5 px-3 rounded-md hover:bg-white/[0.03] transition-all">Troubleshooting</a>
+        </nav>
+      </aside>
+
+      <!-- Content -->
+      <main class="flex-1 max-w-2xl">
+        <div class="mb-12">
+          <div class="gradient-badge text-xs font-semibold uppercase tracking-[0.14em] mb-4">Lightroom Classic Manual</div>
+          <h1 class="text-3xl md:text-4xl font-bold tracking-tight mb-3">Chromascope for Lightroom Classic</h1>
+          <p class="text-zinc-400 text-[15px]">Complete guide to using Chromascope as a floating dialog in Adobe Lightroom Classic.</p>
+        </div>
+
+        <div class="space-y-14">
+
+          <!-- Installation -->
+          <section id="installation">
+            <h2 class="text-xl font-semibold mb-4 text-zinc-200">Installation</h2>
+            <div class="space-y-4 text-zinc-400 text-[15px] leading-relaxed">
+              <p><strong class="text-zinc-300">Requirements:</strong> Adobe Lightroom Classic with SDK 15.0 support on macOS or Windows.</p>
+
+              <h3 class="text-zinc-300 font-medium text-sm mt-6 mb-2">Option A: Download the release</h3>
+              <ol class="list-decimal list-inside space-y-2 ml-1">
+                <li>Download the ZIP for your platform from the <a href="../../download/" class="text-violet-400 hover:text-violet-300">Download page</a>.</li>
+                <li>Unzip the archive. You will find a <code class="text-violet-300/80 bg-zinc-900/60 px-1.5 py-0.5 rounded text-xs font-mono">chromascope.lrdevplugin</code> folder.</li>
+                <li>Copy the entire folder to your Lightroom plugins directory:
+                  <ul class="list-disc list-inside ml-4 mt-1 space-y-1 text-zinc-500 text-sm">
+                    <li><strong class="text-zinc-400">macOS:</strong> <code class="text-violet-300/80 bg-zinc-900/60 px-1.5 py-0.5 rounded text-xs font-mono">~/Library/Application Support/Adobe/Lightroom/Plugins/</code></li>
+                    <li><strong class="text-zinc-400">Windows:</strong> <code class="text-violet-300/80 bg-zinc-900/60 px-1.5 py-0.5 rounded text-xs font-mono">%APPDATA%\Adobe\Lightroom\Plugins\</code></li>
+                  </ul>
+                </li>
+                <li>Open Lightroom Classic.</li>
+                <li>Go to <strong class="text-zinc-300">File &rarr; Plug-in Manager</strong>.</li>
+                <li>Click <strong class="text-zinc-300">Add</strong> and select the <code class="text-violet-300/80 bg-zinc-900/60 px-1.5 py-0.5 rounded text-xs font-mono">chromascope.lrdevplugin</code> folder.</li>
+                <li>The plugin should appear as enabled in the list.</li>
+              </ol>
+
+              <h3 class="text-zinc-300 font-medium text-sm mt-6 mb-2">Option B: Build from source</h3>
+              <div class="card-glass rounded-lg p-4">
+                <pre class="text-sm text-zinc-300 font-mono leading-relaxed">git clone https://github.com/kevinkiklee/chromascope.git
+cd chromascope
+./scripts/setup.sh
+npm run build:plugins</pre>
+              </div>
+              <p>The built plugin is at <code class="text-violet-300/80 bg-zinc-900/60 px-1.5 py-0.5 rounded text-xs font-mono">plugins/lightroom/chromascope.lrdevplugin/</code>. Copy it to your plugins directory and enable it via Plug-in Manager as described above.</p>
+
+              <h3 class="text-zinc-300 font-medium text-sm mt-6 mb-2">What&rsquo;s inside the plugin</h3>
+              <p>The plugin folder contains Lua scripts and pre-compiled <code class="text-violet-300/80 bg-zinc-900/60 px-1.5 py-0.5 rounded text-xs font-mono">processor</code> binaries for each platform:</p>
+              <div class="card-glass rounded-lg p-4 text-sm text-zinc-500 font-mono">
+                <pre>chromascope.lrdevplugin/
+  Info.lua                    Plugin metadata
+  ChromaScopeDialog.lua       UI dialog
+  ImagePipeline.lua           Render pipeline
+  EditBridge.lua              Color corrections
+  ShowChromascope.lua          Menu entry
+  core/index.html             Core library
+  bin/macos-arm64/processor   Apple Silicon binary
+  bin/macos-x64/processor     Intel Mac binary
+  bin/win-x64/processor.exe   Windows binary</pre>
+              </div>
+            </div>
+          </section>
+
+          <!-- Launching -->
+          <section id="launching">
+            <h2 class="text-xl font-semibold mb-4 text-zinc-200">Launching Chromascope</h2>
+            <div class="space-y-3 text-zinc-400 text-[15px] leading-relaxed">
+              <p>With a photo selected in the Library or Develop module, open Chromascope from the menu:</p>
+              <p class="card-glass rounded-lg p-4 text-zinc-300 text-sm font-medium">Library &rarr; Plug-in Extras &rarr; Chromascope</p>
+              <p>A floating dialog window opens with the vectorscope display and all controls. The dialog stays open while you work &mdash; switch to the Develop module and adjust sliders, and the vectorscope updates in real time.</p>
+              <p>Close the dialog when you are done by clicking the close button or pressing Escape.</p>
+            </div>
+          </section>
+
+          <!-- The Dialog -->
+          <section id="the-dialog">
+            <h2 class="text-xl font-semibold mb-4 text-zinc-200">The Dialog</h2>
+            <div class="space-y-4 text-zinc-400 text-[15px] leading-relaxed">
+              <p>The Chromascope dialog is organized from top to bottom:</p>
+              <ol class="list-decimal list-inside space-y-3 ml-1">
+                <li><strong class="text-zinc-300">Vectorscope display</strong> &mdash; The main visualization area showing your image&rsquo;s color distribution.</li>
+                <li><strong class="text-zinc-300">Color Scheme</strong> &mdash; Radio buttons to select a harmony overlay (None, Complementary, Split, Triadic, Tetradic, Analogous).</li>
+                <li><strong class="text-zinc-300">Overlay Color</strong> &mdash; Dropdown to change the color of harmony zone lines (Yellow, Cyan, Green, Magenta, Orange, White).</li>
+                <li><strong class="text-zinc-300">Rotation</strong> &mdash; Slider and numeric field (0&ndash;359&deg;) to rotate the harmony overlay.</li>
+                <li><strong class="text-zinc-300">Density</strong> &mdash; Radio buttons to switch between Scatter and Bloom rendering modes.</li>
+                <li><strong class="text-zinc-300">Size</strong> &mdash; Dropdown to change the display size (Small 250px, Medium 500px, Large 700px).</li>
+                <li><strong class="text-zinc-300">Skin color indicator</strong> &mdash; Checkbox to toggle the skin tone reference line.</li>
+              </ol>
+            </div>
+          </section>
+
+          <!-- Reading the Vectorscope -->
+          <section id="reading-the-vectorscope">
+            <h2 class="text-xl font-semibold mb-4 text-zinc-200">Reading the Vectorscope</h2>
+            <div class="space-y-4 text-zinc-400 text-[15px] leading-relaxed">
+              <p>The vectorscope plots every pixel&rsquo;s chrominance on a circular graph:</p>
+              <ul class="space-y-2 ml-1">
+                <li><strong class="text-zinc-300">Angle</strong> &mdash; represents hue. The standard positions are: Red at 0&deg;, Yellow at 60&deg;, Green at 120&deg;, Cyan at 180&deg;, Blue at 240&deg;, Magenta at 300&deg;.</li>
+                <li><strong class="text-zinc-300">Distance from center</strong> &mdash; represents saturation. Center is neutral; rim is maximum saturation.</li>
+              </ul>
+
+              <h3 class="text-zinc-300 font-medium text-sm mt-6 mb-2">Graticule elements</h3>
+              <ul class="space-y-2 ml-1">
+                <li><strong class="text-zinc-300">Grid rings</strong> at 25%, 50%, 75%, and 100% mark saturation levels.</li>
+                <li><strong class="text-zinc-300">Crosshair</strong> marks the neutral center point.</li>
+                <li><strong class="text-zinc-300">Degree markers</strong> every 30&deg; around the rim with numeric labels.</li>
+              </ul>
+
+              <h3 class="text-zinc-300 font-medium text-sm mt-6 mb-2">What to look for</h3>
+              <ul class="space-y-2 ml-1">
+                <li><strong class="text-zinc-300">Color casts:</strong> If the pixel cloud is offset from center, the image has a cast in that direction. Correct with White Balance or Tint.</li>
+                <li><strong class="text-zinc-300">Saturation range:</strong> A tight cluster near center means muted colors. A spread toward the rim means vivid, saturated colors.</li>
+                <li><strong class="text-zinc-300">Harmony alignment:</strong> With a scheme overlay active, see how much of your color falls within the harmony zones.</li>
+              </ul>
+            </div>
+          </section>
+
+          <!-- Density Modes -->
+          <section id="density-modes">
+            <h2 class="text-xl font-semibold mb-4 text-zinc-200">Density Modes</h2>
+            <div class="space-y-4 text-zinc-400 text-[15px] leading-relaxed">
+              <p>Two radio buttons in the <strong class="text-zinc-300">Density</strong> section control how pixels are rendered:</p>
+
+              <div class="space-y-3">
+                <div class="card-glass rounded-lg p-4">
+                  <h3 class="text-sm font-medium text-zinc-200 mb-1">Scatter</h3>
+                  <p class="text-zinc-500 text-sm">Each pixel appears as a single bright dot (alpha 0.9). Fast rendering and clear visibility of individual color hits. This is the default and best for most workflows.</p>
+                </div>
+                <div class="card-glass rounded-lg p-4">
+                  <h3 class="text-sm font-medium text-zinc-200 mb-1">Bloom</h3>
+                  <p class="text-zinc-500 text-sm">Each pixel creates a radial glow that blends additively with neighbors. The glow radius and opacity adapt automatically based on how many pixels are in the image &mdash; dense images produce tighter, more transparent glows. Creates a smooth, luminous visualization that highlights color populations at a glance.</p>
+                </div>
+              </div>
+
+              <p>Changing the density mode triggers a full re-render of the vectorscope.</p>
+            </div>
+          </section>
+
+          <!-- Harmony Overlays -->
+          <section id="harmony-overlays">
+            <h2 class="text-xl font-semibold mb-4 text-zinc-200">Harmony Overlays</h2>
+            <div class="space-y-4 text-zinc-400 text-[15px] leading-relaxed">
+              <p>The <strong class="text-zinc-300">Color Scheme</strong> radio buttons activate harmony zone overlays on the vectorscope. Each zone is drawn as a colored line radiating from the center to the rim. The primary zone has an arrowhead to indicate the key color direction.</p>
+
+              <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                  <thead><tr class="text-left text-zinc-400 border-b border-white/[0.06]">
+                    <th class="py-2 pr-4 font-medium">Scheme</th>
+                    <th class="py-2 pr-4 font-medium">Zones</th>
+                    <th class="py-2 font-medium">Description</th>
+                  </tr></thead>
+                  <tbody class="text-zinc-500">
+                    <tr class="border-b border-white/[0.03]"><td class="py-2 pr-4 text-zinc-300">None</td><td class="py-2 pr-4">&mdash;</td><td class="py-2">No overlay. Default.</td></tr>
+                    <tr class="border-b border-white/[0.03]"><td class="py-2 pr-4 text-zinc-300">Complementary</td><td class="py-2 pr-4">2</td><td class="py-2">Two zones 180&deg; apart. Classic opposing-hue pairing.</td></tr>
+                    <tr class="border-b border-white/[0.03]"><td class="py-2 pr-4 text-zinc-300">Split Comp.</td><td class="py-2 pr-4">3</td><td class="py-2">Base zone plus two flanking the opposite at &plusmn;30&deg;.</td></tr>
+                    <tr class="border-b border-white/[0.03]"><td class="py-2 pr-4 text-zinc-300">Triadic</td><td class="py-2 pr-4">3</td><td class="py-2">Three zones evenly spaced at 120&deg;.</td></tr>
+                    <tr class="border-b border-white/[0.03]"><td class="py-2 pr-4 text-zinc-300">Tetradic</td><td class="py-2 pr-4">4</td><td class="py-2">Four zones in a square at 90&deg; intervals.</td></tr>
+                    <tr><td class="py-2 pr-4 text-zinc-300">Analogous</td><td class="py-2 pr-4">3</td><td class="py-2">Three adjacent zones at &plusmn;60&deg; from base.</td></tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <h3 class="text-zinc-300 font-medium text-sm mt-6 mb-2">Rotation</h3>
+              <p>Use the <strong class="text-zinc-300">Rotation</strong> slider (0&ndash;359&deg;) or type a value directly in the numeric field. All zones rotate together. This lets you experiment &mdash; spin the overlay until the zones align with your image&rsquo;s dominant color clusters to evaluate the harmony.</p>
+
+              <h3 class="text-zinc-300 font-medium text-sm mt-6 mb-2">Practical workflow</h3>
+              <ol class="list-decimal list-inside space-y-2 ml-1">
+                <li>Select a scheme that matches your creative intent.</li>
+                <li>Rotate the overlay until the primary zone aligns with the dominant color.</li>
+                <li>Check how much color falls outside the zones.</li>
+                <li>Switch to the Develop module and use HSL, Split Toning, or Color Grading to push stray colors into the zones.</li>
+                <li>Watch the vectorscope update in real time as you drag the sliders.</li>
+              </ol>
+            </div>
+          </section>
+
+          <!-- Skin Tone Line -->
+          <section id="skin-tone-line">
+            <h2 class="text-xl font-semibold mb-4 text-zinc-200">Skin Tone Reference Line</h2>
+            <div class="space-y-3 text-zinc-400 text-[15px] leading-relaxed">
+              <p>Enable the <strong class="text-zinc-300">Skin color indicator</strong> checkbox to display a reference line at 123&deg; &mdash; the industry-standard angle for healthy skin tones in the YCbCr color space.</p>
+              <p>The line is drawn in your selected overlay color and fades as it approaches the rim.</p>
+              <p><strong class="text-zinc-300">How to use it:</strong> When editing portraits, check that your subject&rsquo;s skin tones cluster near this line. If they drift, adjust the Hue sliders in the HSL panel (typically Red or Orange channels) to bring skin back toward the reference angle. All skin tones should sit near this angle regardless of ethnicity &mdash; the difference is distance from center (saturation), not the angle.</p>
+            </div>
+          </section>
+
+          <!-- Real-Time Updates -->
+          <section id="real-time-updates">
+            <h2 class="text-xl font-semibold mb-4 text-zinc-200">Real-Time Updates</h2>
+            <div class="space-y-4 text-zinc-400 text-[15px] leading-relaxed">
+              <p>The vectorscope updates automatically as you edit. Two mechanisms work together:</p>
+
+              <div class="space-y-3">
+                <div class="card-glass rounded-lg p-4">
+                  <h3 class="text-sm font-medium text-zinc-200 mb-1">Develop slider changes</h3>
+                  <p class="text-zinc-500 text-sm">Chromascope monitors the Develop module sliders (Exposure, Contrast, Highlights, Shadows, Whites, Blacks, Clarity, Vibrance, Saturation, and all HSL channels). When any value changes, the vectorscope re-renders with a 300ms debounce &mdash; so dragging a slider smoothly triggers a single update after you pause, not hundreds of overlapping renders.</p>
+                </div>
+                <div class="card-glass rounded-lg p-4">
+                  <h3 class="text-sm font-medium text-zinc-200 mb-1">Polling fallback</h3>
+                  <p class="text-zinc-500 text-sm">A lightweight poll every 500ms checks for changes that the slider observer might miss (e.g., switching photos, undo/redo). This poll only reads slider values &mdash; it does not trigger a render unless something actually changed.</p>
+                </div>
+              </div>
+
+              <h3 class="text-zinc-300 font-medium text-sm mt-6 mb-2">Overlay changes</h3>
+              <p>When you change the harmony scheme, rotation, overlay color, or density mode, the scope responds in two stages:</p>
+              <ol class="list-decimal list-inside space-y-1 ml-1 text-sm">
+                <li>An instant preview re-renders at reduced resolution (128&times;128) for ~3ms feedback.</li>
+                <li>After 400ms of no further changes, a full-quality render at native size replaces the preview.</li>
+              </ol>
+              <p>This keeps the UI responsive while dragging the rotation slider.</p>
+            </div>
+          </section>
+
+          <!-- Display Size -->
+          <section id="display-size">
+            <h2 class="text-xl font-semibold mb-4 text-zinc-200">Display Size</h2>
+            <div class="space-y-3 text-zinc-400 text-[15px] leading-relaxed">
+              <p>The <strong class="text-zinc-300">Size</strong> dropdown offers three options:</p>
+              <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                  <thead><tr class="text-left text-zinc-400 border-b border-white/[0.06]">
+                    <th class="py-2 pr-4 font-medium">Option</th>
+                    <th class="py-2 font-medium">Size</th>
+                  </tr></thead>
+                  <tbody class="text-zinc-500">
+                    <tr class="border-b border-white/[0.03]"><td class="py-2 pr-4 text-zinc-300">Small</td><td class="py-2">250 &times; 250 pixels</td></tr>
+                    <tr class="border-b border-white/[0.03]"><td class="py-2 pr-4 text-zinc-300">Medium</td><td class="py-2">500 &times; 500 pixels (default)</td></tr>
+                    <tr><td class="py-2 pr-4 text-zinc-300">Large</td><td class="py-2">700 &times; 700 pixels</td></tr>
+                  </tbody>
+                </table>
+              </div>
+              <p>Changing the size closes and reopens the dialog at the new dimensions. Your overlay settings (scheme, rotation, color) are preserved.</p>
+              <p>Larger sizes show more detail but render slightly slower. For rapid iteration with develop sliders, Medium is a good balance.</p>
+            </div>
+          </section>
+
+          <!-- Overlay Color -->
+          <section id="overlay-color">
+            <h2 class="text-xl font-semibold mb-4 text-zinc-200">Overlay Color</h2>
+            <div class="space-y-3 text-zinc-400 text-[15px] leading-relaxed">
+              <p>The <strong class="text-zinc-300">Overlay Color</strong> dropdown changes the color of harmony zone lines and the skin tone reference line. Choose a color that contrasts well with your image&rsquo;s dominant hues:</p>
+              <div class="flex flex-wrap gap-2 mt-2">
+                <span class="px-3 py-1 rounded-full text-xs border border-white/[0.06] text-yellow-400">Yellow</span>
+                <span class="px-3 py-1 rounded-full text-xs border border-white/[0.06] text-cyan-400">Cyan</span>
+                <span class="px-3 py-1 rounded-full text-xs border border-white/[0.06] text-green-400">Green</span>
+                <span class="px-3 py-1 rounded-full text-xs border border-white/[0.06] text-fuchsia-400">Magenta</span>
+                <span class="px-3 py-1 rounded-full text-xs border border-white/[0.06] text-orange-400">Orange</span>
+                <span class="px-3 py-1 rounded-full text-xs border border-white/[0.06] text-zinc-200">White</span>
+              </div>
+            </div>
+          </section>
+
+          <!-- How It Works -->
+          <section id="how-it-works">
+            <h2 class="text-xl font-semibold mb-4 text-zinc-200">How It Works</h2>
+            <div class="space-y-4 text-zinc-400 text-[15px] leading-relaxed">
+              <p>Unlike the Photoshop plugin (which renders the vectorscope in a WebView), the Lightroom Classic plugin uses an external Rust binary called <code class="text-violet-300/80 bg-zinc-900/60 px-1.5 py-0.5 rounded text-xs font-mono">processor</code>. This is necessary because Lightroom&rsquo;s Lua SDK does not support WebViews or direct pixel access.</p>
+
+              <h3 class="text-zinc-300 font-medium text-sm mt-4 mb-2">The pipeline</h3>
+              <ol class="list-decimal list-inside space-y-2 ml-1">
+                <li><strong class="text-zinc-300">Thumbnail export:</strong> Lightroom exports a 256&times;256 JPEG thumbnail of the current photo from the catalog.</li>
+                <li><strong class="text-zinc-300">Decode:</strong> The processor binary decodes the JPEG to raw RGB bytes, resizing to 128&times;128.</li>
+                <li><strong class="text-zinc-300">Render:</strong> The processor maps each pixel onto the vectorscope using the selected color space, applies the density mode, draws the graticule, harmony lines, and skin tone line, then outputs a JPEG.</li>
+                <li><strong class="text-zinc-300">Display:</strong> The Lua dialog displays the rendered JPEG using Lightroom&rsquo;s <code class="text-violet-300/80 bg-zinc-900/60 px-1.5 py-0.5 rounded text-xs font-mono">f:picture</code> component.</li>
+              </ol>
+
+              <h3 class="text-zinc-300 font-medium text-sm mt-6 mb-2">Frame alternation</h3>
+              <p>The plugin writes to alternating file paths (<code class="text-violet-300/80 bg-zinc-900/60 px-1.5 py-0.5 rounded text-xs font-mono">scope_0.jpg</code> and <code class="text-violet-300/80 bg-zinc-900/60 px-1.5 py-0.5 rounded text-xs font-mono">scope_1.jpg</code>). This forces Lightroom to recognize each render as a new image and release the previous one from memory, preventing cache accumulation during long editing sessions.</p>
+
+              <h3 class="text-zinc-300 font-medium text-sm mt-6 mb-2">Platform detection</h3>
+              <p>The plugin automatically selects the correct binary for your platform. On macOS, it checks the CPU architecture (ARM for Apple Silicon, x64 for Intel). On Windows, it uses the x64 binary.</p>
+            </div>
+          </section>
+
+          <!-- Troubleshooting -->
+          <section id="troubleshooting">
+            <h2 class="text-xl font-semibold mb-4 text-zinc-200">Troubleshooting</h2>
+            <div class="space-y-4 text-zinc-400 text-[15px] leading-relaxed">
+              <div class="card-glass rounded-lg p-4">
+                <h3 class="text-sm font-medium text-zinc-200 mb-2">The vectorscope does not appear</h3>
+                <p class="text-zinc-500 text-sm">Make sure you have a photo selected before opening the dialog. The plugin needs a photo to generate the thumbnail. If the problem persists, check that the <code class="text-violet-300/80 bg-zinc-900/60 px-1.5 py-0.5 rounded text-xs font-mono">processor</code> binary exists in the correct <code class="text-violet-300/80 bg-zinc-900/60 px-1.5 py-0.5 rounded text-xs font-mono">bin/</code> subdirectory for your platform.</p>
+              </div>
+              <div class="card-glass rounded-lg p-4">
+                <h3 class="text-sm font-medium text-zinc-200 mb-2">The scope does not update when I move sliders</h3>
+                <p class="text-zinc-500 text-sm">Switch to the Develop module first &mdash; the plugin monitors develop slider values, which are only available in the Develop module. The Library module does not expose these values.</p>
+              </div>
+              <div class="card-glass rounded-lg p-4">
+                <h3 class="text-sm font-medium text-zinc-200 mb-2">macOS: &ldquo;processor cannot be opened because it is from an unidentified developer&rdquo;</h3>
+                <p class="text-zinc-500 text-sm">The binary is not code-signed. Right-click the <code class="text-violet-300/80 bg-zinc-900/60 px-1.5 py-0.5 rounded text-xs font-mono">processor</code> binary in Finder and select <strong>Open</strong>. macOS will remember your choice. Alternatively, run <code class="text-violet-300/80 bg-zinc-900/60 px-1.5 py-0.5 rounded text-xs font-mono">xattr -cr chromascope.lrdevplugin/</code> in Terminal to remove the quarantine flag from all files in the plugin.</p>
+              </div>
+              <div class="card-glass rounded-lg p-4">
+                <h3 class="text-sm font-medium text-zinc-200 mb-2">Plugin not visible in Plug-in Extras</h3>
+                <p class="text-zinc-500 text-sm">Open <strong>File &rarr; Plug-in Manager</strong> and confirm that Chromascope is listed and enabled. If it is not listed, click <strong>Add</strong> and navigate to the <code class="text-violet-300/80 bg-zinc-900/60 px-1.5 py-0.5 rounded text-xs font-mono">chromascope.lrdevplugin</code> folder. You may need to restart Lightroom after adding a new plugin.</p>
+              </div>
+              <div class="card-glass rounded-lg p-4">
+                <h3 class="text-sm font-medium text-zinc-200 mb-2">The dialog is slow to render</h3>
+                <p class="text-zinc-500 text-sm">Try reducing the display size to Small (250px) for faster renders. The Large (700px) option produces the sharpest output but takes longer. During rapid slider adjustments, the plugin automatically uses a lower-resolution preview and upgrades to full quality when you pause.</p>
+              </div>
+              <div class="card-glass rounded-lg p-4">
+                <h3 class="text-sm font-medium text-zinc-200 mb-2">High memory usage</h3>
+                <p class="text-zinc-500 text-sm">Chromascope uses frame alternation and aggressive cleanup to minimize memory growth. If you observe high memory usage, close and reopen the dialog to clear temporary files. File an issue on <a href="https://github.com/kevinkiklee/chromascope/issues" class="text-violet-400 hover:text-violet-300">GitHub</a> if memory usage grows continuously.</p>
+              </div>
+            </div>
+          </section>
+
+        </div>
+      </main>
+
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="border-t border-white/[0.06] py-12 px-6">
+    <div class="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+      <div class="flex items-center gap-2.5">
+        <div class="w-5 h-5 rounded-full opacity-60" style="background:conic-gradient(from 0deg,#f43f5e,#f97316,#eab308,#22c55e,#06b6d4,#8b5cf6,#f43f5e)"></div>
+        <span class="text-sm text-zinc-500 font-medium">Chromascope</span>
+      </div>
+      <div class="flex gap-6 text-sm">
+        <a href="../../download/" class="text-zinc-500 hover:text-zinc-300 transition-colors">Download</a>
+        <a href="../" class="text-zinc-500 hover:text-zinc-300 transition-colors">Docs</a>
+        <a href="https://github.com/kevinkiklee/chromascope" class="text-zinc-500 hover:text-zinc-300 transition-colors">GitHub</a>
+      </div>
+      <p class="text-zinc-600 text-xs">&copy; 2025 Chromascope</p>
+    </div>
+  </footer>
+
+</body>
+</html>

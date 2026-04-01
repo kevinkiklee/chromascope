@@ -79,6 +79,11 @@ export function renderGraticule(ctx: CanvasRenderingContext2D, size: number): vo
   ctx.fill();
 }
 
+/**
+ * Convert scope coordinates ([-1, 1] centered at origin) to canvas pixel coordinates.
+ * Note: y is inverted because canvas y grows downward but scope y grows upward.
+ * The 0.45 factor leaves margin for hue labels around the outer rim.
+ */
 export function scopeToCanvas(x: number, y: number, size: number): { px: number; py: number } {
   const cx = size / 2;
   const cy = size / 2;

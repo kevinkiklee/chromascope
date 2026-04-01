@@ -1,5 +1,8 @@
 // packages/core/src/overlays/skin-tone-line.ts
 
+// 123° is the industry-standard skin tone line angle on a vectorscope.
+// All human skin tones (regardless of ethnicity) fall near this line when
+// properly white-balanced. Deviation indicates a color cast on skin.
 export const SKIN_TONE_ANGLE = (123 * Math.PI) / 180;
 
 export function renderSkinToneLine(ctx: CanvasRenderingContext2D, size: number): void {

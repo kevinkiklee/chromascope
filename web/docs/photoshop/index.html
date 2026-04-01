@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Photoshop Manual — Chromascope</title>
+  <meta name="description" content="Complete user manual for Chromascope in Adobe Photoshop.">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>tailwind.config={theme:{extend:{colors:{brand:'#6366f1'}}}}</script>
+  <link rel="stylesheet" href="../../css/styles.css">
+</head>
+<body class="bg-zinc-950 text-zinc-100 antialiased">
+
+  <!-- Nav -->
+  <nav class="border-b border-white/[0.06] px-6 py-4">
+    <div class="max-w-6xl mx-auto flex items-center justify-between">
+      <a href="../../" class="flex items-center gap-2.5">
+        <div class="w-6 h-6 rounded-full" style="background:conic-gradient(from 0deg,#f43f5e,#f97316,#eab308,#22c55e,#06b6d4,#8b5cf6,#f43f5e);filter:blur(0.3px)"></div>
+        <span class="font-bold text-lg tracking-tight gradient-text-subtle">Chromascope</span>
+      </a>
+      <div class="flex items-center gap-1">
+        <a href="../../download/" class="px-3 py-1.5 rounded-md text-sm text-zinc-500 hover:text-zinc-300 transition-colors">Download</a>
+        <a href="../" class="px-3 py-1.5 rounded-md text-sm text-zinc-100 bg-white/[0.04]">Docs</a>
+        <a href="https://github.com/kevinkiklee/chromascope" class="px-3 py-1.5 rounded-md text-sm text-zinc-500 hover:text-zinc-300 transition-colors">GitHub</a>
+        <a href="../../download/" class="btn-primary text-white px-4 py-1.5 rounded-lg text-sm font-medium ml-3">Download</a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="min-h-screen">
+    <div class="max-w-6xl mx-auto px-6 py-16 flex gap-12">
+
+      <!-- Sidebar -->
+      <aside class="hidden md:block w-52 shrink-0">
+        <nav class="sticky top-8 space-y-0.5">
+          <a href="../" class="block text-xs text-zinc-600 hover:text-zinc-400 mb-4 transition-colors">&larr; All docs</a>
+          <div class="gradient-badge text-[11px] font-semibold uppercase tracking-[0.14em] mb-3">Photoshop</div>
+          <a href="#installation" class="block text-sm text-zinc-500 hover:text-zinc-200 py-1.5 px-3 rounded-md hover:bg-white/[0.03] transition-all">Installation</a>
+          <a href="#opening-the-panel" class="block text-sm text-zinc-500 hover:text-zinc-200 py-1.5 px-3 rounded-md hover:bg-white/[0.03] transition-all">Opening the Panel</a>
+          <a href="#reading-the-vectorscope" class="block text-sm text-zinc-500 hover:text-zinc-200 py-1.5 px-3 rounded-md hover:bg-white/[0.03] transition-all">Reading the Vectorscope</a>
+          <a href="#density-modes" class="block text-sm text-zinc-500 hover:text-zinc-200 py-1.5 px-3 rounded-md hover:bg-white/[0.03] transition-all">Density Modes</a>
+          <a href="#harmony-overlays" class="block text-sm text-zinc-500 hover:text-zinc-200 py-1.5 px-3 rounded-md hover:bg-white/[0.03] transition-all">Harmony Overlays</a>
+          <a href="#skin-tone-line" class="block text-sm text-zinc-500 hover:text-zinc-200 py-1.5 px-3 rounded-md hover:bg-white/[0.03] transition-all">Skin Tone Line</a>
+          <a href="#real-time-updates" class="block text-sm text-zinc-500 hover:text-zinc-200 py-1.5 px-3 rounded-md hover:bg-white/[0.03] transition-all">Real-Time Updates</a>
+          <a href="#interactive-features" class="block text-sm text-zinc-500 hover:text-zinc-200 py-1.5 px-3 rounded-md hover:bg-white/[0.03] transition-all">Interactive Features</a>
+          <a href="#color-correction" class="block text-sm text-zinc-500 hover:text-zinc-200 py-1.5 px-3 rounded-md hover:bg-white/[0.03] transition-all">Color Correction</a>
+          <a href="#troubleshooting" class="block text-sm text-zinc-500 hover:text-zinc-200 py-1.5 px-3 rounded-md hover:bg-white/[0.03] transition-all">Troubleshooting</a>
+        </nav>
+      </aside>
+
+      <!-- Content -->
+      <main class="flex-1 max-w-2xl">
+        <div class="mb-12">
+          <div class="gradient-badge text-xs font-semibold uppercase tracking-[0.14em] mb-4">Photoshop Manual</div>
+          <h1 class="text-3xl md:text-4xl font-bold tracking-tight mb-3">Chromascope for Photoshop</h1>
+          <p class="text-zinc-400 text-[15px]">Complete guide to using Chromascope as a UXP panel in Adobe Photoshop.</p>
+        </div>
+
+        <div class="space-y-14">
+
+          <!-- Installation -->
+          <section id="installation">
+            <h2 class="text-xl font-semibold mb-4 text-zinc-200">Installation</h2>
+            <div class="space-y-4 text-zinc-400 text-[15px] leading-relaxed">
+              <p><strong class="text-zinc-300">Requirements:</strong> Adobe Photoshop 2023 (v23.3.0) or later on macOS or Windows.</p>
+
+              <h3 class="text-zinc-300 font-medium text-sm mt-6 mb-2">Option A: Download the release</h3>
+              <ol class="list-decimal list-inside space-y-2 ml-1">
+                <li>Download the ZIP for your platform from the <a href="../../download/" class="text-violet-400 hover:text-violet-300">Download page</a>.</li>
+                <li>Unzip the archive. You will find a <code class="text-violet-300/80 bg-zinc-900/60 px-1.5 py-0.5 rounded text-xs font-mono">Chromascope-Photoshop</code> folder.</li>
+                <li>Open Photoshop and go to <strong class="text-zinc-300">Plugins &rarr; Development &rarr; UXP Developer Tool</strong>.</li>
+                <li>In the UXP Developer Tool, click <strong class="text-zinc-300">Add Plugin</strong> and select the <code class="text-violet-300/80 bg-zinc-900/60 px-1.5 py-0.5 rounded text-xs font-mono">manifest.json</code> inside the Chromascope-Photoshop folder.</li>
+                <li>Click <strong class="text-zinc-300">Load</strong> to activate the plugin.</li>
+              </ol>
+
+              <h3 class="text-zinc-300 font-medium text-sm mt-6 mb-2">Option B: Build from source</h3>
+              <div class="card-glass rounded-lg p-4">
+                <pre class="text-sm text-zinc-300 font-mono leading-relaxed">git clone https://github.com/kevinkiklee/chromascope.git
+cd chromascope
+./scripts/setup.sh
+npm run build:plugins</pre>
+              </div>
+              <p>Then load <code class="text-violet-300/80 bg-zinc-900/60 px-1.5 py-0.5 rounded text-xs font-mono">plugins/photoshop/manifest.json</code> via the UXP Developer Tool as described above.</p>
+            </div>
+          </section>
+
+          <!-- Opening the Panel -->
+          <section id="opening-the-panel">
+            <h2 class="text-xl font-semibold mb-4 text-zinc-200">Opening the Panel</h2>
+            <div class="space-y-3 text-zinc-400 text-[15px] leading-relaxed">
+              <p>Once installed, open the Chromascope panel from the menu:</p>
+              <p class="card-glass rounded-lg p-4 text-zinc-300 text-sm font-medium">Plugins &rarr; Chromascope &rarr; Chromascope</p>
+              <p>The panel can be docked alongside your other Photoshop panels or left floating. It works best at its preferred docked size of 350&times;700 pixels, but will adapt to any size above 300&times;500.</p>
+              <p>The vectorscope activates automatically when you have a document open. If no document is open, the panel displays an empty graticule.</p>
+            </div>
+          </section>
+
+          <!-- Reading the Vectorscope -->
+          <section id="reading-the-vectorscope">
+            <h2 class="text-xl font-semibold mb-4 text-zinc-200">Reading the Vectorscope</h2>
+            <div class="space-y-4 text-zinc-400 text-[15px] leading-relaxed">
+              <p>The vectorscope plots every pixel&rsquo;s chrominance on a circular graph:</p>
+              <ul class="space-y-2 ml-1">
+                <li><strong class="text-zinc-300">Angle</strong> &mdash; represents the hue. Red at 0&deg;, Yellow at 60&deg;, Green at 120&deg;, Cyan at 180&deg;, Blue at 240&deg;, Magenta at 300&deg;.</li>
+                <li><strong class="text-zinc-300">Distance from center</strong> &mdash; represents saturation or chroma. The center is neutral gray; the rim is maximum saturation.</li>
+              </ul>
+
+              <h3 class="text-zinc-300 font-medium text-sm mt-6 mb-2">Graticule elements</h3>
+              <ul class="space-y-2 ml-1">
+                <li><strong class="text-zinc-300">Concentric rings</strong> at 25%, 50%, 75%, and 100% mark saturation levels.</li>
+                <li><strong class="text-zinc-300">Crosshair</strong> marks the neutral center.</li>
+                <li><strong class="text-zinc-300">Hue labels</strong> (R, Y, G, C, B, M) appear at the rim with color-coded tick marks.</li>
+                <li><strong class="text-zinc-300">Color targets</strong> &mdash; six small dots at the standard BT.601 chrominance positions for Red, Yellow, Green, Cyan, Blue, and Magenta.</li>
+                <li><strong class="text-zinc-300">Degree markers</strong> every 30&deg; around the rim.</li>
+              </ul>
+
+              <h3 class="text-zinc-300 font-medium text-sm mt-6 mb-2">What to look for</h3>
+              <ul class="space-y-2 ml-1">
+                <li><strong class="text-zinc-300">Color casts:</strong> If the pixel cluster is offset from center, the image has a cast in that direction.</li>
+                <li><strong class="text-zinc-300">Saturation range:</strong> A tight cluster near the center means muted colors; a spread toward the rim means vivid colors.</li>
+                <li><strong class="text-zinc-300">Color distribution:</strong> See at a glance whether your image is warm (clustered toward Red/Yellow) or cool (toward Cyan/Blue).</li>
+              </ul>
+            </div>
+          </section>
+
+          <!-- Density Modes -->
+          <section id="density-modes">
+            <h2 class="text-xl font-semibold mb-4 text-zinc-200">Density Modes</h2>
+            <div class="space-y-4 text-zinc-400 text-[15px] leading-relaxed">
+              <p>The Display section at the top of the panel lets you choose how pixels are rendered on the scope. Three buttons toggle between modes:</p>
+
+              <div class="space-y-3">
+                <div class="card-glass rounded-lg p-4">
+                  <h3 class="text-sm font-medium text-zinc-200 mb-1">Scatter</h3>
+                  <p class="text-zinc-500 text-sm">Each pixel is plotted as a small colored dot. Overlapping dots brighten via additive blending. Dot size and opacity adapt to the number of pixels &mdash; sparse images show larger, more visible dots while dense images use smaller, more transparent ones. This is the default mode and the best choice for general analysis.</p>
+                </div>
+                <div class="card-glass rounded-lg p-4">
+                  <h3 class="text-sm font-medium text-zinc-200 mb-1">Bloom</h3>
+                  <p class="text-zinc-500 text-sm">Each pixel creates a soft radial glow instead of a hard dot. Overlapping glows blend additively, producing luminous hotspots where colors cluster. The glow radius adapts automatically &mdash; fewer pixels create larger glows, more pixels create tighter ones. Ideal for presentations or identifying dominant color populations at a glance.</p>
+                </div>
+                <div class="card-glass rounded-lg p-4">
+                  <h3 class="text-sm font-medium text-zinc-200 mb-1">Heatmap</h3>
+                  <p class="text-zinc-500 text-sm">Bins pixels by position on a grid and colors each cell by frequency using a logarithmic scale. The color ramp runs from black (empty) through blue, cyan, green, yellow, red, to white (maximum density). Best for quantitative analysis &mdash; you can see exactly where your colors are most concentrated. Empty cells are transparent so the graticule shows through.</p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Harmony Overlays -->
+          <section id="harmony-overlays">
+            <h2 class="text-xl font-semibold mb-4 text-zinc-200">Harmony Overlays</h2>
+            <div class="space-y-4 text-zinc-400 text-[15px] leading-relaxed">
+              <p>The Harmony section lets you overlay color theory zones on the vectorscope. These zones help you evaluate whether your image&rsquo;s colors align with a particular harmony scheme.</p>
+
+              <h3 class="text-zinc-300 font-medium text-sm mt-4 mb-2">Schemes</h3>
+              <p>Six buttons control the active scheme:</p>
+              <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                  <thead><tr class="text-left text-zinc-400 border-b border-white/[0.06]">
+                    <th class="py-2 pr-4 font-medium">Button</th>
+                    <th class="py-2 pr-4 font-medium">Scheme</th>
+                    <th class="py-2 font-medium">What it shows</th>
+                  </tr></thead>
+                  <tbody class="text-zinc-500">
+                    <tr class="border-b border-white/[0.03]"><td class="py-2 pr-4 text-zinc-300">Off</td><td class="py-2 pr-4">None</td><td class="py-2">No overlay. Default state.</td></tr>
+                    <tr class="border-b border-white/[0.03]"><td class="py-2 pr-4 text-zinc-300">Cmp</td><td class="py-2 pr-4">Complementary</td><td class="py-2">Two zones 180&deg; apart. Classic split-tone pairing.</td></tr>
+                    <tr class="border-b border-white/[0.03]"><td class="py-2 pr-4 text-zinc-300">Spl</td><td class="py-2 pr-4">Split Comp.</td><td class="py-2">Three zones: base + two flanking the opposite at &plusmn;30&deg;.</td></tr>
+                    <tr class="border-b border-white/[0.03]"><td class="py-2 pr-4 text-zinc-300">Tri</td><td class="py-2 pr-4">Triadic</td><td class="py-2">Three zones evenly spaced at 120&deg;.</td></tr>
+                    <tr class="border-b border-white/[0.03]"><td class="py-2 pr-4 text-zinc-300">Tet</td><td class="py-2 pr-4">Tetradic</td><td class="py-2">Four zones in a square at 90&deg; intervals.</td></tr>
+                    <tr><td class="py-2 pr-4 text-zinc-300">Ana</td><td class="py-2 pr-4">Analogous</td><td class="py-2">Three adjacent zones clustered together.</td></tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <h3 class="text-zinc-300 font-medium text-sm mt-6 mb-2">Rotation slider</h3>
+              <p>Drag the <strong class="text-zinc-300">Rotation</strong> slider (0&ndash;360&deg;) to spin all zones together. This lets you experiment with different color pairings &mdash; for example, rotating a complementary overlay to see which hue pair best frames your subject.</p>
+
+              <h3 class="text-zinc-300 font-medium text-sm mt-6 mb-2">Zone width slider</h3>
+              <p>The <strong class="text-zinc-300">Zone Width</strong> slider (0.1&ndash;3.0&times;) controls how wide each zone is. The base half-width is 15&deg;. At 1.0&times; (default), zones are 30&deg; wide. Increase the width for more tolerance; decrease it for tighter analysis.</p>
+
+              <h3 class="text-zinc-300 font-medium text-sm mt-6 mb-2">How to use harmony overlays</h3>
+              <ol class="list-decimal list-inside space-y-2 ml-1">
+                <li>Choose a scheme that matches your creative intent (e.g., Complementary for split-tone looks).</li>
+                <li>Rotate the overlay until the zones align with your image&rsquo;s dominant color clusters.</li>
+                <li>Check how well your colors fall within the zones. Pixels outside the zones are &ldquo;out of harmony.&rdquo;</li>
+                <li>Use HSL or Color Balance adjustments to push out-of-zone colors into the nearest zone.</li>
+              </ol>
+            </div>
+          </section>
+
+          <!-- Skin Tone Line -->
+          <section id="skin-tone-line">
+            <h2 class="text-xl font-semibold mb-4 text-zinc-200">Skin Tone Reference Line</h2>
+            <div class="space-y-3 text-zinc-400 text-[15px] leading-relaxed">
+              <p>A dashed orange line extends from the center at 123&deg; &mdash; the industry-standard angle for healthy skin tones in the BT.601 YCbCr color space. This line is always visible regardless of the harmony scheme.</p>
+              <p><strong class="text-zinc-300">How to use it:</strong> When grading portraits, check that your subject&rsquo;s skin tones cluster near this line. If the skin tone cluster drifts away from the line, adjust the Hue or Tint controls to bring it back. Skin tones of all ethnicities should fall near this line when properly white-balanced &mdash; what varies is the distance from center (saturation), not the angle.</p>
+            </div>
+          </section>
+
+          <!-- Real-Time Updates -->
+          <section id="real-time-updates">
+            <h2 class="text-xl font-semibold mb-4 text-zinc-200">Real-Time Updates</h2>
+            <div class="space-y-3 text-zinc-400 text-[15px] leading-relaxed">
+              <p>The vectorscope updates automatically whenever you make changes to your document:</p>
+              <ul class="space-y-1 ml-1">
+                <li>Brush strokes, fills, and paint operations</li>
+                <li>Layer creation, deletion, and visibility changes</li>
+                <li>Adjustment layer edits (Curves, Levels, Hue/Sat, etc.)</li>
+                <li>Transform, crop, and resize operations</li>
+                <li>Opening, closing, and switching between documents</li>
+              </ul>
+              <p>Changes are debounced at 200ms, so rapid edits (like continuous brush painting) coalesce into a single refresh rather than overwhelming the panel.</p>
+              <p>The plugin samples your document at 256&times;256 pixels regardless of actual resolution. This keeps the refresh fast while preserving a representative color distribution.</p>
+            </div>
+          </section>
+
+          <!-- Interactive Features -->
+          <section id="interactive-features">
+            <h2 class="text-xl font-semibold mb-4 text-zinc-200">Interactive Features</h2>
+            <div class="space-y-4 text-zinc-400 text-[15px] leading-relaxed">
+              <div class="card-glass rounded-lg p-4">
+                <h3 class="text-sm font-medium text-zinc-200 mb-1">Click to rotate harmony</h3>
+                <p class="text-zinc-500 text-sm">When a harmony scheme is active, click anywhere on the vectorscope to instantly rotate the zones so that the primary zone points toward your click position. This is a fast way to explore different color pairings &mdash; just click on the dominant color cluster in your image.</p>
+              </div>
+            </div>
+          </section>
+
+          <!-- Color Correction -->
+          <section id="color-correction">
+            <h2 class="text-xl font-semibold mb-4 text-zinc-200">Color Correction</h2>
+            <div class="space-y-4 text-zinc-400 text-[15px] leading-relaxed">
+              <p>Chromascope can send non-destructive edits back to Photoshop as adjustment layers. Corrections are applied via the batchPlay API and can always be undone or modified.</p>
+
+              <h3 class="text-zinc-300 font-medium text-sm mt-4 mb-2">Supported adjustments</h3>
+              <div class="space-y-3">
+                <div class="card-glass rounded-lg p-4">
+                  <h3 class="text-sm font-medium text-zinc-200 mb-1">HSL (Hue / Saturation / Lightness)</h3>
+                  <p class="text-zinc-500 text-sm">Shifts hue, saturation, or lightness globally. Applied as a Hue/Saturation adjustment layer.</p>
+                </div>
+                <div class="card-glass rounded-lg p-4">
+                  <h3 class="text-sm font-medium text-zinc-200 mb-1">Color Balance</h3>
+                  <p class="text-zinc-500 text-sm">Adjusts shadow, midtone, and highlight color balance independently. Applied as a Color Balance adjustment layer.</p>
+                </div>
+                <div class="card-glass rounded-lg p-4">
+                  <h3 class="text-sm font-medium text-zinc-200 mb-1">Curves</h3>
+                  <p class="text-zinc-500 text-sm">Applies a curves adjustment with per-channel control (composite, red, green, blue). Applied as a Curves adjustment layer.</p>
+                </div>
+              </div>
+
+              <p class="mt-4">All edits create new adjustment layers &mdash; your original pixel data is never modified.</p>
+            </div>
+          </section>
+
+          <!-- Troubleshooting -->
+          <section id="troubleshooting">
+            <h2 class="text-xl font-semibold mb-4 text-zinc-200">Troubleshooting</h2>
+            <div class="space-y-4 text-zinc-400 text-[15px] leading-relaxed">
+              <div class="card-glass rounded-lg p-4">
+                <h3 class="text-sm font-medium text-zinc-200 mb-2">The panel shows an empty scope</h3>
+                <p class="text-zinc-500 text-sm">Make sure you have a document open with at least one visible layer. The panel requires pixel data to render.</p>
+              </div>
+              <div class="card-glass rounded-lg p-4">
+                <h3 class="text-sm font-medium text-zinc-200 mb-2">The scope does not update</h3>
+                <p class="text-zinc-500 text-sm">Close and reopen the panel. If the issue persists, check that the plugin is loaded in the UXP Developer Tool. Some Photoshop versions may require a restart after loading a new plugin.</p>
+              </div>
+              <div class="card-glass rounded-lg p-4">
+                <h3 class="text-sm font-medium text-zinc-200 mb-2">The panel is too small</h3>
+                <p class="text-zinc-500 text-sm">The panel requires a minimum size of 300&times;500 pixels. Try undocking the panel and resizing the floating window, or dock it in a wider panel group.</p>
+              </div>
+              <div class="card-glass rounded-lg p-4">
+                <h3 class="text-sm font-medium text-zinc-200 mb-2">Plugin not visible in the Plugins menu</h3>
+                <p class="text-zinc-500 text-sm">Ensure you loaded the plugin via the UXP Developer Tool. The plugin will not appear until it has been loaded at least once. Check that your Photoshop version is 23.3.0 or later.</p>
+              </div>
+            </div>
+          </section>
+
+        </div>
+      </main>
+
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="border-t border-white/[0.06] py-12 px-6">
+    <div class="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+      <div class="flex items-center gap-2.5">
+        <div class="w-5 h-5 rounded-full opacity-60" style="background:conic-gradient(from 0deg,#f43f5e,#f97316,#eab308,#22c55e,#06b6d4,#8b5cf6,#f43f5e)"></div>
+        <span class="text-sm text-zinc-500 font-medium">Chromascope</span>
+      </div>
+      <div class="flex gap-6 text-sm">
+        <a href="../../download/" class="text-zinc-500 hover:text-zinc-300 transition-colors">Download</a>
+        <a href="../" class="text-zinc-500 hover:text-zinc-300 transition-colors">Docs</a>
+        <a href="https://github.com/kevinkiklee/chromascope" class="text-zinc-500 hover:text-zinc-300 transition-colors">GitHub</a>
+      </div>
+      <p class="text-zinc-600 text-xs">&copy; 2025 Chromascope</p>
+    </div>
+  </footer>
+
+</body>
+</html>

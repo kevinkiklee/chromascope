@@ -6,7 +6,9 @@ let isRefreshing = false;
 let scopeSize = 300;
 let lastPixels = null;
 
-// Minimal 3x5 bitmap font for digits 0-9 and degree symbol
+// Minimal 3×5 bitmap font for digits and degree symbol.
+// UXP canvas doesn't support fillText reliably, so we rasterize text manually.
+// Each glyph is 5 rows of 3-bit bitmasks (MSB = leftmost pixel).
 var FONT = {
   '0': [0x7,0x5,0x5,0x5,0x7], '1': [0x2,0x6,0x2,0x2,0x7],
   '2': [0x7,0x1,0x7,0x4,0x7], '3': [0x7,0x1,0x7,0x1,0x7],
@@ -44,7 +46,10 @@ function drawString(buf, size, str, cx, cy, r, g, b) {
   }
 }
 
-// Software renderer: draws vectorscope into an RGBA pixel buffer
+// Software renderer: draws vectorscope into an RGBA pixel buffer.
+// We can't use Canvas 2D in UXP (no drawImage/getImageData/putImageData/toDataURL),
+// so everything is rendered pixel-by-pixel into a Uint8Array, then encoded to JPEG
+// via the Photoshop Imaging API for display in an <img> element.
 function renderToBuffer(size, pixels) {
   const buf = new Uint8Array(size * size * 4);
   const half = size / 2;
@@ -265,7 +270,8 @@ function renderToBuffer(size, pixels) {
   return buf;
 }
 
-// Draw harmony overlay onto a copy of the base buffer
+// Draw harmony overlay onto a copy of the base buffer.
+// Creates a new buffer each time so we can re-render overlays without re-plotting pixels.
 function applyHarmonyOverlay(baseBuf, size) {
   if (!window.__chromascope) return baseBuf;
   var hSettings = window.__chromascope.getSettings();
@@ -315,7 +321,8 @@ function applyHarmonyOverlay(baseBuf, size) {
 // Cached base buffer (without overlay)
 var cachedBaseBuf = null;
 
-// Encode RGBA buffer to base64 JPEG via Photoshop Imaging API and display in <img>
+// Encode RGBA buffer to base64 JPEG via Photoshop Imaging API and display in <img>.
+// This is the only way to render custom graphics in UXP — canvas toDataURL is unavailable.
 async function displayScope(rgbaBuf, size) {
   var img = document.getElementById("scope-image");
   if (!img) return;
@@ -395,7 +402,9 @@ async function init() {
 
 
 
-  // Fixed render resolution — CSS width:100% handles display scaling
+  // Fixed render resolution independent of panel size.
+  // CSS width:100% on the <img> scales it to fill the container.
+  // Higher values = sharper but slower; 500 is a good balance.
   scopeSize = 500;
 
   console.log("[main] scopeSize:", scopeSize);
@@ -411,7 +420,8 @@ async function init() {
     }
   }
 
-  // Hook core settings changes to re-render via software pipeline (debounced)
+  // Debounced settings listener: waits 300ms after the last change before re-rendering.
+  // Without debouncing, dragging the rotation slider would trigger hundreds of full renders.
   if (window.__chromascope) {
     var settingsTimer = null;
     var settingsRendering = false;

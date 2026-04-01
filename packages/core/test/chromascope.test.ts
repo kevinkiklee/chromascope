@@ -1,10 +1,9 @@
 import { describe, it, expect, vi } from "vitest";
 import { Chromascope } from "../src/chromascope.js";
 
-// Mock a minimal canvas element
 function createMockCanvas(size: number) {
   const imageData = { data: new Uint8ClampedArray(size * size * 4), width: size, height: size };
-  const ctx = {
+  return {
     canvas: { width: size, height: size },
     clearRect: vi.fn(),
     fillRect: vi.fn(),
@@ -37,122 +36,177 @@ function createMockCanvas(size: number) {
     rotate: vi.fn(),
     scale: vi.fn(),
   } as unknown as CanvasRenderingContext2D;
-
-  return ctx;
 }
 
-describe("Chromascope", () => {
-  it("constructs with default settings", () => {
+// --- Construction ---
+
+describe("Chromascope construction", () => {
+  it("uses default settings when none provided", () => {
     const scope = new Chromascope();
     expect(scope.settings.colorSpace).toBe("ycbcr");
     expect(scope.settings.densityMode).toBe("scatter");
+    expect(scope.settings.logScale).toBe(false);
   });
 
-  it("accepts custom initial settings", () => {
-    const scope = new Chromascope({
-      colorSpace: "hsl",
-      densityMode: "heatmap",
-      logScale: true,
-    });
-    expect(scope.settings.colorSpace).toBe("hsl");
+  it("accepts partial initial settings", () => {
+    const scope = new Chromascope({ densityMode: "heatmap", logScale: true });
     expect(scope.settings.densityMode).toBe("heatmap");
+    expect(scope.settings.logScale).toBe(true);
+    expect(scope.settings.colorSpace).toBe("ycbcr"); // default preserved
   });
 
-  it("updates settings", () => {
+  it("starts with no mapped points", () => {
     const scope = new Chromascope();
-    scope.updateSettings({ colorSpace: "cieluv" });
-    expect(scope.settings.colorSpace).toBe("cieluv");
-    expect(scope.settings.densityMode).toBe("scatter"); // unchanged
+    expect(scope.mappedPoints).toEqual([]);
   });
 
-  it("processes pixel data and maps points", () => {
+  it("starts with no harmony zones by default", () => {
     const scope = new Chromascope();
-    // 2x2 image: red, green, blue, white
-    const data = new Uint8Array([
-      255, 0, 0,     // red
-      0, 255, 0,     // green
-      0, 0, 255,     // blue
-      255, 255, 255, // white
-    ]);
-
-    scope.setPixels({ data, width: 2, height: 2, colorProfile: "sRGB" });
-
-    expect(scope.mappedPoints.length).toBe(4);
-    // White should be near center
-    const whitePoint = scope.mappedPoints[3];
-    expect(whitePoint.radius).toBeLessThan(0.1);
+    expect(scope.harmonyZones).toEqual([]);
   });
+});
 
-  it("renders without error when given a canvas context", () => {
-    const scope = new Chromascope();
-    const ctx = createMockCanvas(300);
+// --- Settings updates ---
 
-    const data = new Uint8Array([255, 0, 0, 0, 255, 0, 0, 0, 255]);
-    scope.setPixels({ data, width: 3, height: 1, colorProfile: "sRGB" });
-
-    expect(() => scope.render(ctx, 300)).not.toThrow();
+describe("Chromascope settings", () => {
+  it("merges partial updates without overwriting other fields", () => {
+    const scope = new Chromascope({ densityMode: "bloom" });
+    scope.updateSettings({ logScale: true });
+    expect(scope.settings.densityMode).toBe("bloom");
+    expect(scope.settings.logScale).toBe(true);
   });
 
   it("re-maps points when color space changes", () => {
     const scope = new Chromascope();
-    const data = new Uint8Array([255, 0, 0]);
-    scope.setPixels({ data, width: 1, height: 1, colorProfile: "sRGB" });
-
-    const ycbcrPoint = { ...scope.mappedPoints[0] };
+    scope.setPixels({ data: new Uint8Array([255, 0, 0]), width: 1, height: 1, colorProfile: "sRGB" });
+    const before = { ...scope.mappedPoints[0] };
 
     scope.updateSettings({ colorSpace: "hsl" });
-    const hslPoint = scope.mappedPoints[0];
-
-    // Different color spaces produce different coordinates
-    expect(hslPoint.x).not.toBeCloseTo(ycbcrPoint.x, 2);
-  });
-
-  it("initializes with no harmony zones by default", () => {
-    const scope = new Chromascope();
-    expect(scope.harmonyZones.length).toBe(0);
+    const after = scope.mappedPoints[0];
+    expect(after.x).not.toBeCloseTo(before.x, 2);
   });
 
   it("computes harmony zones when scheme is set", () => {
     const scope = new Chromascope({
-      harmony: {
-        scheme: "triadic",
-        rotation: 0,
-        zoneWidth: 1.0,
-        pullStrengths: [],
-      },
+      harmony: { scheme: "triadic", rotation: 0, zoneWidth: 1, pullStrengths: [] },
     });
-    expect(scope.harmonyZones.length).toBe(3);
+    expect(scope.harmonyZones).toHaveLength(3);
   });
 
   it("recomputes zones when harmony settings change", () => {
     const scope = new Chromascope();
-    expect(scope.harmonyZones.length).toBe(0);
+    expect(scope.harmonyZones).toHaveLength(0);
 
     scope.updateSettings({
-      harmony: {
-        scheme: "complementary",
-        rotation: 0,
-        zoneWidth: 1.0,
-        pullStrengths: [],
-      },
+      harmony: { scheme: "complementary", rotation: 0, zoneWidth: 1, pullStrengths: [] },
     });
-    expect(scope.harmonyZones.length).toBe(2);
+    expect(scope.harmonyZones).toHaveLength(2);
+  });
+
+  it("clears zones when scheme set to null", () => {
+    const scope = new Chromascope({
+      harmony: { scheme: "triadic", rotation: 0, zoneWidth: 1, pullStrengths: [] },
+    });
+    expect(scope.harmonyZones).toHaveLength(3);
+
+    scope.updateSettings({
+      harmony: { scheme: null, rotation: 0, zoneWidth: 1, pullStrengths: [] },
+    });
+    expect(scope.harmonyZones).toHaveLength(0);
+  });
+});
+
+// --- Pixel processing ---
+
+describe("Chromascope pixel processing", () => {
+  it("maps a 2x2 RGBW image to 4 points", () => {
+    const scope = new Chromascope();
+    const data = new Uint8Array([255, 0, 0, 0, 255, 0, 0, 0, 255, 255, 255, 255]);
+    scope.setPixels({ data, width: 2, height: 2, colorProfile: "sRGB" });
+    expect(scope.mappedPoints).toHaveLength(4);
+  });
+
+  it("maps white to near-center (low radius)", () => {
+    const scope = new Chromascope();
+    scope.setPixels({ data: new Uint8Array([255, 255, 255]), width: 1, height: 1, colorProfile: "sRGB" });
+    expect(scope.mappedPoints[0].radius).toBeLessThan(0.05);
+  });
+
+  it("maps black to near-center (low radius)", () => {
+    const scope = new Chromascope();
+    scope.setPixels({ data: new Uint8Array([0, 0, 0]), width: 1, height: 1, colorProfile: "sRGB" });
+    expect(scope.mappedPoints[0].radius).toBeLessThan(0.05);
+  });
+
+  it("maps saturated colors away from center", () => {
+    const scope = new Chromascope();
+    scope.setPixels({ data: new Uint8Array([255, 0, 0]), width: 1, height: 1, colorProfile: "sRGB" });
+    expect(scope.mappedPoints[0].radius).toBeGreaterThan(0.3);
+  });
+
+  it("preserves original RGB in mapped points", () => {
+    const scope = new Chromascope();
+    scope.setPixels({ data: new Uint8Array([100, 150, 200]), width: 1, height: 1, colorProfile: "sRGB" });
+    const p = scope.mappedPoints[0];
+    expect(p.r).toBe(100);
+    expect(p.g).toBe(150);
+    expect(p.b).toBe(200);
+  });
+
+  it("handles a larger pixel array (64x64)", () => {
+    const scope = new Chromascope();
+    const count = 64 * 64;
+    const data = new Uint8Array(count * 3);
+    for (let i = 0; i < count; i++) {
+      data[i * 3] = i % 256;
+      data[i * 3 + 1] = (i * 2) % 256;
+      data[i * 3 + 2] = (i * 3) % 256;
+    }
+    scope.setPixels({ data, width: 64, height: 64, colorProfile: "sRGB" });
+    expect(scope.mappedPoints).toHaveLength(count);
+  });
+
+  it("replaces previous points when new pixels are set", () => {
+    const scope = new Chromascope();
+    scope.setPixels({ data: new Uint8Array([255, 0, 0, 0, 255, 0]), width: 2, height: 1, colorProfile: "sRGB" });
+    expect(scope.mappedPoints).toHaveLength(2);
+
+    scope.setPixels({ data: new Uint8Array([0, 0, 255]), width: 1, height: 1, colorProfile: "sRGB" });
+    expect(scope.mappedPoints).toHaveLength(1);
+  });
+});
+
+// --- Rendering ---
+
+describe("Chromascope rendering", () => {
+  it("renders without error on a plain scope", () => {
+    const scope = new Chromascope();
+    const ctx = createMockCanvas(300);
+    scope.setPixels({ data: new Uint8Array([255, 0, 0, 0, 255, 0, 0, 0, 255]), width: 3, height: 1, colorProfile: "sRGB" });
+    expect(() => scope.render(ctx, 300)).not.toThrow();
   });
 
   it("renders with harmony overlay without error", () => {
     const scope = new Chromascope({
-      harmony: {
-        scheme: "analogous",
-        rotation: Math.PI / 4,
-        zoneWidth: 1.5,
-        pullStrengths: [0.8, 0.6, 0.4],
-      },
+      harmony: { scheme: "analogous", rotation: Math.PI / 4, zoneWidth: 1.5, pullStrengths: [0.8, 0.6, 0.4] },
     });
     const ctx = createMockCanvas(300);
-
-    const data = new Uint8Array([255, 0, 0, 0, 255, 0, 0, 0, 255]);
-    scope.setPixels({ data, width: 3, height: 1, colorProfile: "sRGB" });
-
+    scope.setPixels({ data: new Uint8Array([255, 0, 0, 0, 255, 0, 0, 0, 255]), width: 3, height: 1, colorProfile: "sRGB" });
     expect(() => scope.render(ctx, 300)).not.toThrow();
+  });
+
+  it("renders with no pixel data without error", () => {
+    const scope = new Chromascope();
+    const ctx = createMockCanvas(200);
+    expect(() => scope.render(ctx, 200)).not.toThrow();
+  });
+
+  it("renders with all density modes without error", () => {
+    for (const mode of ["scatter", "heatmap", "bloom"] as const) {
+      const scope = new Chromascope({ densityMode: mode });
+      const ctx = createMockCanvas(300);
+      scope.setPixels({ data: new Uint8Array([200, 100, 50]), width: 1, height: 1, colorProfile: "sRGB" });
+      expect(() => scope.render(ctx, 300)).not.toThrow();
+    }
   });
 });

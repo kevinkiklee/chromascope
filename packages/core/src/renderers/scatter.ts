@@ -13,6 +13,8 @@ export class ScatterRenderer implements DensityRenderer {
   render(points: MappedPoint[], ctx: CanvasRenderingContext2D, size: number): void {
     ctx.save();
     ctx.globalCompositeOperation = "lighter"; // Additive blending
+    // Adaptive alpha: fewer points → more opaque, many points → more transparent.
+    // Prevents over-saturation on dense images while keeping sparse plots visible.
     ctx.globalAlpha = Math.max(0.02, Math.min(0.5, 500 / points.length));
 
     const dotSize = Math.max(1, Math.round(size / 200));

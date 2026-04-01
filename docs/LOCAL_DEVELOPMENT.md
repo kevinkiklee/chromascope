@@ -27,27 +27,6 @@ npx turbo build
 npx turbo test
 ```
 
-## Environment Variables
-
-The web app (`web`) requires secrets in `web/.env.local`:
-
-```sh
-# Neon Postgres
-DATABASE_URL="postgres://..."
-
-# Stripe
-STRIPE_SECRET_KEY="sk_test_..."
-STRIPE_WEBHOOK_SECRET="whsec_..."
-NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY="pk_test_..."
-```
-
-If you have a linked Vercel project, pull env vars directly:
-
-```sh
-cd web
-vercel env pull .env.local
-```
-
 ## Package-by-Package Workflows
 
 ### Core Library (`packages/core`)
@@ -140,32 +119,20 @@ Lua plugin for Lightroom Classic. Uses the processor binary to read pixel data.
 - `ChromaScopeDialog.lua` -- Floating dialog with vectorscope, controls (density, harmony, rotation, size)
 - `ImagePipeline.lua` -- Thumbnail export, processor binary invocation, frame alternation
 - `EditBridge.lua` -- Maps edit commands to `LrDevelopController` calls
-- `License.lua` -- License key validation
+- `License.lua` -- License display
 
 **Note**: The `.lrdevplugin` extension tells Lightroom this is a development plugin (reloads on each launch). Rename to `.lrplugin` for distribution.
 
-### Web App (`web`)
+### Website (`web`)
 
-Next.js 16 marketing site with licensing API and Stripe integration.
+Static HTML marketing site. No build step required — just edit the HTML files directly.
 
-```sh
-cd web
-
-npm run dev           # Dev server at http://localhost:3000
-npm run build         # Production build
-npm run start         # Run production build
-npm run lint          # ESLint
-```
-
-**Key routes**:
-- `/` -- Landing page
-- `/features` -- Feature showcase
-- `/pricing` -- Pricing tiers
-- `/download` -- Download page
-- `/account` -- License management
-- `/docs` -- Documentation
-- `/api/stripe/checkout` -- Stripe checkout session
-- `/api/ai/natural-language` -- AI color adjustment endpoint
+**Key pages**:
+- `index.html` -- Landing page
+- `download/index.html` -- Download page
+- `docs/index.html` -- Documentation hub
+- `docs/photoshop/index.html` -- Photoshop manual
+- `docs/lightroom/index.html` -- Lightroom Classic manual
 
 ## Running Everything at Once
 
@@ -178,7 +145,6 @@ npx turbo dev
 This starts all `dev` scripts in parallel:
 - Core library Vite dev server
 - Photoshop plugin watch mode
-- Web app Next.js dev server at `localhost:3000`
 
 Turborepo handles dependency ordering -- core builds before plugins.
 
@@ -191,8 +157,6 @@ packages/core (build)
     |
     +-- plugins/lightroom            # manual: copy core + processor binary
     |
-    +-- web (build)             # independent, no core dependency
-
 packages/processor (cargo build)
     |
     +-- plugins/lightroom            # manual: copy binary to bin/
@@ -236,16 +200,6 @@ cd packages/core && npm run test:watch
 3. Plugin builds automatically copy the new core output
 4. Reload plugin in Photoshop/Lightroom to test
 
-### Testing Stripe webhooks locally
-
-```sh
-# Install Stripe CLI: https://stripe.com/docs/stripe-cli
-stripe login
-stripe listen --forward-to localhost:3000/api/stripe/webhook
-```
-
-Copy the webhook signing secret from the CLI output into `web/.env.local` as `STRIPE_WEBHOOK_SECRET`.
-
 ## Troubleshooting
 
 | Problem | Solution |
@@ -253,6 +207,5 @@ Copy the webhook signing secret from the CLI output into `web/.env.local` as `ST
 | `Module not found` in plugins | Rebuild core first: `cd packages/core && npm run build` |
 | Processor binary not found (Lightroom) | Copy release binary to the correct `bin/<platform>/` directory |
 | Stale core in Photoshop | Rebuild core, rebuild plugin, then reload in Photoshop |
-| Stripe webhook errors locally | Ensure `stripe listen` is running and secret is in `.env.local` |
 | Vite HMR not working | Check port conflicts; default is 5173 for core dev server |
 | `turbo` not found | Run `npm install` from repo root |

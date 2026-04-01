@@ -3,112 +3,110 @@
 ## Process
 
 - After any fix or feature, run `npm run build:plugins` automatically.
-- Before changing the Lightroom plugin, read `docs/reference/lrc-sdk-research.md` (no WebView, no canvas, no direct pixel access, `f:picture` for image display, `LrTasks.execute` for shell commands, cooperative async via `LrTasks.startAsyncTask`).
-- Before changing the Photoshop plugin, read `docs/reference/uxp-api-reference.md` (limited canvas API -- no `drawImage`/`getImageData`/`putImageData`/`toDataURL`/`toBlob`, no CSS Grid/transitions/transforms, `<select>` requires explicit `value` on `<option>`, use Spectrum UXP `<sp-*>` components, `imaging.encodeImageData()` with base64 for `<img>`, `executeAsModal` required for imaging calls, panel `show` fires only once).
+- Before changing the Lightroom plugin, read `docs/reference/lrc-sdk-research.md`.
+- Before changing the Photoshop plugin, read `docs/reference/uxp-api-reference.md`.
 
 ## Project Overview
 
-Chromascope is an open-source color analysis tool for Adobe Photoshop and Lightroom Classic. It renders chrominance vectorscope plots with visualization modes and color harmony overlays.
+Chromascope is an open-source chrominance vectorscope for Adobe Photoshop and Lightroom Classic (macOS and Windows). It plots pixel color on a circular graph with multiple color spaces, density visualizations, and harmony overlays.
 
 ## Monorepo Layout
 
 ```
-packages/core/        TypeScript core library (vectorscope math, rendering, UI)
-packages/processor/   Rust CLI binary (image decode + vectorscope render)
+packages/core/        TypeScript core (vectorscope math, rendering, UI controls)
+packages/processor/   Rust CLI (image decode + vectorscope JPEG render)
 plugins/photoshop/    Photoshop UXP panel plugin (JavaScript)
 plugins/lightroom/    Lightroom Classic plugin (Lua + Rust binary)
-web/                  Static marketing site (Next.js 16, Tailwind CSS 4)
+web/                  Static marketing site (plain HTML, Tailwind CDN)
 scripts/              Build and setup automation
 ```
 
-Managed with Turborepo. Workspaces: `packages/*`, `plugins/*`, `web`.
+Managed with Turborepo. Workspaces: `packages/*`, `plugins/*`.
+The `web/` directory is plain static HTML (not an npm workspace).
 
 ## Key Commands
 
 ```sh
 npx turbo build          # Build all packages
 npx turbo test           # Run all tests
-npx turbo dev            # Start dev servers
 npm run build:plugins    # Build core + processor + assemble both plugins
 
+# Core library
 cd packages/core
 npm run dev              # Vite dev server
 npm run test             # Vitest
-npm run test:watch       # Vitest in watch mode
 
+# Rust processor
 cd packages/processor
 cargo build --release
 cargo test
-
-cd web
-npm run dev              # Next.js + Turbopack at localhost:3000
 ```
 
 ## Architecture
 
-### Core + Photoshop
+### Core Library
 
-- Core bundles to a single HTML file via `vite-plugin-singlefile` for embedding in the Photoshop UXP WebView.
-- Host-plugin communication uses a typed message protocol in `packages/core/src/protocol.ts` (PixelsMessage, SettingsMessage, EditMessage).
-- Density renderers implement the `DensityRenderer` interface in `packages/core/src/types.ts`.
+- Bundles to a single HTML file via `vite-plugin-singlefile`.
+- Embedded in the Photoshop UXP WebView and the Lightroom plugin's `core/` directory.
+- Key interfaces in `packages/core/src/types.ts`: `ColorSpaceMapper`, `DensityRenderer`, `HarmonyConfig`.
+- Host communication via typed messages in `packages/core/src/protocol.ts`.
 
-### Lightroom + Rust Renderer
+### Photoshop Plugin
 
-- Lightroom can't embed WebViews or read pixels from Lua.
-- The Rust `processor` binary has two subcommands:
-  - `processor decode` -- Decodes JPEG/TIFF to raw RGB bytes
-  - `processor render` -- Renders a vectorscope JPEG from raw RGB with configurable density mode (`--density scatter|heatmap|bloom`), harmony overlay, and skin tone line
-- `ImagePipeline.lua` exports a thumbnail, calls `processor decode`, then `processor render`, and displays the resulting JPEG via `f:picture`.
-- Updates are driven by `LrDevelopController.addAdjustmentChangeObserver` + a fallback poll loop.
-- A busy-guard with coalescing prevents overlapping renders (max 1 queued).
-- Frame alternation (writing to `scope_0.jpg` / `scope_1.jpg`) forces `f:picture` to reload on each update. **Do NOT revert to a single-path nil-toggle** -- this causes unbounded memory growth in Lightroom (the original cause of the 40GB memory leak).
-- LrC's Lua sandbox does not expose `collectgarbage` -- do not call it.
+- UXP panel. Reads pixels via `executeAsModal` + imaging API.
+- Software renderer (no canvas `drawImage`/`getImageData`). Renders to pixel buffer, encodes via `imaging.encodeImageData()` → base64 JPEG → `<img>`.
+- `scripts/build.js` copies core HTML, extracts minified code, patches with UXP polyfills → `core/scope-bundle.js`.
+
+### Lightroom Plugin
+
+- Lua SDK. Cannot embed WebViews or read pixels directly.
+- The Rust `processor` binary does the heavy lifting:
+  - `processor decode` — JPEG/TIFF → raw RGB bytes (128x128)
+  - `processor render` — RGB → vectorscope JPEG with configurable color space, density mode, harmony overlay, skin tone line
+- `ImagePipeline.lua` orchestrates: export thumbnail → decode → render → display via `f:picture`.
+- Updates via `LrDevelopController.addAdjustmentChangeObserver` + 1s poll fallback.
+- Busy-guard with coalescing prevents overlapping renders (max 1 queued).
+- Platform binaries at `bin/macos-arm64/`, `bin/macos-x64/`, `bin/win-x64/`.
 
 ### Memory Leak Prevention (Lightroom)
 
-The Lightroom plugin runs for hours inside a long-lived process. Every allocation pattern that grows unboundedly will eventually crash the host. Follow these rules strictly:
+The plugin runs for hours in a long-lived process. These rules are non-negotiable:
 
-1. **Frame alternation is mandatory.** `f:picture` must always receive a *different* file path on each update. Writing to the same path and toggling `imagePath = nil -> same_path` causes Lightroom to cache every version internally without releasing. This was the root cause of a 40GB memory leak. Use `nextScopePath()` to alternate between `scope_0.jpg` and `scope_1.jpg`.
+1. **Frame alternation is mandatory.** `f:picture` must receive a *different* file path each update. Writing to the same path causes Lightroom to cache every version internally without releasing (root cause of a 40GB leak). Use `nextScopePath()` to alternate `scope_0.jpg` / `scope_1.jpg`.
+2. **Guard `requestJpegThumbnail` callbacks.** After `done = true`, subsequent callbacks must return immediately. Nil out `jpegData` after writing.
+3. **Debounce async tasks.** Use `_settleVersion` / `_adjustVersion` pattern. Without debouncing, slider drags create hundreds of coroutines.
+4. **No unbounded module-level state.** Only fixed-size vars: busy flag, frame index, pending flag, settings hash.
+5. **Clean up temp files on dialog open.** `ImagePipeline.cleanup()` handles this.
+6. **`collectgarbage` is unavailable.** LrC sandbox blocks it.
 
-2. **Guard `requestJpegThumbnail` callbacks.** The SDK may call the callback multiple times. After the first callback sets `done = true`, subsequent callbacks must `return` immediately. Always nil out `jpegData` after writing.
-
-3. **Debounce async task creation.** Every `LrTasks.startAsyncTask` creates a Lua coroutine. Without debouncing (version counter + sleep + stale check), hundreds of coroutines accumulate. Use the `_settleVersion` / `_adjustVersion` pattern.
-
-4. **Never accumulate data in module-level tables.** No appending to arrays, no history logs, no caching previous results. The only module-level state allowed is fixed-size: busy flag, frame index, pending flag, settings hash.
-
-5. **Clean up temp files on dialog open.** `ImagePipeline.cleanup()` removes stale files from previous sessions. If you add new temp files, add them to the cleanup list.
-
-6. **`collectgarbage` is unavailable.** LrC's Lua sandbox blocks it. Rely on the patterns above to minimize GC pressure.
-
-## Build Dependencies
+## Build Pipeline
 
 ```
-packages/core   -->  plugins/photoshop (copies core build output)
-                     plugins/lightroom (copies core HTML + processor binary)
-packages/processor -->  plugins/lightroom (binary copied to bin/<platform>/)
-web             (independent)
+packages/core    →  plugins/photoshop  (copies core HTML, patches for UXP)
+                 →  plugins/lightroom  (copies core HTML)
+packages/processor →  plugins/lightroom  (copies binary to bin/<platform>/)
 ```
 
-`npm run build:plugins` handles the full pipeline: core build, Rust compile, Photoshop build, and Lightroom assembly.
+`npm run build:plugins` runs the full pipeline: core build → Rust compile (native + cross-compile for macOS x64 and Windows x64 via `cross`) → Photoshop build → Lightroom assembly.
+
+Cross-compilation requires Docker (for Windows via `cross`) and `x86_64-apple-darwin` rustup target (for macOS x64).
 
 ## Website (`web/`)
 
-- **Static HTML** -- no build step, no Node.js dependencies
-- **Styling**: Tailwind CSS via CDN + custom CSS in `web/css/styles.css`
-- **Pages**: `index.html`, `features/`, `download/`, `docs/`
+- Plain static HTML — no build step, no npm dependencies
+- Tailwind CSS via CDN + custom CSS in `web/css/styles.css`
+- Pages: `index.html` (home + features), `download/`, `docs/`
 - Scroll animations via `web/js/scroll-reveal.js` (IntersectionObserver)
 
 ## Code Conventions
 
-- TypeScript strict mode across all packages
-- Vitest for core library tests
-- Rust integration tests via `cargo test --release`
+- TypeScript strict mode
+- Vitest for core tests, `cargo test` for Rust tests
+- Vite 6 + `vite-plugin-singlefile` for core bundling
 - Base tsconfig in `tsconfig.base.json`, extended per package
-- Vite 6 for core library bundling
-- `vite-plugin-singlefile` produces a self-contained HTML for WebView embedding
 
-## Deployment
+## CI/CD
 
-- **Website**: GitHub Pages -- just copies `web/` directory, no build needed
-- **Workflow**: `.github/workflows/deploy-pages.yml`
-- Triggers on push to `main` when `web/` changes
+- **CI**: `.github/workflows/ci.yml` — core TypeScript build+test and Rust build+test on push to `main`
+- **Website**: `.github/workflows/deploy-pages.yml` — copies `web/` to GitHub Pages on push to `main`
+- **Release**: `.github/workflows/release.yml` — builds macOS + Windows plugins on `v*` tag, creates GitHub Release with ZIP assets

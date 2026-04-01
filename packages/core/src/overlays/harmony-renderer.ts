@@ -31,6 +31,8 @@ export function renderHarmonyOverlay(
 
   for (let i = 0; i < zones.length; i++) {
     const zone = zones[i];
+    // Negate angles because canvas arcs go clockwise (positive = CW)
+    // but our scope angles go counter-clockwise (positive = CCW, math convention)
     const startAngle = -(zone.centerAngle + zone.halfWidth);
     const endAngle = -(zone.centerAngle - zone.halfWidth);
 

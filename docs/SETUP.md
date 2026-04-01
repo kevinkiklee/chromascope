@@ -24,9 +24,9 @@ This will:
 3. Build every package via `npx turbo build`.
 4. Build the Rust processor binary in release mode (if Cargo is available).
 5. Run all tests via `npx turbo test`.
-6. Create `web/.env.local` with placeholder keys if it doesn't exist.
+6. Verify the build succeeded.
 
-After the script finishes, fill in your environment variables and start developing.
+After the script finishes, start developing.
 
 ## Manual Setup
 
@@ -40,7 +40,7 @@ cd chromascope
 npm install
 ```
 
-This installs dependencies for every workspace (`packages/*`, `plugins/*`, `apps/*`) in one go.
+This installs dependencies for every workspace (`packages/*`, `plugins/*`) in one go.
 
 ### 2. Build all packages
 
@@ -53,7 +53,6 @@ Turborepo will build in dependency order:
 - `packages/core` -- TypeScript core library (outputs a single HTML file via Vite)
 - `packages/processor` -- Rust binary (`cargo build`; skipped if Cargo is missing)
 - `plugins/photoshop` -- Photoshop UXP plugin (copies core build into `core/`)
-- `web` -- Next.js production build
 
 ### 3. Build the Rust processor binary (Lightroom only)
 
@@ -77,24 +76,7 @@ npm run copy:macos-x64
 npm run copy:win-x64
 ```
 
-### 4. Configure the web app
-
-Create `web/.env.local` from the example file:
-
-```sh
-cp web/.env.example web/.env.local
-```
-
-Fill in the values:
-
-| Variable | Description | Where to get it |
-|----------|-------------|-----------------|
-| `DATABASE_URL` | Neon Postgres connection string | [Neon console](https://console.neon.tech) |
-| `STRIPE_SECRET_KEY` | Stripe secret key | [Stripe dashboard](https://dashboard.stripe.com/apikeys) |
-| `STRIPE_WEBHOOK_SECRET` | Stripe webhook signing secret | Stripe dashboard > Webhooks |
-| `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Stripe publishable key | Stripe dashboard > API keys |
-
-### 5. Run tests
+### 4. Run tests
 
 ```sh
 npx turbo test
@@ -110,17 +92,13 @@ This runs Vitest for `packages/core` and `cargo test` for `packages/processor`.
 npx turbo dev
 ```
 
-This launches dev servers for all packages in parallel (Vite for core, Next.js + Turbopack for web).
+This launches dev servers for all packages in parallel (Vite for core, watch mode for plugins).
 
 ### Work on a single package
 
 ```sh
 # Core library -- Vite dev server with hot reload
 cd packages/core
-npm run dev
-
-# Web app -- Next.js + Turbopack at http://localhost:3000
-cd web
 npm run dev
 
 # Photoshop plugin -- watch mode
@@ -145,8 +123,7 @@ chromascope/
   plugins/
     photoshop/     @chromascope/photoshop -- UXP panel plugin
     lightroom/     chromascope.lrdevplugin -- Lua plugin + embedded binary
-  apps/
-    web/           @chromascope/web     -- Next.js landing page, licensing, Stripe
+  web/             Static marketing site + documentation
   turbo.json                           -- Turborepo task config
   tsconfig.base.json                   -- shared TypeScript config (strict)
   package.json                         -- workspace root
@@ -170,9 +147,6 @@ Make sure you're on npm 9+ (`npm -v`). Older npm versions don't handle workspace
 
 **Turbo build fails on `packages/processor`**
 Install Rust via [rustup.rs](https://rustup.rs). If you don't need the processor binary, you can build other packages individually: `npx turbo build --filter=@chromascope/core`.
-
-**Web app crashes on startup**
-Check that `web/.env.local` exists and has valid values. The Stripe client throws immediately if `STRIPE_SECRET_KEY` is empty.
 
 **Photoshop plugin doesn't show updated core**
 Rebuild the core library first (`cd packages/core && npm run build`), then rebuild the Photoshop plugin. The plugin build copies the core's single-file HTML output.

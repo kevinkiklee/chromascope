@@ -62,7 +62,8 @@ export class HeatmapRenderer implements DensityRenderer {
     if (maxCount > 0) {
       for (let i = 0; i < grid.length; i++) {
         if (grid[i] > 0) {
-          // Log scale for better visibility of low-density areas
+          // Log scale compresses the range so low-density areas are visible
+          // alongside high-density clusters (linear scale would crush them to black)
           const t = Math.log1p(grid[i]) / Math.log1p(maxCount);
           const [r, g, b] = heatColor(t);
           const pi = i * 4;

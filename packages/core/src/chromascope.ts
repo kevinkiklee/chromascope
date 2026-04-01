@@ -63,6 +63,7 @@ export class Chromascope {
     this.remapPoints();
   }
 
+  /** Render order matters: graticule (background) → harmony zones → skin tone line → pixel data (foreground) */
   render(ctx: CanvasRenderingContext2D, size: number): void {
     renderGraticule(ctx, size);
     this.graticuleCacheSize = size;
@@ -86,6 +87,7 @@ export class Chromascope {
 
     const { data, width, height } = this.pixels;
     const totalPixels = width * height;
+    // Pre-allocate array for performance — avoids repeated push/resize
     const points: MappedPoint[] = new Array(totalPixels);
 
     for (let i = 0; i < totalPixels; i++) {

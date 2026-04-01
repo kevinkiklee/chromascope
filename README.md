@@ -16,7 +16,7 @@ Works as a native panel in Photoshop (UXP) and as a floating dialog in Lightroom
 ## Quick start
 
 ```sh
-git clone https://github.com/chromascope/chromascope.git
+git clone https://github.com/kevinkiklee/chromascope.git
 cd chromascope
 ./scripts/setup.sh
 ```
@@ -28,7 +28,6 @@ This installs dependencies, builds all packages, compiles the Rust binary, and r
 ```sh
 npx turbo dev              # Start all dev servers
 cd packages/core && npm run dev   # Core library only (Vite)
-cd web && npm run dev             # Marketing site (Next.js)
 ```
 
 ### Build plugins for distribution
@@ -82,7 +81,7 @@ packages/core/        TypeScript vectorscope engine (math, rendering, UI)
 packages/processor/   Rust CLI (image decode + vectorscope render)
 plugins/photoshop/    Photoshop UXP panel plugin
 plugins/lightroom/    Lightroom Classic plugin (Lua + Rust binary)
-web/                  Static marketing site (Next.js)
+web/                  Static marketing site + documentation
 scripts/              Build and setup automation
 ```
 
@@ -95,7 +94,7 @@ scripts/              Build and setup automation
 | **Processor** | Rust, image crate, clap |
 | **Photoshop** | Adobe UXP, batchPlay, Imaging API |
 | **Lightroom** | Lua, LrDevelopController, LrTasks |
-| **Web** | Next.js 16, Tailwind CSS 4 (static export) |
+| **Web** | Static HTML, Tailwind CSS via CDN |
 
 ### Build order
 
@@ -110,7 +109,7 @@ web                  (independent)
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for development workflow, commit conventions, and architecture notes.
+See [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md) for development workflow, commit conventions, and architecture notes.
 
 ## License
 

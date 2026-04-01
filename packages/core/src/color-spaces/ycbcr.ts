@@ -9,11 +9,12 @@ export class YCbCrMapper implements ColorSpaceMapper {
     const gn = g / 255;
     const bn = b / 255;
 
-    // BT.601 Cb and Cr (range: -0.5 to 0.5)
+    // BT.601 coefficients for Cb (blue-difference) and Cr (red-difference).
+    // Raw range is [-0.5, 0.5]; we scale by 2× to fill the [-1, 1] scope range.
+    // These are the standard SDTV coefficients — BT.709 (HDTV) uses different weights.
     const cb = -0.168736 * rn - 0.331264 * gn + 0.5 * bn;
     const cr = 0.5 * rn - 0.418688 * gn - 0.081312 * bn;
 
-    // Scale to [-1, 1] for display
     const x = cb * 2;
     const y = cr * 2;
 

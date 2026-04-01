@@ -19,6 +19,8 @@ export class HSLMapper implements ColorSpaceMapper {
       s = l <= 0.5 ? delta / (max + min) : delta / (2 - max - min);
     }
 
+    // Compute hue in radians. The standard formula gives hue in [0, 6) "sextants",
+    // which we convert to radians and normalize to (-π, π] so 0 = red = right side of scope.
     let hueRad = 0;
     if (delta !== 0) {
       let hueDeg: number;
@@ -30,10 +32,11 @@ export class HSLMapper implements ColorSpaceMapper {
         hueDeg = (rn - gn) / delta + 4;
       }
       hueRad = (hueDeg / 6) * 2 * Math.PI;
-      // Normalize to (-π, π]
       if (hueRad > Math.PI) hueRad -= 2 * Math.PI;
     }
 
+    // Saturation maps directly to radius: grays at center, vivid colors at the rim.
+    // Hue maps to angle: polar coordinates give us the vectorscope position.
     const radius = s;
     const x = radius * Math.cos(hueRad);
     const y = radius * Math.sin(hueRad);

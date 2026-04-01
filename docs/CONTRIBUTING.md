@@ -80,7 +80,7 @@ The project is a Turborepo monorepo:
 | `packages/processor` | Rust | Image decoding + vectorscope rendering CLI |
 | `plugins/photoshop` | JavaScript | Photoshop UXP panel plugin |
 | `plugins/lightroom` | Lua | Lightroom Classic plugin (uses Rust binary) |
-| `web` | TypeScript | Next.js marketing site + licensing API |
+| `web` | HTML/CSS | Static marketing site + documentation |
 
 Core must build before plugins. See [CLAUDE.md](CLAUDE.md) for detailed architecture notes.
 

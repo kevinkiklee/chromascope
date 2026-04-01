@@ -16,6 +16,8 @@ export interface FitDelta {
   nearestZoneIndex: number;
 }
 
+// Points near the center (low saturation / near-gray) don't have meaningful hue,
+// so skip them — rotating them toward a zone would introduce unwanted color shifts.
 const MIN_RADIUS = 0.05;
 
 export function computeFitDeltas(

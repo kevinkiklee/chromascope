@@ -3,7 +3,7 @@ name = "processor"
 version = "0.1.0"
 edition = "2021"
 license = "MIT"
-repository = "https://github.com/chromascope/chromascope"
+repository = "https://github.com/kevinkiklee/chromascope"
 description = "Image decoding and vectorscope rendering CLI for Chromascope"
 
 [[bin]]

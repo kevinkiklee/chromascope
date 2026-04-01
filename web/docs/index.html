@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Documentation — Chromascope</title>
-  <meta name="description" content="Installation, usage, and troubleshooting for Chromascope.">
+  <meta name="description" content="User manuals for Chromascope in Adobe Photoshop and Lightroom Classic.">
   <script src="https://cdn.tailwindcss.com"></script>
   <script>tailwind.config={theme:{extend:{colors:{brand:'#6366f1'}}}}</script>
   <link rel="stylesheet" href="../css/styles.css">
@@ -28,54 +28,104 @@
   </nav>
 
   <div class="min-h-screen">
-    <div class="max-w-6xl mx-auto px-6 py-16 flex gap-12">
+    <div class="max-w-4xl mx-auto px-6 py-16">
 
-      <!-- Sidebar -->
-      <aside class="hidden md:block w-48 shrink-0">
-        <nav class="sticky top-8 space-y-0.5">
-          <div class="gradient-badge text-[11px] font-semibold uppercase tracking-[0.14em] mb-4">Documentation</div>
-          <a href="#installation" class="block text-sm text-zinc-500 hover:text-zinc-200 py-1.5 px-3 rounded-md hover:bg-white/[0.03] transition-all">Installation</a>
-          <a href="#getting-started" class="block text-sm text-zinc-500 hover:text-zinc-200 py-1.5 px-3 rounded-md hover:bg-white/[0.03] transition-all">Getting Started</a>
-          <a href="#color-spaces" class="block text-sm text-zinc-500 hover:text-zinc-200 py-1.5 px-3 rounded-md hover:bg-white/[0.03] transition-all">Color Spaces</a>
-          <a href="#density-modes" class="block text-sm text-zinc-500 hover:text-zinc-200 py-1.5 px-3 rounded-md hover:bg-white/[0.03] transition-all">Density Modes</a>
-          <a href="#troubleshooting" class="block text-sm text-zinc-500 hover:text-zinc-200 py-1.5 px-3 rounded-md hover:bg-white/[0.03] transition-all">Troubleshooting</a>
-        </nav>
-      </aside>
+      <div class="mb-12 text-center">
+        <div class="gradient-badge text-xs font-semibold uppercase tracking-[0.14em] mb-4">Documentation</div>
+        <h1 class="text-3xl md:text-4xl font-bold tracking-tight mb-3">User Manual</h1>
+        <p class="text-zinc-400 text-[15px]">Choose your host application to get started.</p>
+      </div>
 
-      <!-- Content -->
-      <main class="flex-1 max-w-2xl">
-        <div class="mb-12">
-          <div class="gradient-badge text-xs font-semibold uppercase tracking-[0.14em] mb-4">Docs</div>
-          <h1 class="text-3xl md:text-4xl font-bold tracking-tight">Documentation</h1>
-        </div>
+      <div class="grid md:grid-cols-2 gap-6 max-w-2xl mx-auto">
 
-        <div class="space-y-14">
-          <section id="installation">
-            <h2 class="text-lg font-semibold mb-3 text-zinc-200">Installation</h2>
-            <p class="text-zinc-400 text-[15px] leading-relaxed">Download the plugin for your platform from the <a href="../download/" class="text-violet-400 hover:text-violet-300">Download page</a>. For Photoshop, install via the UXP Developer Tool or the Creative Cloud plugin manager. For Lightroom Classic, copy the plugin folder to your Lightroom plugins directory and enable it via Plug-in Manager.</p>
-          </section>
+        <!-- Photoshop -->
+        <a href="photoshop/" class="card-glass rounded-xl p-8 group hover:border-white/[0.12] transition-all duration-300 block text-center">
+          <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-blue-500/10 to-indigo-500/10 border border-white/[0.06] flex items-center justify-center text-2xl mx-auto mb-5">
+            <span class="text-blue-400">Ps</span>
+          </div>
+          <h2 class="font-semibold text-zinc-200 text-lg mb-2">Photoshop</h2>
+          <p class="text-zinc-500 text-sm leading-relaxed mb-4">UXP panel plugin. Real-time vectorscope with interactive harmony overlays and color correction.</p>
+          <span class="text-violet-400 text-sm font-medium group-hover:translate-x-0.5 transition-transform inline-block">Read manual &rarr;</span>
+        </a>
 
-          <section id="getting-started">
-            <h2 class="text-lg font-semibold mb-3 text-zinc-200">Getting Started</h2>
-            <p class="text-zinc-400 text-[15px] leading-relaxed">Open the Chromascope panel in Photoshop (Window &rarr; Plugins &rarr; Chromascope) or Lightroom Classic (Window &rarr; Panels &rarr; Chromascope). The panel activates automatically when you open a document or select a photo. Use the toolbar to switch color spaces and density modes.</p>
-          </section>
+        <!-- Lightroom Classic -->
+        <a href="lightroom/" class="card-glass rounded-xl p-8 group hover:border-white/[0.12] transition-all duration-300 block text-center">
+          <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-cyan-500/10 to-blue-500/10 border border-white/[0.06] flex items-center justify-center text-2xl mx-auto mb-5">
+            <span class="text-cyan-400">Lr</span>
+          </div>
+          <h2 class="font-semibold text-zinc-200 text-lg mb-2">Lightroom Classic</h2>
+          <p class="text-zinc-500 text-sm leading-relaxed mb-4">Floating dialog with Rust-rendered vectorscope. Updates in real time as you adjust develop sliders.</p>
+          <span class="text-violet-400 text-sm font-medium group-hover:translate-x-0.5 transition-transform inline-block">Read manual &rarr;</span>
+        </a>
 
-          <section id="color-spaces">
-            <h2 class="text-lg font-semibold mb-3 text-zinc-200">Color Spaces</h2>
-            <p class="text-zinc-400 text-[15px] leading-relaxed">YCbCr separates luminance from chrominance — useful for broadcast-compliant grading. CIE LUV is perceptually uniform, making it ideal for precise colorimetric analysis. HSL (Hue-Saturation-Lightness) provides an intuitive view suitable for artistic workflows.</p>
-          </section>
+      </div>
 
-          <section id="density-modes">
-            <h2 class="text-lg font-semibold mb-3 text-zinc-200">Density Modes</h2>
-            <p class="text-zinc-400 text-[15px] leading-relaxed">Scatter plots each pixel as a point. Heatmap accumulates pixel frequency and maps it to color — denser regions appear brighter. Bloom applies a glow effect to high-density clusters, making dominant color populations visually distinct.</p>
-          </section>
+      <!-- Quick reference -->
+      <div class="mt-16 space-y-10">
 
-          <section id="troubleshooting">
-            <h2 class="text-lg font-semibold mb-3 text-zinc-200">Troubleshooting</h2>
-            <p class="text-zinc-400 text-[15px] leading-relaxed">If the panel does not update, ensure the plugin is connected (check the status indicator in the panel header). For Lightroom, check that the processor binary is in the correct bin/ directory for your platform. File issues on <a href="https://github.com/kevinkiklee/chromascope/issues" class="text-violet-400 hover:text-violet-300">GitHub</a> if you encounter problems.</p>
-          </section>
-        </div>
-      </main>
+        <section>
+          <h2 class="text-lg font-semibold mb-4 text-zinc-200">What is a vectorscope?</h2>
+          <p class="text-zinc-400 text-[15px] leading-relaxed">A vectorscope plots the chrominance (color) information of every pixel in your image on a circular graph. The angle around the circle represents hue, and the distance from the center represents saturation. Neutral colors (grays) cluster at the center, while vivid colors extend toward the rim. It is a standard tool in broadcast, cinema, and professional color grading.</p>
+        </section>
+
+        <section>
+          <h2 class="text-lg font-semibold mb-4 text-zinc-200">Color spaces</h2>
+          <div class="space-y-3">
+            <div class="card-glass rounded-lg p-4">
+              <h3 class="text-sm font-medium text-zinc-200 mb-1">YCbCr (BT.601)</h3>
+              <p class="text-zinc-500 text-sm">The broadcast standard. Separates luminance from chrominance. Cb is the blue-yellow axis, Cr is the red-cyan axis. Best for video and broadcast-aligned grading.</p>
+            </div>
+            <div class="card-glass rounded-lg p-4">
+              <h3 class="text-sm font-medium text-zinc-200 mb-1">CIE LUV</h3>
+              <p class="text-zinc-500 text-sm">Perceptually uniform color space. Equal distances on the scope represent equal perceived color differences. Ideal for precise colorimetric analysis.</p>
+            </div>
+            <div class="card-glass rounded-lg p-4">
+              <h3 class="text-sm font-medium text-zinc-200 mb-1">HSL</h3>
+              <p class="text-zinc-500 text-sm">Hue-Saturation-Lightness. Maps hue directly to angle and saturation to radius. Intuitive for designers &mdash; the scope layout matches the color picker.</p>
+            </div>
+          </div>
+        </section>
+
+        <section>
+          <h2 class="text-lg font-semibold mb-4 text-zinc-200">Density modes</h2>
+          <div class="space-y-3">
+            <div class="card-glass rounded-lg p-4">
+              <h3 class="text-sm font-medium text-zinc-200 mb-1">Scatter</h3>
+              <p class="text-zinc-500 text-sm">Each pixel is a single dot. Overlapping dots accumulate brightness with additive blending. Best for seeing individual color samples and sparse distributions.</p>
+            </div>
+            <div class="card-glass rounded-lg p-4">
+              <h3 class="text-sm font-medium text-zinc-200 mb-1">Bloom</h3>
+              <p class="text-zinc-500 text-sm">Each pixel creates a soft radial glow. Overlapping glows blend additively, creating luminous hotspots where colors cluster. Beautiful for presentations and dense images.</p>
+            </div>
+            <div class="card-glass rounded-lg p-4">
+              <h3 class="text-sm font-medium text-zinc-200 mb-1">Heatmap</h3>
+              <p class="text-zinc-500 text-sm">Bins pixels by location and colors cells by frequency on a logarithmic scale (black &rarr; blue &rarr; cyan &rarr; green &rarr; yellow &rarr; red &rarr; white). Shows exactly where colors are most concentrated.</p>
+            </div>
+          </div>
+        </section>
+
+        <section>
+          <h2 class="text-lg font-semibold mb-4 text-zinc-200">Harmony overlays</h2>
+          <p class="text-zinc-400 text-[15px] leading-relaxed mb-3">Harmony overlays divide the vectorscope into zones based on color theory relationships. Rotate the overlay to align zones with your image&rsquo;s dominant colors and see how well your grade fits a given color scheme.</p>
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+              <thead><tr class="text-left text-zinc-400 border-b border-white/[0.06]">
+                <th class="py-2 pr-4 font-medium">Scheme</th>
+                <th class="py-2 pr-4 font-medium">Zones</th>
+                <th class="py-2 font-medium">Description</th>
+              </tr></thead>
+              <tbody class="text-zinc-500">
+                <tr class="border-b border-white/[0.03]"><td class="py-2 pr-4 text-zinc-300">Complementary</td><td class="py-2 pr-4">2</td><td class="py-2">Two zones opposite each other (180&deg; apart)</td></tr>
+                <tr class="border-b border-white/[0.03]"><td class="py-2 pr-4 text-zinc-300">Split Comp.</td><td class="py-2 pr-4">3</td><td class="py-2">Base zone plus two flanking the opposite side</td></tr>
+                <tr class="border-b border-white/[0.03]"><td class="py-2 pr-4 text-zinc-300">Triadic</td><td class="py-2 pr-4">3</td><td class="py-2">Three zones equally spaced at 120&deg;</td></tr>
+                <tr class="border-b border-white/[0.03]"><td class="py-2 pr-4 text-zinc-300">Tetradic</td><td class="py-2 pr-4">4</td><td class="py-2">Four zones in a square at 90&deg; intervals</td></tr>
+                <tr><td class="py-2 pr-4 text-zinc-300">Analogous</td><td class="py-2 pr-4">3</td><td class="py-2">Three adjacent zones clustered together</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+      </div>
 
     </div>
   </div>

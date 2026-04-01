@@ -87,7 +87,10 @@ local _lastSettingsHash = nil
 local _lastPhotoId = nil
 
 local function hashSettings(photo)
-  -- Simple additive hash — no multiplication overflow.
+  -- Simple additive hash of key develop sliders to detect changes.
+  -- Uses addition with positional weighting (not multiplication) to avoid
+  -- Lua number overflow — Lua 5.1 uses doubles, and large multiplications
+  -- can lose precision or wrap unpredictably.
   local id = photo.localIdentifier or 0
   local settings = photo:getDevelopSettings()
   if not settings then return tostring(id) end
@@ -173,8 +176,11 @@ end
 
 local function exportThumbnail(photo, outPath)
   local done, ok, errMsg = false, false, nil
+  -- requestJpegThumbnail fires the callback multiple times as higher-quality
+  -- thumbnails become available. We only want the first one — subsequent calls
+  -- after done=true would write to a closed file and retain jpegData strings.
   photo:requestJpegThumbnail(256, 256, function(jpegData, reason)
-    if done then return end  -- Ignore subsequent callbacks (SDK may fire multiple times)
+    if done then return end
     if not jpegData then
       errMsg = reason or "no data"
       done = true
