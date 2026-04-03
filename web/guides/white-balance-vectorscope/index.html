@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>White Balance and the Vectorscope: Getting Neutral Right — Chromascope</title>
+  <meta name="description" content="How to use a vectorscope to spot and fix white balance problems. See how color casts shift the chrominance cluster and how corrections bring it back to center.">
+  <link rel="canonical" href="https://chromascope.iser.io/guides/white-balance-vectorscope/">
+  <meta name="robots" content="index, follow">
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="https://chromascope.iser.io/guides/white-balance-vectorscope/">
+  <meta property="og:title" content="White Balance and the Vectorscope: Getting Neutral Right — Chromascope">
+  <meta property="og:description" content="How to use a vectorscope to spot and fix white balance problems. See how color casts shift the chrominance cluster and how corrections bring it back to center.">
+  <meta property="og:image" content="https://chromascope.iser.io/images/og-preview.jpg">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="White Balance and the Vectorscope: Getting Neutral Right — Chromascope">
+  <meta name="twitter:description" content="How to use a vectorscope to spot and fix white balance problems. See how color casts shift the chrominance cluster and how corrections bring it back to center.">
+  <meta name="twitter:image" content="https://chromascope.iser.io/images/og-preview.jpg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>tailwind.config={theme:{extend:{colors:{brand:'#6366f1'}}}}</script>
+  <link rel="stylesheet" href="../../css/styles.css">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": "White Balance and the Vectorscope: Getting Neutral Right",
+    "description": "How to use a vectorscope to spot and fix white balance problems. See how color casts shift the chrominance cluster and how corrections bring it back to center.",
+    "datePublished": "2026-04-02",
+    "author": { "@type": "Organization", "name": "Chromascope" },
+    "publisher": { "@type": "Organization", "name": "Chromascope" }
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://chromascope.iser.io/" },
+      { "@type": "ListItem", "position": 2, "name": "Guides", "item": "https://chromascope.iser.io/guides/" },
+      { "@type": "ListItem", "position": 3, "name": "White Balance and the Vectorscope", "item": "https://chromascope.iser.io/guides/white-balance-vectorscope/" }
+    ]
+  }
+  </script>
+</head>
+<body class="bg-zinc-950 text-zinc-100 antialiased">
+  <nav class="border-b border-white/[0.06] px-6 py-4">
+    <div class="max-w-6xl mx-auto flex items-center justify-between">
+      <a href="../../" class="flex items-center gap-2.5">
+        <div class="w-6 h-6 rounded-full" style="background:conic-gradient(from 0deg,#f43f5e,#f97316,#eab308,#22c55e,#06b6d4,#8b5cf6,#f43f5e);filter:blur(0.3px)"></div>
+        <span class="font-bold text-lg tracking-tight gradient-text-subtle">Chromascope</span>
+      </a>
+      <div class="flex items-center gap-1">
+        <a href="../../download/" class="px-3 py-1.5 rounded-md text-sm text-zinc-500 hover:text-zinc-300 transition-colors">Download</a>
+        <a href="../../docs/" class="px-3 py-1.5 rounded-md text-sm text-zinc-500 hover:text-zinc-300 transition-colors">Docs</a>
+        <a href="../" class="px-3 py-1.5 rounded-md text-sm text-zinc-100 bg-white/[0.04]">Guides</a>
+        <a href="https://github.com/kevinkiklee/chromascope" class="px-3 py-1.5 rounded-md text-sm text-zinc-500 hover:text-zinc-300 transition-colors">GitHub</a>
+        <a href="../../download/" class="btn-primary text-white px-4 py-1.5 rounded-lg text-sm font-medium ml-3">Download</a>
+      </div>
+    </div>
+  </nav>
+  <div class="min-h-screen">
+    <div class="max-w-6xl mx-auto px-6 py-16 flex gap-12">
+      <aside class="hidden md:block w-52 shrink-0">
+        <nav class="sticky top-8 space-y-0.5">
+          <a href="../" class="block text-xs text-zinc-600 hover:text-zinc-400 mb-4 transition-colors">&larr; All guides</a>
+          <div class="gradient-badge text-[11px] font-semibold uppercase tracking-[0.14em] mb-3">On this page</div>
+          <a href="#what-neutral-looks-like" class="block text-sm text-zinc-500 hover:text-zinc-300 py-1 transition-colors">What neutral looks like</a>
+          <a href="#how-color-casts-appear" class="block text-sm text-zinc-500 hover:text-zinc-300 py-1 transition-colors">How color casts appear</a>
+          <a href="#common-problems" class="block text-sm text-zinc-500 hover:text-zinc-300 py-1 transition-colors">Common WB problems</a>
+          <a href="#fixing-white-balance" class="block text-sm text-zinc-500 hover:text-zinc-300 py-1 transition-colors">Fixing white balance</a>
+          <a href="#when-neutral-isnt-the-goal" class="block text-sm text-zinc-500 hover:text-zinc-300 py-1 transition-colors">When neutral isn't the goal</a>
+        </nav>
+      </aside>
+      <main class="flex-1 max-w-2xl">
+        <div class="mb-2 text-sm text-zinc-500">
+          <a href="../../" class="hover:text-zinc-300 transition-colors">Home</a>
+          <span class="mx-1.5">/</span>
+          <a href="../" class="hover:text-zinc-300 transition-colors">Guides</a>
+          <span class="mx-1.5">/</span>
+          <span class="text-zinc-400">White Balance and the Vectorscope</span>
+        </div>
+        <div class="mb-10">
+          <h1 class="text-3xl md:text-4xl font-bold tracking-tight mb-3">White Balance and the Vectorscope: Getting Neutral Right</h1>
+          <p class="text-zinc-400 text-[15px]">A vectorscope reveals white balance errors that your eyes adapt to and ignore. Here is how to read those errors and correct them precisely.</p>
+        </div>
+        <div class="space-y-10 text-zinc-400 text-[15px] leading-relaxed">
+
+          <!-- Hero image -->
+          <div>
+            <img src="images/wb-neutral.jpg" alt="Vectorscope showing a tightly centered chrominance cluster indicating correct white balance with no color cast" class="rounded-xl w-full" width="800" height="450">
+            <p class="text-xs text-zinc-600 mt-2">A properly white-balanced scene. The chrominance cluster sits centered, with colors spreading outward evenly.</p>
+          </div>
+
+          <!-- Section 1 -->
+          <section>
+            <h2 id="what-neutral-looks-like" class="text-xl font-semibold text-zinc-200 mb-4">What neutral looks like on a vectorscope</h2>
+            <p>A vectorscope plots the chrominance (color information) of every pixel in your image. The center of the scope represents zero chrominance -- a perfectly neutral gray with no color bias. The further a pixel sits from the center, the more saturated its color.</p>
+            <p class="mt-3">In a properly white-balanced image, the <strong class="text-zinc-200">centroid</strong> of the chrominance distribution -- the average position of all plotted points, weighted by density -- sits at or very near the center of the scope. Individual colors spread outward from center in various directions (red objects pull toward the red region, blue sky pulls toward blue), but the overall mass is centered.</p>
+            <p class="mt-3">An image that contains mostly neutral tones -- an overcast street scene, an interior with white walls, a product shot on gray seamless -- will show a tight cluster around the center. The tighter and more centered that cluster is, the more neutral the white balance.</p>
+            <p class="mt-3">A colorful image still has a centered centroid when white balance is correct, but the distribution is wider. The key indicator is the <strong class="text-zinc-200">center of mass</strong>, not the extent of the spread. If you mentally average where all the dots are, that average should land in the middle.</p>
+            <p class="mt-3">If you are not yet comfortable reading a vectorscope, our <a href="../how-to-read-a-vectorscope/" class="text-brand hover:text-indigo-300 transition-colors">guide to reading a vectorscope</a> covers the fundamentals of hue angle, saturation distance, and chrominance density.</p>
+          </section>
+
+          <!-- Section 2 -->
+          <section>
+            <h2 id="how-color-casts-appear" class="text-xl font-semibold text-zinc-200 mb-4">How color casts appear</h2>
+
+            <img src="images/wb-warm-cast.jpg" alt="Vectorscope showing the entire chrominance distribution shifted toward the orange-red region, indicating a warm color cast from incorrect white balance" class="rounded-xl w-full my-6" loading="lazy" width="800" height="450">
+            <p class="text-xs text-zinc-600 mb-6">A warm color cast shifts the entire distribution toward the orange/red region. The centroid has moved clearly off-center.</p>
+
+            <p>A color cast displaces the entire chrominance distribution in one direction. This is the defining visual signature of a white balance error on a vectorscope, and it is unmistakable once you know what to look for.</p>
+            <p class="mt-3"><strong class="text-zinc-200">Warm cast (color temperature too low).</strong> When the camera's white balance is set cooler than the actual light -- for example, shooting under tungsten light with a daylight preset -- the entire image takes on an orange-amber tone. On the vectorscope, the distribution shifts toward the orange/red region. Every cluster moves in that direction: what should be neutral grays now sit in the warm zone, skin tones push further out along the warm axis, and even cool-toned objects like blue fabric show a warm bias.</p>
+            <p class="mt-3"><strong class="text-zinc-200">Cool cast (color temperature too high).</strong> The opposite case: white balance set warmer than the light. Shot under daylight with a tungsten preset, the image turns blue. The vectorscope distribution shifts toward the blue/cyan region. Neutrals sit in the cool zone instead of at center.</p>
+            <p class="mt-3"><strong class="text-zinc-200">Green cast (tint shifted toward green).</strong> Fluorescent and some LED lights produce a green spike that the Tint slider corrects. On the vectorscope, the distribution shifts toward the green/yellow-green region. This is common under office lighting and in venues with older fluorescent fixtures.</p>
+            <p class="mt-3"><strong class="text-zinc-200">Magenta cast (tint shifted toward magenta).</strong> Over-correcting for green, or shooting under certain LED panels, produces a magenta bias. The distribution shifts toward the magenta/pink region. Skin turns ruddy and unnatural.</p>
+            <p class="mt-3">The <strong class="text-zinc-200">distance</strong> of the shift tells you the severity. A small offset -- a few percentage points from center -- is a mild cast that might be invisible on an uncalibrated monitor but will be apparent in print. A large offset is an obvious problem that even untrained eyes will notice.</p>
+          </section>
+
+          <!-- Section 3 -->
+          <section>
+            <h2 id="common-problems" class="text-xl font-semibold text-zinc-200 mb-4">Common white balance problems</h2>
+            <p>Some white balance issues are harder to diagnose than a straightforward color cast. The vectorscope helps with these as well.</p>
+            <p class="mt-3"><strong class="text-zinc-200">Mixed lighting.</strong> A scene lit by both tungsten and daylight -- a room with window light on one side and incandescent lamps on the other -- cannot be corrected with a single white balance setting. On the vectorscope, you will see the distribution stretched or split: part of the image pulls toward warm, part toward cool. The centroid may be near center (the two casts partially cancel), but the spread is unusually wide in one axis. This requires local correction (graduated filters, masks, or separate adjustments for different zones) rather than a global white balance change.</p>
+            <p class="mt-3"><strong class="text-zinc-200">Auto white balance drift across a series.</strong> Camera auto white balance recalculates per frame. In a sequence shot under consistent lighting, AWB may produce slightly different results for each image, creating inconsistency. The vectorscope makes this visible: batch-compare images and look for the centroid shifting position between frames. Picking one manual white balance setting and applying it to the entire series eliminates the drift.</p>
+            <p class="mt-3"><strong class="text-zinc-200">Color contamination from large colored surfaces.</strong> A subject standing on green grass or near a red brick wall picks up reflected color that looks like a white balance error but is not. The difference on the vectorscope: a true white balance error shifts everything uniformly, while color contamination affects only part of the distribution. You will see the main cluster centered but with a secondary cluster or tail extending toward the contaminating color. This requires local correction rather than global white balance adjustment.</p>
+            <p class="mt-3"><strong class="text-zinc-200">Monitor calibration masking errors.</strong> If your monitor has a color bias, you may unknowingly introduce a white balance error while editing because the display is compensating in the wrong direction. The vectorscope operates on the actual pixel data and is immune to display errors. If the vectorscope shows a centered distribution but the image looks off to your eye, the problem is your monitor, not your white balance.</p>
+          </section>
+
+          <!-- Section 4 -->
+          <section>
+            <h2 id="fixing-white-balance" class="text-xl font-semibold text-zinc-200 mb-4">Fixing white balance with the vectorscope</h2>
+
+            <img src="images/wb-corrected.jpg" alt="Vectorscope showing the chrominance distribution returned to center after white balance correction, with an even spread of colors" class="rounded-xl w-full my-6" loading="lazy" width="800" height="450">
+            <p class="text-xs text-zinc-600 mb-6">After correction: the distribution is centered again. Compare the centroid position to the warm-cast image above.</p>
+
+            <p>The correction process is straightforward with a vectorscope providing real-time feedback.</p>
+            <p class="mt-3"><strong class="text-zinc-200">Step 1: Identify the cast direction.</strong> Look at which direction the distribution has shifted from center. This tells you which axis to correct. A shift toward orange/amber means the Temperature slider needs to move cooler. A shift toward blue means it needs to move warmer. A shift toward green means the Tint slider needs to move toward magenta, and vice versa.</p>
+            <p class="mt-3"><strong class="text-zinc-200">Step 2: Adjust Temperature.</strong> Move the Temperature slider while watching the vectorscope. The entire distribution will slide along the warm-cool axis. Stop when the centroid sits at center on that axis. Do not overcorrect -- passing through center into the opposite cast is a common mistake when correcting by eye alone, but the vectorscope makes it obvious.</p>
+            <p class="mt-3"><strong class="text-zinc-200">Step 3: Adjust Tint.</strong> Move the Tint slider while watching the vectorscope. The distribution slides along the green-magenta axis. Center it. Temperature and Tint are largely independent axes on the vectorscope, so adjusting one should not undo the other.</p>
+            <p class="mt-3"><strong class="text-zinc-200">Step 4: Verify.</strong> After both adjustments, the centroid should be at center. Individual colors should extend outward from center in directions that make sense for the scene content -- blue sky toward blue, green foliage toward green, skin tones toward the skin tone reference angle. If one element is still off while the rest looks correct, you have a local color problem, not a white balance problem.</p>
+            <p class="mt-3">This process works identically in Lightroom Classic and Photoshop. In Lightroom, the Temperature and Tint sliders are in the Basic panel. In Photoshop, they are in Camera Raw Filter or in a Color Balance adjustment layer (which maps roughly to the same warm/cool and green/magenta axes). With <a href="../../download/" class="text-brand hover:text-indigo-300 transition-colors">Chromascope</a> open alongside your editor, you get immediate vectorscope feedback on every slider movement.</p>
+          </section>
+
+          <!-- Section 5 -->
+          <section>
+            <h2 id="when-neutral-isnt-the-goal" class="text-xl font-semibold text-zinc-200 mb-4">When perfect neutral isn't the goal</h2>
+            <p>Not every image should be white-balanced to dead neutral. The vectorscope is a measurement tool, not a rule book. Its value is showing you exactly where you are so you can decide where you want to be.</p>
+            <p class="mt-3"><strong class="text-zinc-200">Golden hour and sunset.</strong> The entire point of shooting at golden hour is the warm light. Correcting the white balance to neutral would destroy the mood. Instead, use the vectorscope to understand how warm the image is and make a deliberate choice about how much warmth to retain. A slight shift toward orange from center is natural for golden hour. A large shift may be more than the scene actually contained, suggesting you should pull back slightly.</p>
+            <p class="mt-3"><strong class="text-zinc-200">Creative color grading.</strong> Color grading deliberately introduces non-neutral tones for mood and style. The vectorscope helps you grade precisely rather than blindly. Start with a neutral white balance, verify <a href="../skin-tone-correction/" class="text-brand hover:text-indigo-300 transition-colors">skin tones</a>, then introduce your grade. The vectorscope shows you exactly how far each color has moved, letting you apply consistent grades across an entire series. See the <a href="../color-grading-portraits/" class="text-brand hover:text-indigo-300 transition-colors">portrait color grading guide</a> for a complete workflow.</p>
+            <p class="mt-3"><strong class="text-zinc-200">Preserving ambient character.</strong> A candlelit dinner, neon signs at night, the blue cast of twilight -- these are color environments that define the scene. The correct approach is often to white balance partway: remove enough cast to avoid an uncomfortable color shift, but retain enough to preserve the character of the light. The vectorscope lets you find that balance point precisely. Move the centroid partway toward center and stop when the ambient feeling is right.</p>
+            <p class="mt-3">The consistent principle is: know where neutral is first. The vectorscope shows you. Then decide how far from neutral you want to go, and in which direction. Whether you end up at perfect center or deliberately offset, the decision is informed rather than accidental.</p>
+            <p class="mt-3"><a href="../../download/" class="text-brand hover:text-indigo-300 transition-colors">Download Chromascope</a> to see white balance errors in real time as you edit. The vectorscope updates live with every slider adjustment, making it easy to find neutral and then move away from it with intention.</p>
+          </section>
+
+        </div>
+      </main>
+    </div>
+  </div>
+  <footer class="border-t border-white/[0.06] py-12 px-6">
+    <div class="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+      <div class="flex items-center gap-2.5">
+        <div class="w-5 h-5 rounded-full opacity-60" style="background:conic-gradient(from 0deg,#f43f5e,#f97316,#eab308,#22c55e,#06b6d4,#8b5cf6,#f43f5e)"></div>
+        <span class="text-sm text-zinc-500 font-medium">Chromascope</span>
+      </div>
+      <div class="flex gap-6 text-sm">
+        <a href="../../download/" class="text-zinc-500 hover:text-zinc-300 transition-colors">Download</a>
+        <a href="../../docs/" class="text-zinc-500 hover:text-zinc-300 transition-colors">Docs</a>
+        <a href="../" class="text-zinc-500 hover:text-zinc-300 transition-colors">Guides</a>
+        <a href="https://github.com/kevinkiklee/chromascope" class="text-zinc-500 hover:text-zinc-300 transition-colors">GitHub</a>
+      </div>
+      <p class="text-zinc-600 text-xs">&copy; 2025 Chromascope</p>
+    </div>
+  </footer>
+</body>
+</html>

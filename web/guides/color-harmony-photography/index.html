@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Understanding Color Harmony in Photography — Chromascope</title>
+  <meta name="description" content="Learn how complementary, triadic, and analogous color harmonies work in photography and how to visualize them on a vectorscope.">
+  <link rel="canonical" href="https://chromascope.iser.io/guides/color-harmony-photography/">
+  <meta name="robots" content="index, follow">
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="https://chromascope.iser.io/guides/color-harmony-photography/">
+  <meta property="og:title" content="Understanding Color Harmony in Photography — Chromascope">
+  <meta property="og:description" content="Learn how complementary, triadic, and analogous color harmonies work in photography and how to visualize them on a vectorscope.">
+  <meta property="og:image" content="https://chromascope.iser.io/images/og-preview.jpg">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Understanding Color Harmony in Photography — Chromascope">
+  <meta name="twitter:description" content="Learn how complementary, triadic, and analogous color harmonies work in photography and how to visualize them on a vectorscope.">
+  <meta name="twitter:image" content="https://chromascope.iser.io/images/og-preview.jpg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>tailwind.config={theme:{extend:{colors:{brand:'#6366f1'}}}}</script>
+  <link rel="stylesheet" href="../../css/styles.css">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": "Understanding Color Harmony in Photography",
+    "description": "Learn how complementary, triadic, and analogous color harmonies work in photography and how to visualize them on a vectorscope.",
+    "datePublished": "2026-04-02",
+    "author": { "@type": "Organization", "name": "Chromascope" },
+    "publisher": { "@type": "Organization", "name": "Chromascope" }
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://chromascope.iser.io/" },
+      { "@type": "ListItem", "position": 2, "name": "Guides", "item": "https://chromascope.iser.io/guides/" },
+      { "@type": "ListItem", "position": 3, "name": "Color Harmony in Photography", "item": "https://chromascope.iser.io/guides/color-harmony-photography/" }
+    ]
+  }
+  </script>
+</head>
+<body class="bg-zinc-950 text-zinc-100 antialiased">
+  <!-- Nav -->
+  <nav class="border-b border-white/[0.06] px-6 py-4">
+    <div class="max-w-6xl mx-auto flex items-center justify-between">
+      <a href="../../" class="flex items-center gap-2.5">
+        <div class="w-6 h-6 rounded-full" style="background:conic-gradient(from 0deg,#f43f5e,#f97316,#eab308,#22c55e,#06b6d4,#8b5cf6,#f43f5e);filter:blur(0.3px)"></div>
+        <span class="font-bold text-lg tracking-tight gradient-text-subtle">Chromascope</span>
+      </a>
+      <div class="flex items-center gap-1">
+        <a href="../../download/" class="px-3 py-1.5 rounded-md text-sm text-zinc-500 hover:text-zinc-300 transition-colors">Download</a>
+        <a href="../../docs/" class="px-3 py-1.5 rounded-md text-sm text-zinc-500 hover:text-zinc-300 transition-colors">Docs</a>
+        <a href="../" class="px-3 py-1.5 rounded-md text-sm text-zinc-100 bg-white/[0.04]">Guides</a>
+        <a href="https://github.com/kevinkiklee/chromascope" class="px-3 py-1.5 rounded-md text-sm text-zinc-500 hover:text-zinc-300 transition-colors">GitHub</a>
+        <a href="../../download/" class="btn-primary text-white px-4 py-1.5 rounded-lg text-sm font-medium ml-3">Download</a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="min-h-screen">
+    <div class="max-w-6xl mx-auto px-6 py-16 flex gap-12">
+      <!-- Sidebar -->
+      <aside class="hidden md:block w-52 shrink-0">
+        <nav class="sticky top-8 space-y-0.5">
+          <a href="../" class="block text-xs text-zinc-600 hover:text-zinc-400 mb-4 transition-colors">&larr; All guides</a>
+          <div class="gradient-badge text-[11px] font-semibold uppercase tracking-[0.14em] mb-3">On this page</div>
+          <a href="#what-is-color-harmony" class="block text-sm text-zinc-500 hover:text-zinc-300 py-1 transition-colors">What is color harmony</a>
+          <a href="#complementary-colors" class="block text-sm text-zinc-500 hover:text-zinc-300 py-1 transition-colors">Complementary colors</a>
+          <a href="#triadic-harmony" class="block text-sm text-zinc-500 hover:text-zinc-300 py-1 transition-colors">Triadic harmony</a>
+          <a href="#analogous-harmony" class="block text-sm text-zinc-500 hover:text-zinc-300 py-1 transition-colors">Analogous harmony</a>
+          <a href="#using-harmony-overlays-on-a-vectorscope" class="block text-sm text-zinc-500 hover:text-zinc-300 py-1 transition-colors">Harmony overlays on a vectorscope</a>
+          <a href="#applying-harmony-to-your-work" class="block text-sm text-zinc-500 hover:text-zinc-300 py-1 transition-colors">Applying harmony to your work</a>
+        </nav>
+      </aside>
+      <!-- Content -->
+      <main class="flex-1 max-w-2xl">
+        <div class="mb-2 text-sm text-zinc-500">
+          <a href="../../" class="hover:text-zinc-300 transition-colors">Home</a>
+          <span class="mx-1.5">/</span>
+          <a href="../" class="hover:text-zinc-300 transition-colors">Guides</a>
+          <span class="mx-1.5">/</span>
+          <span class="text-zinc-400">Color Harmony in Photography</span>
+        </div>
+        <div class="mb-10">
+          <h1 class="text-3xl md:text-4xl font-bold tracking-tight mb-3">Understanding Color Harmony in Photography</h1>
+          <p class="text-zinc-400 text-[15px]">How complementary, triadic, and analogous color schemes work, why they matter for photographic composition and grading, and how to verify them on a vectorscope.</p>
+        </div>
+        <div class="space-y-10 text-zinc-400 text-[15px] leading-relaxed">
+
+          <!-- Section 1 -->
+          <section>
+            <h2 id="what-is-color-harmony" class="text-xl font-semibold text-zinc-200 mb-4">What is color harmony</h2>
+            <p class="mb-4">Color harmony refers to specific combinations of hues that produce a sense of visual coherence when used together. These combinations are not arbitrary aesthetic preferences. They are geometric relationships on the color wheel&mdash;pairs, triads, and adjacent groups that have been studied and applied in painting, design, and film for centuries.</p>
+            <p class="mb-4">In photography, color harmony matters for two reasons. First, it affects how a viewer perceives an image. An image whose dominant colors fall into a recognized harmonic pattern tends to feel balanced, intentional, and visually comfortable. An image with randomly distributed hues can feel chaotic or unresolved. Second, harmony gives you a framework for making deliberate grading decisions. Instead of moving sliders until something "looks right," you can target a specific harmonic relationship and verify it objectively.</p>
+            <p>If you are new to vectorscopes, read <a href="../what-is-a-vectorscope/" class="text-brand hover:underline">What Is a Vectorscope</a> first. The harmony concepts below are easiest to understand when you can visualize them as positions on the circular scope plot.</p>
+          </section>
+
+          <!-- Section 2 -->
+          <section>
+            <h2 id="complementary-colors" class="text-xl font-semibold text-zinc-200 mb-4">Complementary colors</h2>
+            <img src="images/complementary-overlay.jpg" alt="Vectorscope with a complementary harmony overlay showing two opposing zones at 180 degrees apart, with image data clustered in both zones" class="rounded-xl w-full mb-4">
+            <p class="mb-4">Two colors are complementary when they sit on opposite sides of the color wheel, 180 degrees apart. On a vectorscope, a complementary palette appears as two clusters on opposite ends of a diameter line through the center.</p>
+            <p class="mb-4">The most widely used complementary scheme in photography and cinema is teal and orange. Warm skin tones and amber highlights concentrate in the orange region of the scope, while cooled shadows and blue-green elements concentrate in the teal region directly opposite. This pairing works because it creates maximum hue contrast while keeping the palette to just two color families, which reads as simple and visually organized.</p>
+            <p class="mb-4">Other complementary pairs that appear frequently in photography:</p>
+            <ul class="list-disc pl-6 space-y-2 mb-4">
+              <li><strong class="text-zinc-300">Blue and yellow.</strong> Common in landscape photography&mdash;blue sky above, golden field or sand below. On the vectorscope, you see one cluster near the blue target and another near yellow, forming a near-vertical line through center.</li>
+              <li><strong class="text-zinc-300">Red and cyan.</strong> Less common in nature but used in stylized portraiture and fashion. The high contrast between warm red and cool cyan creates a striking, high-energy look.</li>
+              <li><strong class="text-zinc-300">Green and magenta.</strong> Appears in garden scenes with magenta flowers against green foliage, or in neon-lit urban photography.</li>
+            </ul>
+            <p>Complementary schemes are high-contrast by nature. They draw the eye and create visual tension. If your image feels flat despite having good exposure and composition, checking whether you can push the existing colors toward a complementary pair is often an effective grading strategy.</p>
+          </section>
+
+          <!-- Section 3 -->
+          <section>
+            <h2 id="triadic-harmony" class="text-xl font-semibold text-zinc-200 mb-4">Triadic harmony</h2>
+            <img src="images/triadic-overlay.jpg" alt="Vectorscope with a triadic harmony overlay showing three zones spaced 120 degrees apart, forming an equilateral triangle on the scope" class="rounded-xl w-full mb-4" loading="lazy">
+            <p class="mb-4">A triadic scheme uses three colors spaced 120 degrees apart on the wheel. On the vectorscope, this produces three clusters arranged in an equilateral triangle around the center.</p>
+            <p class="mb-4">Triadic harmony is less common in photography than complementary pairing, because it is harder to find or create three distinct, equally-spaced hue families in a natural scene. But it appears more often than you might expect:</p>
+            <ul class="list-disc pl-6 space-y-2 mb-4">
+              <li><strong class="text-zinc-300">Red, green, blue.</strong> The primary triad. Street photography in urban settings often captures this naturally&mdash;a red sign, green vegetation, blue sky or blue-painted wall. Each color occupies its own region of the scope at roughly 120-degree intervals.</li>
+              <li><strong class="text-zinc-300">Cyan, magenta, yellow.</strong> The secondary triad. Sunrise or sunset scenes with warm yellow light, magenta clouds, and cyan sky approaching the zenith can produce this pattern.</li>
+              <li><strong class="text-zinc-300">Rotated triads.</strong> Any three hues at equal spacing count. A scene dominated by teal, warm orange, and violet is a rotated triad, and it produces the same equilateral triangle on the scope, just at a different orientation.</li>
+            </ul>
+            <p class="mb-4">Triadic palettes feel lively and colorful but balanced. The equal spacing ensures no single color dominates unless you choose to weight one more heavily through saturation or area. In practice, most successful triadic images have one dominant color and use the other two as accents. On the vectorscope, this shows up as one large cluster and two smaller ones.</p>
+            <p>When grading toward a triadic palette, be careful not to over-saturate the accent colors. The vectorscope helps here: you can see exactly how far each cluster extends from center and adjust the relative saturation of each hue family through HSL controls.</p>
+          </section>
+
+          <!-- Section 4 -->
+          <section>
+            <h2 id="analogous-harmony" class="text-xl font-semibold text-zinc-200 mb-4">Analogous harmony</h2>
+            <img src="images/analogous-overlay.jpg" alt="Vectorscope with an analogous harmony overlay showing a single arc zone spanning approximately 60 degrees, with all image data clustered within this narrow range" class="rounded-xl w-full mb-4" loading="lazy">
+            <p class="mb-4">An analogous scheme uses colors that sit next to each other on the color wheel, typically spanning 30 to 60 degrees of hue angle. On the vectorscope, this produces a cluster or arc in one region rather than dots scattered around the circle.</p>
+            <p class="mb-4">Analogous palettes are the most common harmonic pattern in photography, because they occur naturally in many scenes:</p>
+            <ul class="list-disc pl-6 space-y-2 mb-4">
+              <li><strong class="text-zinc-300">Golden hour landscapes.</strong> The warm light shifts everything toward a red-orange-yellow range. On the scope, you see a single arc in the warm region with no significant clusters elsewhere.</li>
+              <li><strong class="text-zinc-300">Forest and woodland scenes.</strong> Dominated by greens and yellow-greens, the scope shows a tight arc in the green-to-yellow range.</li>
+              <li><strong class="text-zinc-300">Overcast seascapes.</strong> Blues and cyans dominate, producing an arc in the cool region of the scope.</li>
+              <li><strong class="text-zinc-300">Autumn foliage.</strong> Red, orange, and yellow leaves produce a concentrated arc spanning roughly 40&ndash;50 degrees in the warm half of the scope.</li>
+            </ul>
+            <p class="mb-4">Analogous harmony produces images that feel calm, unified, and often moody. Because the hue range is narrow, the image reads as having a single dominant color temperature. There is less visual tension than in complementary or triadic schemes, which makes analogous palettes well suited to fine art photography, environmental portraits, and any image where you want the viewer to settle into the frame rather than have their eye bounced between contrasting colors.</p>
+            <p>The risk with analogous palettes is monotony. If the arc is too narrow or the saturation too uniform, the image can feel flat. Variation in saturation and luminance within the analogous range&mdash;bright highlights alongside muted shadows in the same hue family&mdash;keeps the image from becoming a single-color wash.</p>
+          </section>
+
+          <!-- Section 5 -->
+          <section>
+            <h2 id="using-harmony-overlays-on-a-vectorscope" class="text-xl font-semibold text-zinc-200 mb-4">Using harmony overlays on a vectorscope</h2>
+            <p class="mb-4">A vectorscope on its own shows you what colors are in your image. A harmony overlay adds a second layer of information: it shows you where those colors <em>should</em> be for a given harmonic scheme. The overlay draws zones on the scope&mdash;wedge-shaped regions corresponding to the target hues&mdash;and you can immediately see whether your image data falls inside those zones or wanders outside them.</p>
+            <p class="mb-4">This is more useful than it might sound. Without an overlay, you might look at a scope and think the palette looks "roughly complementary." With the overlay active, you can see precisely which pixels deviate from the scheme. Maybe the shadows are drifting toward green when they should stay in the teal zone. Maybe the skin tones are veering into yellow outside the orange wedge. These are corrections you would never notice by eye, but they affect the overall coherence of the grade.</p>
+            <p class="mb-4">Harmony overlays are also valuable during the grading process itself. If you decide to target a triadic scheme, activate the overlay, set the rotation angle to your desired hue positions, and then adjust HSL sliders and split-toning until the image data concentrates within the three target zones. The overlay acts as a guide rail, letting you grade with precision rather than guesswork.</p>
+            <p>Chromascope supports complementary, triadic, analogous, and split-complementary overlays, all with adjustable rotation angles. For a detailed walkthrough of using these overlays during portrait grading, see <a href="../color-grading-portraits/" class="text-brand hover:underline">Color Grading Portraits</a>. To use overlays inside Lightroom Classic specifically, see <a href="../chromascope-lightroom/" class="text-brand hover:underline">Chromascope in Lightroom Classic</a>.</p>
+          </section>
+
+          <!-- Section 6 -->
+          <section>
+            <h2 id="applying-harmony-to-your-work" class="text-xl font-semibold text-zinc-200 mb-4">Applying harmony to your work</h2>
+            <p class="mb-4">Color harmony is a tool, not a rule. Not every photograph needs to conform to a textbook harmonic scheme, and some of the most striking images deliberately break these patterns. But understanding harmony gives you vocabulary and structure for color decisions.</p>
+            <p class="mb-4">A practical approach to applying harmony in your editing workflow:</p>
+            <ol class="list-decimal pl-6 space-y-2 mb-4">
+              <li><strong class="text-zinc-300">Identify the existing palette.</strong> Open the vectorscope and look at where the clusters fall. Most images will naturally lean toward one harmonic pattern&mdash;usually analogous or complementary. Recognizing this starting point tells you what you have to work with.</li>
+              <li><strong class="text-zinc-300">Decide whether to reinforce or redirect.</strong> If the existing pattern is close to a recognized harmony, you can reinforce it by nudging stray colors into alignment. If the pattern is scattered and you want a more cohesive look, pick a target harmony and grade toward it.</li>
+              <li><strong class="text-zinc-300">Use HSL controls for precision.</strong> Global temperature and tint sliders shift everything. For harmonic grading, you often need to move specific hue families independently. HSL hue, saturation, and luminance sliders let you pull individual colors into the target zones without affecting the rest of the palette.</li>
+              <li><strong class="text-zinc-300">Verify with the overlay.</strong> Activate the harmony overlay on the vectorscope and check that your data sits within the target zones. Adjust as needed.</li>
+              <li><strong class="text-zinc-300">Preserve skin tones.</strong> If the image contains people, always check the skin tone reference line after grading for harmony. It is easy to push skin hues off-axis while trying to align the rest of the palette. Skin tone accuracy should take priority over strict harmonic conformity.</li>
+            </ol>
+            <p class="mb-4">The more images you analyze this way, the better your intuition becomes. You start to see harmony in scenes before you even open the editor&mdash;at the shooting stage, when you can influence it through wardrobe, location, and time of day.</p>
+            <p>To add real-time harmony overlays to your Photoshop or Lightroom Classic workflow, <a href="../../download/" class="text-brand hover:underline">download Chromascope</a>.</p>
+          </section>
+
+        </div>
+      </main>
+    </div>
+  </div>
+  <!-- Footer -->
+  <footer class="border-t border-white/[0.06] py-12 px-6">
+    <div class="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+      <div class="flex items-center gap-2.5">
+        <div class="w-5 h-5 rounded-full opacity-60" style="background:conic-gradient(from 0deg,#f43f5e,#f97316,#eab308,#22c55e,#06b6d4,#8b5cf6,#f43f5e)"></div>
+        <span class="text-sm text-zinc-500 font-medium">Chromascope</span>
+      </div>
+      <div class="flex gap-6 text-sm">
+        <a href="../../download/" class="text-zinc-500 hover:text-zinc-300 transition-colors">Download</a>
+        <a href="../../docs/" class="text-zinc-500 hover:text-zinc-300 transition-colors">Docs</a>
+        <a href="../" class="text-zinc-500 hover:text-zinc-300 transition-colors">Guides</a>
+        <a href="https://github.com/kevinkiklee/chromascope" class="text-zinc-500 hover:text-zinc-300 transition-colors">GitHub</a>
+      </div>
+      <p class="text-zinc-600 text-xs">&copy; 2025 Chromascope</p>
+    </div>
+  </footer>
+</body>
+</html>

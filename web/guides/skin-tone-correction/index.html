@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Skin Tone Correction Using a Vectorscope — Chromascope</title>
+  <meta name="description" content="Learn why all skin tones fall on the same vectorscope angle regardless of ethnicity, and how to use the skin tone reference line to verify and fix color accuracy.">
+  <link rel="canonical" href="https://chromascope.iser.io/guides/skin-tone-correction/">
+  <meta name="robots" content="index, follow">
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="https://chromascope.iser.io/guides/skin-tone-correction/">
+  <meta property="og:title" content="Skin Tone Correction Using a Vectorscope — Chromascope">
+  <meta property="og:description" content="Learn why all skin tones fall on the same vectorscope angle regardless of ethnicity, and how to use the skin tone reference line to verify and fix color accuracy.">
+  <meta property="og:image" content="https://chromascope.iser.io/images/og-preview.jpg">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Skin Tone Correction Using a Vectorscope — Chromascope">
+  <meta name="twitter:description" content="Learn why all skin tones fall on the same vectorscope angle regardless of ethnicity, and how to use the skin tone reference line to verify and fix color accuracy.">
+  <meta name="twitter:image" content="https://chromascope.iser.io/images/og-preview.jpg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>tailwind.config={theme:{extend:{colors:{brand:'#6366f1'}}}}</script>
+  <link rel="stylesheet" href="../../css/styles.css">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": "Skin Tone Correction Using a Vectorscope",
+    "description": "Learn why all skin tones fall on the same vectorscope angle regardless of ethnicity, and how to use the skin tone reference line to verify and fix color accuracy.",
+    "datePublished": "2026-04-02",
+    "author": { "@type": "Organization", "name": "Chromascope" },
+    "publisher": { "@type": "Organization", "name": "Chromascope" }
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://chromascope.iser.io/" },
+      { "@type": "ListItem", "position": 2, "name": "Guides", "item": "https://chromascope.iser.io/guides/" },
+      { "@type": "ListItem", "position": 3, "name": "Skin Tone Correction Using a Vectorscope", "item": "https://chromascope.iser.io/guides/skin-tone-correction/" }
+    ]
+  }
+  </script>
+</head>
+<body class="bg-zinc-950 text-zinc-100 antialiased">
+  <nav class="border-b border-white/[0.06] px-6 py-4">
+    <div class="max-w-6xl mx-auto flex items-center justify-between">
+      <a href="../../" class="flex items-center gap-2.5">
+        <div class="w-6 h-6 rounded-full" style="background:conic-gradient(from 0deg,#f43f5e,#f97316,#eab308,#22c55e,#06b6d4,#8b5cf6,#f43f5e);filter:blur(0.3px)"></div>
+        <span class="font-bold text-lg tracking-tight gradient-text-subtle">Chromascope</span>
+      </a>
+      <div class="flex items-center gap-1">
+        <a href="../../download/" class="px-3 py-1.5 rounded-md text-sm text-zinc-500 hover:text-zinc-300 transition-colors">Download</a>
+        <a href="../../docs/" class="px-3 py-1.5 rounded-md text-sm text-zinc-500 hover:text-zinc-300 transition-colors">Docs</a>
+        <a href="../" class="px-3 py-1.5 rounded-md text-sm text-zinc-100 bg-white/[0.04]">Guides</a>
+        <a href="https://github.com/kevinkiklee/chromascope" class="px-3 py-1.5 rounded-md text-sm text-zinc-500 hover:text-zinc-300 transition-colors">GitHub</a>
+        <a href="../../download/" class="btn-primary text-white px-4 py-1.5 rounded-lg text-sm font-medium ml-3">Download</a>
+      </div>
+    </div>
+  </nav>
+  <div class="min-h-screen">
+    <div class="max-w-6xl mx-auto px-6 py-16 flex gap-12">
+      <aside class="hidden md:block w-52 shrink-0">
+        <nav class="sticky top-8 space-y-0.5">
+          <a href="../" class="block text-xs text-zinc-600 hover:text-zinc-400 mb-4 transition-colors">&larr; All guides</a>
+          <div class="gradient-badge text-[11px] font-semibold uppercase tracking-[0.14em] mb-3">On this page</div>
+          <a href="#skin-tone-line-explained" class="block text-sm text-zinc-500 hover:text-zinc-300 py-1 transition-colors">The skin tone line</a>
+          <a href="#why-one-angle" class="block text-sm text-zinc-500 hover:text-zinc-300 py-1 transition-colors">Why all skin tones share one angle</a>
+          <a href="#common-problems" class="block text-sm text-zinc-500 hover:text-zinc-300 py-1 transition-colors">Common skin tone problems</a>
+          <a href="#fixing-in-lightroom" class="block text-sm text-zinc-500 hover:text-zinc-300 py-1 transition-colors">Fixing in Lightroom</a>
+          <a href="#fixing-in-photoshop" class="block text-sm text-zinc-500 hover:text-zinc-300 py-1 transition-colors">Fixing in Photoshop</a>
+        </nav>
+      </aside>
+      <main class="flex-1 max-w-2xl">
+        <div class="mb-2 text-sm text-zinc-500">
+          <a href="../../" class="hover:text-zinc-300 transition-colors">Home</a>
+          <span class="mx-1.5">/</span>
+          <a href="../" class="hover:text-zinc-300 transition-colors">Guides</a>
+          <span class="mx-1.5">/</span>
+          <span class="text-zinc-400">Skin Tone Correction</span>
+        </div>
+        <div class="mb-10">
+          <h1 class="text-3xl md:text-4xl font-bold tracking-tight mb-3">Skin Tone Correction Using a Vectorscope</h1>
+          <p class="text-zinc-400 text-[15px]">The skin tone reference line is the single most useful feature on a vectorscope for portrait photographers. Here is how it works and how to use it.</p>
+        </div>
+        <div class="space-y-10 text-zinc-400 text-[15px] leading-relaxed">
+
+          <!-- Hero image -->
+          <div>
+            <img src="images/skin-tones-normal.jpg" alt="Vectorscope display showing skin tone pixels clustered tightly along the skin tone reference line, indicating accurate color" class="rounded-xl w-full" width="800" height="450">
+            <p class="text-xs text-zinc-600 mt-2">A well-exposed portrait with accurate white balance. The skin tone pixels cluster along the reference line.</p>
+          </div>
+
+          <!-- Section 1 -->
+          <section>
+            <h2 id="skin-tone-line-explained" class="text-xl font-semibold text-zinc-200 mb-4">The skin tone line explained</h2>
+            <p>On a YCbCr vectorscope, the skin tone line is a reference mark drawn at approximately 123 degrees from the positive Cb axis (or equivalently, about 11 o'clock on the circular display). This line was standardized decades ago in the broadcast television industry, where color-accurate reproduction of human skin was considered the single most critical measure of a signal's fidelity.</p>
+            <p class="mt-3">The line does not represent one specific color. It marks a <strong class="text-zinc-200">hue angle</strong> -- the direction from the center of the vectorscope toward the warm orange-yellow region. Any pixel whose chrominance falls on or very near this angle is registering a hue consistent with human skin. Pixels that fall far from this angle have a hue that will look unnatural when rendered as skin.</p>
+            <p class="mt-3">On an HSL-based vectorscope, the same principle applies, but the angle shifts because the color space maps hue differently. The skin tone region falls in the orange/warm area, roughly between 15 and 35 degrees on an HSL hue wheel. Regardless of color space, the underlying observation is the same: human skin occupies a narrow band of hue.</p>
+            <p class="mt-3">If you are new to reading a vectorscope, start with our <a href="../how-to-read-a-vectorscope/" class="text-brand hover:text-indigo-300 transition-colors">guide to reading a vectorscope</a> for the fundamentals of hue, saturation, and chrominance distribution.</p>
+          </section>
+
+          <!-- Section 2 -->
+          <section>
+            <h2 id="why-one-angle" class="text-xl font-semibold text-zinc-200 mb-4">Why all skin tones share one angle</h2>
+            <p>This is the part that surprises most photographers encountering a vectorscope for the first time. Every human being -- regardless of ethnicity, age, or complexion -- has skin that falls on approximately the same hue angle. The difference between lighter and darker skin tones is primarily a matter of <strong class="text-zinc-200">saturation and luminance</strong>, not hue.</p>
+            <p class="mt-3">The biology behind this is straightforward. Human skin color is determined almost entirely by two pigments: eumelanin (brown-black) and pheomelanin (red-yellow). Both absorb and reflect light in a way that produces the same underlying warm hue. Lighter skin contains less melanin overall, which results in lower saturation -- the chrominance point sits closer to the center of the vectorscope. Darker skin contains more melanin, producing slightly higher saturation, pushing the point further from center. But the angle stays the same.</p>
+            <p class="mt-3">This is why the skin tone line works as a universal reference. You do not need different reference marks for different subjects. If you photograph a group of people with widely different complexions under the same light, their skin tones will all cluster along the same radial line on the vectorscope. The cluster will be elongated (spanning from near-center to further out), but it will be narrow in the angular direction.</p>
+            <p class="mt-3">This narrow angular spread is what makes the vectorscope such a sensitive detector of skin tone problems. Even a small color cast -- one that might be hard to see by eye on a calibrated monitor -- will visibly shift the cluster off the reference line.</p>
+          </section>
+
+          <!-- Section 3 -->
+          <section>
+            <h2 id="common-problems" class="text-xl font-semibold text-zinc-200 mb-4">Common skin tone problems</h2>
+            <p>Most skin tone issues fall into a few recognizable patterns on the vectorscope:</p>
+
+            <img src="images/skin-tones-green-shift.jpg" alt="Vectorscope showing skin tone pixels shifted away from the reference line toward green, indicating a color cast" class="rounded-xl w-full my-6" loading="lazy" width="800" height="450">
+            <p class="text-xs text-zinc-600 mb-6">The same portrait with a green color cast from mixed lighting. The skin cluster has rotated away from the reference line.</p>
+
+            <p><strong class="text-zinc-200">Green shift from fluorescent or LED lighting.</strong> Mixed artificial lighting is the most common source of skin tone problems. Fluorescent lights with a poor CRI (color rendering index) add green to skin, rotating the vectorscope cluster counterclockwise away from the reference line (toward the yellow-green region). LED panels with a green spike produce the same effect. On the vectorscope, you will see the skin cluster sitting at a noticeably different angle than the reference mark.</p>
+            <p class="mt-3"><strong class="text-zinc-200">Magenta shift from incorrect white balance.</strong> Over-correcting a warm scene -- or setting white balance too high a color temperature for the actual light -- pushes skin toward magenta. The vectorscope cluster rotates clockwise past the reference line. Skin looks unnaturally pink or ruddy.</p>
+            <p class="mt-3"><strong class="text-zinc-200">Overall warm or cool cast.</strong> A white balance error that affects the entire image shifts the skin cluster off the reference line along with everything else. This is usually easier to diagnose because the entire chrominance distribution is offset, not just the skin. See our <a href="../white-balance-vectorscope/" class="text-brand hover:text-indigo-300 transition-colors">white balance guide</a> for details on identifying and fixing this at the global level.</p>
+            <p class="mt-3"><strong class="text-zinc-200">Reflected color from environment.</strong> A subject standing near a brightly colored wall or wearing a saturated garment may pick up reflected color on their skin. This is harder to fix globally because only part of the skin is affected. You will see the skin cluster widen angularly rather than shift uniformly.</p>
+            <p class="mt-3"><strong class="text-zinc-200">Over-saturation from post-processing.</strong> Pushing vibrance or saturation globally extends the skin cluster further from center without changing the angle. This can look acceptable on a vectorscope, but the actual skin appearance becomes unrealistic -- waxy or sunburned. Watch the radial distance, not just the angle.</p>
+          </section>
+
+          <!-- Section 4 -->
+          <section>
+            <h2 id="fixing-in-lightroom" class="text-xl font-semibold text-zinc-200 mb-4">Fixing skin tones in Lightroom</h2>
+            <p>With <a href="../chromascope-lightroom/" class="text-brand hover:text-indigo-300 transition-colors">Chromascope running in Lightroom Classic</a>, you can watch the vectorscope update in real time as you adjust sliders. This turns skin tone correction from guesswork into a precise, measurable process.</p>
+
+            <p class="mt-3"><strong class="text-zinc-200">Step 1: Set white balance first.</strong> Before touching skin-specific adjustments, get the global white balance right. Use the vectorscope to center the overall chrominance distribution. Adjust the Temperature and Tint sliders until the bulk of the image's chrominance sits where you expect it. This alone often fixes skin tones, since most skin problems originate from incorrect white balance.</p>
+            <p class="mt-3"><strong class="text-zinc-200">Step 2: Check the skin cluster.</strong> With the skin tone line overlay enabled, look at where skin pixels sit relative to the reference line. If the cluster is on the line, you are done. If it is off, note the direction and distance.</p>
+            <p class="mt-3"><strong class="text-zinc-200">Step 3: Use HSL targeted adjustments.</strong> If white balance alone did not bring skin onto the reference line, open the HSL panel. The Orange and Yellow hue sliders have the most direct effect on skin tone. Shift the Orange hue slider to rotate the skin cluster toward the reference line. Small adjustments -- 3 to 8 units -- are usually sufficient. Go further and you will introduce artifacts where skin meets non-skin colors.</p>
+            <p class="mt-3"><strong class="text-zinc-200">Step 4: Manage saturation.</strong> If skin looks flat despite being on the correct angle, increase the Orange saturation slightly. If skin looks overcooked, reduce it. The vectorscope shows this as movement toward or away from the center along the reference line.</p>
+            <p class="mt-3"><strong class="text-zinc-200">Step 5: Verify with the scope.</strong> After adjustments, the skin cluster should sit on or within a few degrees of the reference line. The cluster should be relatively tight -- if it is spread across a wide angular range, you may have local color contamination that requires masking rather than global correction.</p>
+          </section>
+
+          <!-- Section 5 -->
+          <section>
+            <h2 id="fixing-in-photoshop" class="text-xl font-semibold text-zinc-200 mb-4">Fixing skin tones in Photoshop</h2>
+            <p>Photoshop gives you more surgical tools for skin tone correction, which is useful when the problem is local rather than global.</p>
+            <p class="mt-3"><strong class="text-zinc-200">Hue/Saturation adjustment layer.</strong> Add a Hue/Saturation adjustment layer. Select the Reds or Yellows channel (depending on the subject's complexion). Use the Hue slider to rotate the skin cluster toward the reference line on the vectorscope. This is the Photoshop equivalent of Lightroom's HSL hue sliders, and works well for global skin correction.</p>
+            <p class="mt-3"><strong class="text-zinc-200">Selective Color adjustment layer.</strong> For finer control, use a Selective Color adjustment layer targeting Reds and Yellows. Adjusting the Cyan slider in the Reds channel shifts skin hue without affecting other colors as aggressively. Reduce Cyan in Reds to push skin warmer (toward the reference line when the shift is green), or increase it to pull skin cooler (when the shift is magenta).</p>
+            <p class="mt-3"><strong class="text-zinc-200">Masked corrections for local problems.</strong> When reflected color or mixed lighting affects only part of the skin, create a mask to isolate the affected area. Select > Color Range with the eyedropper on the problematic skin area gives you a reasonable starting selection. Refine the mask edge, then apply a Hue/Saturation or Curves adjustment clipped to that mask. Watch the vectorscope as you adjust -- the skin cluster should tighten and rotate toward the reference line.</p>
+            <p class="mt-3"><strong class="text-zinc-200">Curves in individual channels.</strong> For experienced users, RGB Curves on individual channels offers the most control. Pulling down the Green curve in the midtones corrects a green cast on skin. Pulling down Blue warms the image. The vectorscope provides immediate feedback on whether you are moving in the right direction and how far to go.</p>
+            <p class="mt-3">The key advantage of working with a vectorscope open is objectivity. Your eyes adapt to color casts after staring at an image for a few minutes. The vectorscope does not adapt. It shows you the actual chrominance data regardless of how long you have been editing.</p>
+            <p class="mt-3">Ready to try this workflow? <a href="../../download/" class="text-brand hover:text-indigo-300 transition-colors">Download Chromascope</a> and enable the skin tone line overlay to start correcting with confidence. For a complete portrait editing workflow that builds on these techniques, see our guide to <a href="../color-grading-portraits/" class="text-brand hover:text-indigo-300 transition-colors">color grading portraits with a vectorscope</a>.</p>
+          </section>
+
+        </div>
+      </main>
+    </div>
+  </div>
+  <footer class="border-t border-white/[0.06] py-12 px-6">
+    <div class="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+      <div class="flex items-center gap-2.5">
+        <div class="w-5 h-5 rounded-full opacity-60" style="background:conic-gradient(from 0deg,#f43f5e,#f97316,#eab308,#22c55e,#06b6d4,#8b5cf6,#f43f5e)"></div>
+        <span class="text-sm text-zinc-500 font-medium">Chromascope</span>
+      </div>
+      <div class="flex gap-6 text-sm">
+        <a href="../../download/" class="text-zinc-500 hover:text-zinc-300 transition-colors">Download</a>
+        <a href="../../docs/" class="text-zinc-500 hover:text-zinc-300 transition-colors">Docs</a>
+        <a href="../" class="text-zinc-500 hover:text-zinc-300 transition-colors">Guides</a>
+        <a href="https://github.com/kevinkiklee/chromascope" class="text-zinc-500 hover:text-zinc-300 transition-colors">GitHub</a>
+      </div>
+      <p class="text-zinc-600 text-xs">&copy; 2025 Chromascope</p>
+    </div>
+  </footer>
+</body>
+</html>

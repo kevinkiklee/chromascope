@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>How to Use Chromascope in Photoshop — Chromascope</title>
+  <meta name="description" content="Get started with Chromascope in Adobe Photoshop. Install the UXP panel, open the vectorscope, and start analyzing color in minutes.">
+  <link rel="canonical" href="https://chromascope.iser.io/guides/chromascope-photoshop/">
+  <meta name="robots" content="index, follow">
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="https://chromascope.iser.io/guides/chromascope-photoshop/">
+  <meta property="og:title" content="How to Use Chromascope in Photoshop — Chromascope">
+  <meta property="og:description" content="Get started with Chromascope in Adobe Photoshop. Install the UXP panel, open the vectorscope, and start analyzing color in minutes.">
+  <meta property="og:image" content="https://chromascope.iser.io/images/og-preview.jpg">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="How to Use Chromascope in Photoshop — Chromascope">
+  <meta name="twitter:description" content="Get started with Chromascope in Adobe Photoshop. Install the UXP panel, open the vectorscope, and start analyzing color in minutes.">
+  <meta name="twitter:image" content="https://chromascope.iser.io/images/og-preview.jpg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>tailwind.config={theme:{extend:{colors:{brand:'#6366f1'}}}}</script>
+  <link rel="stylesheet" href="../../css/styles.css">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": "How to Use Chromascope in Photoshop",
+    "description": "Get started with Chromascope in Adobe Photoshop. Install the UXP panel, open the vectorscope, and start analyzing color in minutes.",
+    "datePublished": "2026-04-02",
+    "author": { "@type": "Organization", "name": "Chromascope" },
+    "publisher": { "@type": "Organization", "name": "Chromascope" }
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://chromascope.iser.io/" },
+      { "@type": "ListItem", "position": 2, "name": "Guides", "item": "https://chromascope.iser.io/guides/" },
+      { "@type": "ListItem", "position": 3, "name": "How to Use Chromascope in Photoshop", "item": "https://chromascope.iser.io/guides/chromascope-photoshop/" }
+    ]
+  }
+  </script>
+</head>
+<body class="bg-zinc-950 text-zinc-100 antialiased">
+  <nav class="border-b border-white/[0.06] px-6 py-4">
+    <div class="max-w-6xl mx-auto flex items-center justify-between">
+      <a href="../../" class="flex items-center gap-2.5">
+        <div class="w-6 h-6 rounded-full" style="background:conic-gradient(from 0deg,#f43f5e,#f97316,#eab308,#22c55e,#06b6d4,#8b5cf6,#f43f5e);filter:blur(0.3px)"></div>
+        <span class="font-bold text-lg tracking-tight gradient-text-subtle">Chromascope</span>
+      </a>
+      <div class="flex items-center gap-1">
+        <a href="../../download/" class="px-3 py-1.5 rounded-md text-sm text-zinc-500 hover:text-zinc-300 transition-colors">Download</a>
+        <a href="../../docs/" class="px-3 py-1.5 rounded-md text-sm text-zinc-500 hover:text-zinc-300 transition-colors">Docs</a>
+        <a href="../" class="px-3 py-1.5 rounded-md text-sm text-zinc-100 bg-white/[0.04]">Guides</a>
+        <a href="https://github.com/kevinkiklee/chromascope" class="px-3 py-1.5 rounded-md text-sm text-zinc-500 hover:text-zinc-300 transition-colors">GitHub</a>
+        <a href="../../download/" class="btn-primary text-white px-4 py-1.5 rounded-lg text-sm font-medium ml-3">Download</a>
+      </div>
+    </div>
+  </nav>
+  <div class="min-h-screen">
+    <div class="max-w-6xl mx-auto px-6 py-16 flex gap-12">
+      <aside class="hidden md:block w-52 shrink-0">
+        <nav class="sticky top-8 space-y-0.5">
+          <a href="../" class="block text-xs text-zinc-600 hover:text-zinc-400 mb-4 transition-colors">&larr; All guides</a>
+          <div class="gradient-badge text-[11px] font-semibold uppercase tracking-[0.14em] mb-3">On this page</div>
+          <a href="#installation" class="block text-sm text-zinc-500 hover:text-zinc-300 py-1 transition-colors">Installation</a>
+          <a href="#opening-the-panel" class="block text-sm text-zinc-500 hover:text-zinc-300 py-1 transition-colors">Opening the panel</a>
+          <a href="#the-vectorscope-display" class="block text-sm text-zinc-500 hover:text-zinc-300 py-1 transition-colors">The vectorscope display</a>
+          <a href="#density-modes" class="block text-sm text-zinc-500 hover:text-zinc-300 py-1 transition-colors">Density modes</a>
+          <a href="#harmony-overlays" class="block text-sm text-zinc-500 hover:text-zinc-300 py-1 transition-colors">Harmony overlays</a>
+          <a href="#real-time-updates" class="block text-sm text-zinc-500 hover:text-zinc-300 py-1 transition-colors">Real-time updates</a>
+          <a href="#tips" class="block text-sm text-zinc-500 hover:text-zinc-300 py-1 transition-colors">Tips</a>
+        </nav>
+      </aside>
+      <main class="flex-1 max-w-2xl">
+        <div class="mb-2 text-sm text-zinc-500">
+          <a href="../../" class="hover:text-zinc-300 transition-colors">Home</a>
+          <span class="mx-1.5">/</span>
+          <a href="../" class="hover:text-zinc-300 transition-colors">Guides</a>
+          <span class="mx-1.5">/</span>
+          <span class="text-zinc-400">Chromascope in Photoshop</span>
+        </div>
+        <div class="mb-10">
+          <h1 class="text-3xl md:text-4xl font-bold tracking-tight mb-3">How to Use Chromascope in Photoshop</h1>
+          <p class="text-zinc-400 text-[15px]">Install the UXP panel, learn the interface, and start using a vectorscope in your Photoshop workflow.</p>
+        </div>
+        <div class="space-y-10 text-zinc-400 text-[15px] leading-relaxed">
+
+          <div>
+            <img src="images/photoshop-scope.jpg" alt="Chromascope vectorscope panel docked in Adobe Photoshop, showing a scatter density plot of a portrait photograph" class="rounded-xl w-full mb-4">
+            <p>
+              Photoshop gives you precise control over individual pixels, but it does not include a vectorscope. The Info panel shows color values for a single point. The Histogram panel shows luminance distribution. Neither shows you the overall chrominance distribution of your image -- where your colors sit on the color wheel, how saturated they are relative to each other, or whether distinct color populations exist.
+            </p>
+            <p class="mt-4">
+              Chromascope adds a vectorscope panel to Photoshop via the UXP plugin architecture. It reads pixels from your active document and renders a real-time chrominance plot. This guide walks through installation, the interface, and practical usage. If you are new to vectorscopes, start with <a href="../what-is-a-vectorscope/" class="text-brand hover:underline">What Is a Vectorscope?</a>
+            </p>
+          </div>
+
+          <div>
+            <h2 id="installation" class="text-xl font-semibold text-zinc-100 mb-4">Installation</h2>
+            <p>
+              <a href="../../download/" class="text-brand hover:underline">Download Chromascope</a> and locate the Photoshop plugin folder in the archive. The plugin is packaged as a UXP plugin (<code class="text-zinc-300 bg-white/[0.06] px-1.5 py-0.5 rounded text-sm">.ccx</code> format).
+            </p>
+            <p class="mt-4">
+              Double-click the <code class="text-zinc-300 bg-white/[0.06] px-1.5 py-0.5 rounded text-sm">.ccx</code> file to install it through the Creative Cloud app. Alternatively, you can load it manually through the UXP Developer Tool during development. After installation, Photoshop will list Chromascope under the Plugins menu.
+            </p>
+            <p class="mt-4">
+              The plugin requires Photoshop 2022 (v23.0) or later, which is when Adobe introduced the UXP panel API with the imaging capabilities Chromascope uses for pixel access.
+            </p>
+          </div>
+
+          <div>
+            <h2 id="opening-the-panel" class="text-xl font-semibold text-zinc-100 mb-4">Opening the panel</h2>
+            <p>
+              Go to <strong class="text-zinc-200">Plugins &rarr; Chromascope</strong> to open the panel. It appears as a dockable panel, just like Layers or Properties. You can drag it into any panel group, resize it, or leave it floating.
+            </p>
+            <p class="mt-4">
+              Once docked, the panel persists across sessions. You do not need to reopen it each time you launch Photoshop. The vectorscope will render as soon as you have a document open with pixel content.
+            </p>
+          </div>
+
+          <div>
+            <h2 id="the-vectorscope-display" class="text-xl font-semibold text-zinc-100 mb-4">The vectorscope display</h2>
+            <p>
+              The vectorscope plot is a circular graph. Each pixel in your image is mapped to a position on this circle based on its color: the angle from center represents hue, and the distance from center represents saturation. Neutral grays cluster at the center. Vivid colors appear near the edge.
+            </p>
+            <p class="mt-4">
+              Chromascope supports three color space mappings: <strong class="text-zinc-200">YCbCr</strong>, <strong class="text-zinc-200">CIE LUV</strong>, and <strong class="text-zinc-200">HSL</strong>. Each arranges hues at different angles around the circle.
+            </p>
+            <p class="mt-4">
+              <strong class="text-zinc-200">YCbCr</strong> matches the traditional broadcast vectorscope layout. If you have experience with video color grading, this will feel familiar. The I-line (skin tone reference) is in the standard position.
+            </p>
+            <p class="mt-4">
+              <strong class="text-zinc-200">CIE LUV</strong> is perceptually uniform: equal distances on the plot represent equal perceived color differences. This is generally the most useful mode for photography because it makes visual judgments about color balance more intuitive.
+            </p>
+            <p class="mt-4">
+              <strong class="text-zinc-200">HSL</strong> maps the hue wheel directly, which can be helpful when cross-referencing with Photoshop's Hue/Saturation adjustment, since both use the same hue angle definition.
+            </p>
+          </div>
+
+          <div>
+            <h2 id="density-modes" class="text-xl font-semibold text-zinc-100 mb-4">Density modes</h2>
+            <p>
+              The density mode controls how overlapping pixels are visualized on the plot. The three options are <strong class="text-zinc-200">scatter</strong>, <strong class="text-zinc-200">heatmap</strong>, and <strong class="text-zinc-200">bloom</strong>.
+            </p>
+            <p class="mt-4">
+              <strong class="text-zinc-200">Scatter</strong> draws each sampled pixel as a single dot. Where many pixels overlap, the dots accumulate additively, creating brighter areas. Scatter gives you the most detailed view of the data -- you can see individual outliers, sparse clusters, and the exact shape of color populations.
+            </p>
+            <p class="mt-4">
+              <strong class="text-zinc-200">Heatmap</strong> maps pixel density to a color gradient. Areas with few pixels appear dark; areas with many pixels appear bright and warm-colored. This is useful for quickly identifying where the bulk of your color data lives.
+            </p>
+            <p class="mt-4">
+              <strong class="text-zinc-200">Bloom</strong> renders each pixel with a soft radial glow. Overlapping glows blend additively, producing smooth, luminous clouds that highlight dominant color regions. Bloom is the fastest way to read the overall color balance of an image at a glance.
+            </p>
+            <p class="mt-4">
+              For a deeper comparison, see <a href="../scatter-vs-bloom/" class="text-brand hover:underline">Scatter vs Bloom: Choosing the Right Display Mode</a>.
+            </p>
+          </div>
+
+          <div>
+            <h2 id="harmony-overlays" class="text-xl font-semibold text-zinc-100 mb-4">Harmony overlays</h2>
+            <p>
+              Chromascope can overlay color harmony guides on the vectorscope. Available schemes include complementary, split-complementary, triadic, analogous, and square. Each draws geometric zones on the plot corresponding to the harmony's hue relationships.
+            </p>
+            <p class="mt-4">
+              The overlay is rotatable. Set the base hue to your image's dominant color, and the overlay will show you where the complementary (or triadic, or analogous) colors should fall. This is a visual aid for evaluating whether your image's color palette aligns with a particular harmony, or for identifying which colors to push or pull during grading.
+            </p>
+            <p class="mt-4">
+              Harmony overlays are most useful during intentional color grading. If you are trying to achieve a complementary teal-and-orange look, for example, enable the complementary overlay, rotate it to the orange-teal axis, and use it as a target while adjusting Color Balance or Selective Color layers.
+            </p>
+          </div>
+
+          <div>
+            <h2 id="real-time-updates" class="text-xl font-semibold text-zinc-100 mb-4">Real-time updates</h2>
+            <p>
+              The Chromascope panel updates automatically when your document changes. Apply a Curves adjustment, paint on a mask, run a filter -- the vectorscope re-renders to reflect the current pixel state. The update is debounced so that rapid changes (like painting with a brush) do not cause excessive renders.
+            </p>
+            <p class="mt-4">
+              This immediate feedback is particularly valuable when working with adjustment layers. Add a Hue/Saturation layer, drag the Hue slider, and watch the color distribution rotate on the vectorscope in near-real-time. Add a Color Balance layer and watch the color mass shift. The vectorscope makes the effect of every adjustment visible in a way that the histogram cannot.
+            </p>
+            <p class="mt-4">
+              The skin tone reference line, when enabled, draws a line from the center of the scope at the expected skin tone hue angle. This is the same I-line used in broadcast video production. During portrait retouching, this line serves as a constant reference point. See <a href="../skin-tone-correction/" class="text-brand hover:underline">Skin Tone Correction</a> for a full walkthrough.
+            </p>
+          </div>
+
+          <div>
+            <h2 id="tips" class="text-xl font-semibold text-zinc-100 mb-4">Tips</h2>
+            <p>
+              <strong class="text-zinc-200">Dock the panel where you can see it.</strong> The value of a vectorscope comes from constant visibility. If you have to open and close it, you will not use it. Dock it in a panel group alongside your Histogram or Info panel so it is always visible while editing.
+            </p>
+            <p class="mt-4">
+              <strong class="text-zinc-200">Use scatter for retouching, bloom for grading.</strong> When doing precise color work on specific areas -- skin retouching, product color accuracy -- scatter mode lets you see exactly where those colors sit. When making broad creative adjustments to the overall palette, bloom gives you a faster read.
+            </p>
+            <p class="mt-4">
+              <strong class="text-zinc-200">Match HSL with the vectorscope.</strong> If you set the color space to HSL, the hue angles on the vectorscope correspond directly to the hue values in Photoshop's Hue/Saturation dialog. This makes it straightforward to identify a hue on the scope and target it with a Hue/Saturation adjustment layer.
+            </p>
+            <p class="mt-4">
+              <strong class="text-zinc-200">Check neutral targets.</strong> If your image contains something that should be neutral gray (a gray card, a white shirt, concrete), those pixels should cluster near the center of the vectorscope. If they are offset, you have a color cast. The direction of the offset tells you which hue the cast is, and the distance tells you how strong it is.
+            </p>
+            <p class="mt-4">
+              For the complete reference of all panel settings and controls, see the <a href="../../docs/photoshop/" class="text-brand hover:underline">Photoshop plugin documentation</a>.
+            </p>
+          </div>
+
+        </div>
+      </main>
+    </div>
+  </div>
+  <footer class="border-t border-white/[0.06] py-12 px-6">
+    <div class="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+      <div class="flex items-center gap-2.5">
+        <div class="w-5 h-5 rounded-full opacity-60" style="background:conic-gradient(from 0deg,#f43f5e,#f97316,#eab308,#22c55e,#06b6d4,#8b5cf6,#f43f5e)"></div>
+        <span class="text-sm text-zinc-500 font-medium">Chromascope</span>
+      </div>
+      <div class="flex gap-6 text-sm">
+        <a href="../../download/" class="text-zinc-500 hover:text-zinc-300 transition-colors">Download</a>
+        <a href="../../docs/" class="text-zinc-500 hover:text-zinc-300 transition-colors">Docs</a>
+        <a href="../" class="text-zinc-500 hover:text-zinc-300 transition-colors">Guides</a>
+        <a href="https://github.com/kevinkiklee/chromascope" class="text-zinc-500 hover:text-zinc-300 transition-colors">GitHub</a>
+      </div>
+      <p class="text-zinc-600 text-xs">&copy; 2025 Chromascope</p>
+    </div>
+  </footer>
+</body>
+</html>

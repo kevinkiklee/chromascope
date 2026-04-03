@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Color Grading Portraits with a Vectorscope — Chromascope</title>
+  <meta name="description" content="A practical vectorscope workflow for portrait color grading. Check white balance, verify skin tones, choose a harmony scheme, and push accent colors.">
+  <link rel="canonical" href="https://chromascope.iser.io/guides/color-grading-portraits/">
+  <meta name="robots" content="index, follow">
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="https://chromascope.iser.io/guides/color-grading-portraits/">
+  <meta property="og:title" content="Color Grading Portraits with a Vectorscope — Chromascope">
+  <meta property="og:description" content="A practical vectorscope workflow for portrait color grading. Check white balance, verify skin tones, choose a harmony scheme, and push accent colors.">
+  <meta property="og:image" content="https://chromascope.iser.io/images/og-preview.jpg">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Color Grading Portraits with a Vectorscope — Chromascope">
+  <meta name="twitter:description" content="A practical vectorscope workflow for portrait color grading. Check white balance, verify skin tones, choose a harmony scheme, and push accent colors.">
+  <meta name="twitter:image" content="https://chromascope.iser.io/images/og-preview.jpg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>tailwind.config={theme:{extend:{colors:{brand:'#6366f1'}}}}</script>
+  <link rel="stylesheet" href="../../css/styles.css">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": "Color Grading Portraits with a Vectorscope",
+    "description": "A practical vectorscope workflow for portrait color grading. Check white balance, verify skin tones, choose a harmony scheme, and push accent colors.",
+    "datePublished": "2026-04-02",
+    "author": { "@type": "Organization", "name": "Chromascope" },
+    "publisher": { "@type": "Organization", "name": "Chromascope" }
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://chromascope.iser.io/" },
+      { "@type": "ListItem", "position": 2, "name": "Guides", "item": "https://chromascope.iser.io/guides/" },
+      { "@type": "ListItem", "position": 3, "name": "Color Grading Portraits with a Vectorscope", "item": "https://chromascope.iser.io/guides/color-grading-portraits/" }
+    ]
+  }
+  </script>
+</head>
+<body class="bg-zinc-950 text-zinc-100 antialiased">
+  <nav class="border-b border-white/[0.06] px-6 py-4">
+    <div class="max-w-6xl mx-auto flex items-center justify-between">
+      <a href="../../" class="flex items-center gap-2.5">
+        <div class="w-6 h-6 rounded-full" style="background:conic-gradient(from 0deg,#f43f5e,#f97316,#eab308,#22c55e,#06b6d4,#8b5cf6,#f43f5e);filter:blur(0.3px)"></div>
+        <span class="font-bold text-lg tracking-tight gradient-text-subtle">Chromascope</span>
+      </a>
+      <div class="flex items-center gap-1">
+        <a href="../../download/" class="px-3 py-1.5 rounded-md text-sm text-zinc-500 hover:text-zinc-300 transition-colors">Download</a>
+        <a href="../../docs/" class="px-3 py-1.5 rounded-md text-sm text-zinc-500 hover:text-zinc-300 transition-colors">Docs</a>
+        <a href="../" class="px-3 py-1.5 rounded-md text-sm text-zinc-100 bg-white/[0.04]">Guides</a>
+        <a href="https://github.com/kevinkiklee/chromascope" class="px-3 py-1.5 rounded-md text-sm text-zinc-500 hover:text-zinc-300 transition-colors">GitHub</a>
+        <a href="../../download/" class="btn-primary text-white px-4 py-1.5 rounded-lg text-sm font-medium ml-3">Download</a>
+      </div>
+    </div>
+  </nav>
+  <div class="min-h-screen">
+    <div class="max-w-6xl mx-auto px-6 py-16 flex gap-12">
+      <aside class="hidden md:block w-52 shrink-0">
+        <nav class="sticky top-8 space-y-0.5">
+          <a href="../" class="block text-xs text-zinc-600 hover:text-zinc-400 mb-4 transition-colors">&larr; All guides</a>
+          <div class="gradient-badge text-[11px] font-semibold uppercase tracking-[0.14em] mb-3">On this page</div>
+          <a href="#start-with-white-balance" class="block text-sm text-zinc-500 hover:text-zinc-300 py-1 transition-colors">Start with white balance</a>
+          <a href="#verify-skin-tones" class="block text-sm text-zinc-500 hover:text-zinc-300 py-1 transition-colors">Verify skin tones</a>
+          <a href="#choose-a-color-harmony" class="block text-sm text-zinc-500 hover:text-zinc-300 py-1 transition-colors">Choose a color harmony</a>
+          <a href="#push-accent-colors" class="block text-sm text-zinc-500 hover:text-zinc-300 py-1 transition-colors">Push accent colors into zones</a>
+          <a href="#complete-workflow" class="block text-sm text-zinc-500 hover:text-zinc-300 py-1 transition-colors">The complete workflow</a>
+        </nav>
+      </aside>
+      <main class="flex-1 max-w-2xl">
+        <div class="mb-2 text-sm text-zinc-500">
+          <a href="../../" class="hover:text-zinc-300 transition-colors">Home</a>
+          <span class="mx-1.5">/</span>
+          <a href="../" class="hover:text-zinc-300 transition-colors">Guides</a>
+          <span class="mx-1.5">/</span>
+          <span class="text-zinc-400">Color Grading Portraits</span>
+        </div>
+        <div class="mb-10">
+          <h1 class="text-3xl md:text-4xl font-bold tracking-tight mb-3">Color Grading Portraits with a Vectorscope</h1>
+          <p class="text-zinc-400 text-[15px]">A step-by-step vectorscope workflow that takes a portrait from raw capture to finished grade while protecting skin tones throughout.</p>
+        </div>
+        <div class="space-y-10 text-zinc-400 text-[15px] leading-relaxed">
+
+          <!-- Hero image -->
+          <div>
+            <img src="images/portrait-original.jpg" alt="Vectorscope display of an ungraded portrait showing the initial chrominance distribution before color grading" class="rounded-xl w-full" width="800" height="450">
+            <p class="text-xs text-zinc-600 mt-2">The starting point: an ungraded portrait with its vectorscope showing the raw chrominance distribution.</p>
+          </div>
+
+          <p>Color grading a portrait is a balancing act. You want to create a mood through color, but you cannot let that mood destroy the one thing every viewer evaluates instinctively: skin. The vectorscope solves this by giving you an objective reference for skin accuracy while you push every other color in the frame.</p>
+          <p class="mt-3">This guide walks through a five-step workflow that works in both Lightroom Classic and Photoshop. The process is the same regardless of your editing tool -- only the specific controls differ.</p>
+
+          <!-- Section 1 -->
+          <section>
+            <h2 id="start-with-white-balance" class="text-xl font-semibold text-zinc-200 mb-4">Start with white balance</h2>
+            <p>Every portrait grade starts here. White balance errors propagate through every subsequent adjustment, and they are the single most common reason skin tones look wrong. Get this right first and you eliminate most problems before they start.</p>
+            <p class="mt-3">Open the vectorscope and look at the overall distribution. A properly white-balanced image has its chrominance centroid near the center of the scope. If the entire cluster is shifted toward one side, you have a color cast. Adjust the Temperature slider (warm/cool axis) and the Tint slider (green/magenta axis) until the distribution sits where it belongs.</p>
+            <p class="mt-3">For portraits specifically, "correct" white balance is not always dead neutral. Portraits shot during golden hour should retain some warmth -- the subject expects to see that warm light in the final image. The vectorscope tells you how much warmth is present so you can make a conscious decision rather than guessing. A slight shift toward the warm/orange side of center is normal and often desirable for portraits. A large shift, or any shift toward green or magenta, is almost always a problem.</p>
+            <p class="mt-3">For a detailed treatment of white balance correction with a vectorscope, see the <a href="../white-balance-vectorscope/" class="text-brand hover:text-indigo-300 transition-colors">white balance guide</a>.</p>
+          </section>
+
+          <!-- Section 2 -->
+          <section>
+            <h2 id="verify-skin-tones" class="text-xl font-semibold text-zinc-200 mb-4">Verify skin tones</h2>
+            <p>With white balance set, enable the skin tone reference line on the vectorscope. This line marks the hue angle where all human skin should fall -- approximately 123 degrees on a YCbCr scope, in the warm orange region.</p>
+            <p class="mt-3">Look at where the skin pixels cluster relative to this line. In a portrait, skin usually represents a significant portion of the frame, so you will see a prominent cluster. If that cluster sits on or very close to the reference line, skin is reading accurately and you can move to creative grading. If it is off the line, correct it before grading.</p>
+            <p class="mt-3">The <a href="../skin-tone-correction/" class="text-brand hover:text-indigo-300 transition-colors">skin tone correction guide</a> covers the full range of correction techniques. The short version: use HSL hue sliders (Orange and Yellow channels) to rotate the skin cluster onto the reference line. Small adjustments of 3 to 8 units are typical.</p>
+            <p class="mt-3">This step establishes your baseline. From this point forward, every creative adjustment you make should be checked against this baseline. If skin drifts off the reference line as you grade, you have pushed too far or need to isolate your adjustments.</p>
+          </section>
+
+          <!-- Section 3 -->
+          <section>
+            <h2 id="choose-a-color-harmony" class="text-xl font-semibold text-zinc-200 mb-4">Choose a color harmony</h2>
+
+            <img src="images/portrait-harmony.jpg" alt="Vectorscope with a complementary harmony overlay showing skin tones on one side and teal accent colors on the opposite side" class="rounded-xl w-full my-6" loading="lazy" width="800" height="450">
+            <p class="text-xs text-zinc-600 mb-6">A complementary harmony overlay anchored to the skin tone angle. The opposite zone targets teal -- a classic portrait palette.</p>
+
+            <p>With skin tones verified, you can now decide the color palette for the rest of the image. This is where the vectorscope shifts from a diagnostic tool to a creative one.</p>
+            <p class="mt-3">Color harmony overlays divide the vectorscope into zones based on established color theory relationships. The most useful harmonies for portraits are:</p>
+            <p class="mt-3"><strong class="text-zinc-200">Complementary.</strong> Two zones 180 degrees apart. Anchor one zone on your skin tone angle, and the opposite zone shows you the complement -- typically in the teal/cyan range. This is the classic "orange and teal" look that dominates cinema and editorial photography. The vectorscope shows you exactly how far to push the teal without overcooking it.</p>
+            <p class="mt-3"><strong class="text-zinc-200">Analogous.</strong> Two or three zones adjacent on the color wheel. Anchoring on skin tone gives you a palette that ranges from warm yellow through orange to warm red. This produces a cohesive, warm-toned image. It works well for golden hour portraits and intimate settings. On the vectorscope, you will see the entire chrominance distribution compressed into a narrow arc.</p>
+            <p class="mt-3"><strong class="text-zinc-200">Split-complementary.</strong> One primary zone with two accent zones flanking its complement. Starting from skin tone, the accents land in the blue-green and blue-violet regions. This gives more color variety than strict complementary while still maintaining contrast against the skin.</p>
+            <p class="mt-3">The harmony overlay does not force anything -- it shows you target zones. Your job is to push the non-skin colors in the image toward those zones using the tools available in your editor.</p>
+          </section>
+
+          <!-- Section 4 -->
+          <section>
+            <h2 id="push-accent-colors" class="text-xl font-semibold text-zinc-200 mb-4">Push accent colors into zones</h2>
+            <p>With a harmony selected, you now shape the non-skin colors to fit the palette. The vectorscope tells you where colors currently sit and how close they are to your target zones.</p>
+            <p class="mt-3"><strong class="text-zinc-200">HSL sliders for global shifts.</strong> Use the Hue sliders for Blue, Aqua, and Green channels to rotate background and environmental colors toward your target harmony zone. The vectorscope gives you immediate feedback: watch the relevant cluster move as you adjust. Stop when it enters the target zone. Pushing further will look forced.</p>
+            <p class="mt-3"><strong class="text-zinc-200">Split toning / color grading panel.</strong> Both Lightroom and Photoshop offer shadow/midtone/highlight color grading. This is your primary tool for adding color to neutral or near-neutral areas. For a complementary skin-tone-plus-teal palette, add a teal tone to the shadows. The vectorscope will show a new cluster or extension toward the teal region. Keep it subtle -- if the shadow cluster reaches the same saturation level as the skin cluster, the grade will look heavy-handed.</p>
+            <p class="mt-3"><strong class="text-zinc-200">Saturation control by luminance.</strong> Portraits benefit from lower saturation in the highlights and higher relative saturation in the midtones (where skin lives). In Lightroom, the Tone Curve's Point Curve in individual channels can shape this. In Photoshop, a Hue/Saturation layer with a luminosity blend-if constraint achieves the same result. On the vectorscope, watch for highlights pulling toward the outer edge of the scope -- that usually means the grade is too aggressive in bright areas.</p>
+            <p class="mt-3"><strong class="text-zinc-200">Protect the skin throughout.</strong> After each adjustment, glance at the skin tone cluster. If it has moved off the reference line, you have two options: dial back the adjustment, or use a mask to exclude skin from the effect. In Lightroom, subject masking with an inverted skin selection works. In Photoshop, a Hue/Saturation or Color Range mask isolating skin tones lets you exclude them from the grading layer.</p>
+          </section>
+
+          <!-- Section 5 -->
+          <section>
+            <h2 id="complete-workflow" class="text-xl font-semibold text-zinc-200 mb-4">The complete workflow</h2>
+            <p>Putting it together, the full portrait grading workflow with a vectorscope is:</p>
+            <ol class="list-decimal list-inside space-y-2 mt-3 text-zinc-400">
+              <li><strong class="text-zinc-200">White balance.</strong> Center the chrominance distribution. Allow slight warmth for portraits.</li>
+              <li><strong class="text-zinc-200">Skin tone check.</strong> Enable the skin tone line. Verify the skin cluster sits on the reference angle. Correct with HSL hue sliders if needed.</li>
+              <li><strong class="text-zinc-200">Select a harmony.</strong> Choose complementary, analogous, or split-complementary based on the mood you want. Enable the harmony overlay.</li>
+              <li><strong class="text-zinc-200">Shape accent colors.</strong> Use HSL, split toning, and curves to push non-skin colors toward the harmony target zones. Watch the vectorscope for feedback.</li>
+              <li><strong class="text-zinc-200">Final skin check.</strong> Verify the skin cluster has not drifted. Mask corrections if necessary.</li>
+            </ol>
+            <p class="mt-4">This workflow takes about 60 seconds once you are familiar with it. The vectorscope replaces trial-and-error with direct feedback, and the harmony overlay replaces subjective "does this look right?" with a defined color target.</p>
+            <p class="mt-3">The result is not formulaic -- you choose the harmony, you decide how far to push the grade, you control the balance between accuracy and mood. The vectorscope just ensures you are making those decisions with accurate information.</p>
+            <p class="mt-3"><a href="../../download/" class="text-brand hover:text-indigo-300 transition-colors">Download Chromascope</a> to get the skin tone line and harmony overlays in both <a href="../chromascope-lightroom/" class="text-brand hover:text-indigo-300 transition-colors">Lightroom Classic</a> and Photoshop. The harmony overlay is available in complementary, analogous, triadic, and split-complementary modes, each rotatable to anchor on any hue angle.</p>
+          </section>
+
+        </div>
+      </main>
+    </div>
+  </div>
+  <footer class="border-t border-white/[0.06] py-12 px-6">
+    <div class="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+      <div class="flex items-center gap-2.5">
+        <div class="w-5 h-5 rounded-full opacity-60" style="background:conic-gradient(from 0deg,#f43f5e,#f97316,#eab308,#22c55e,#06b6d4,#8b5cf6,#f43f5e)"></div>
+        <span class="text-sm text-zinc-500 font-medium">Chromascope</span>
+      </div>
+      <div class="flex gap-6 text-sm">
+        <a href="../../download/" class="text-zinc-500 hover:text-zinc-300 transition-colors">Download</a>
+        <a href="../../docs/" class="text-zinc-500 hover:text-zinc-300 transition-colors">Docs</a>
+        <a href="../" class="text-zinc-500 hover:text-zinc-300 transition-colors">Guides</a>
+        <a href="https://github.com/kevinkiklee/chromascope" class="text-zinc-500 hover:text-zinc-300 transition-colors">GitHub</a>
+      </div>
+      <p class="text-zinc-600 text-xs">&copy; 2025 Chromascope</p>
+    </div>
+  </footer>
+</body>
+</html>

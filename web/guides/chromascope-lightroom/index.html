@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>How to Use Chromascope in Lightroom Classic — Chromascope</title>
+  <meta name="description" content="Get started with Chromascope in Adobe Lightroom Classic. Install the plugin, open the vectorscope, and learn the controls in five minutes.">
+  <link rel="canonical" href="https://chromascope.iser.io/guides/chromascope-lightroom/">
+  <meta name="robots" content="index, follow">
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="https://chromascope.iser.io/guides/chromascope-lightroom/">
+  <meta property="og:title" content="How to Use Chromascope in Lightroom Classic — Chromascope">
+  <meta property="og:description" content="Get started with Chromascope in Adobe Lightroom Classic. Install the plugin, open the vectorscope, and learn the controls in five minutes.">
+  <meta property="og:image" content="https://chromascope.iser.io/images/og-preview.jpg">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="How to Use Chromascope in Lightroom Classic — Chromascope">
+  <meta name="twitter:description" content="Get started with Chromascope in Adobe Lightroom Classic. Install the plugin, open the vectorscope, and learn the controls in five minutes.">
+  <meta name="twitter:image" content="https://chromascope.iser.io/images/og-preview.jpg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>tailwind.config={theme:{extend:{colors:{brand:'#6366f1'}}}}</script>
+  <link rel="stylesheet" href="../../css/styles.css">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": "How to Use Chromascope in Lightroom Classic",
+    "description": "Get started with Chromascope in Adobe Lightroom Classic. Install the plugin, open the vectorscope, and learn the controls in five minutes.",
+    "datePublished": "2026-04-02",
+    "author": { "@type": "Organization", "name": "Chromascope" },
+    "publisher": { "@type": "Organization", "name": "Chromascope" }
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://chromascope.iser.io/" },
+      { "@type": "ListItem", "position": 2, "name": "Guides", "item": "https://chromascope.iser.io/guides/" },
+      { "@type": "ListItem", "position": 3, "name": "How to Use Chromascope in Lightroom Classic", "item": "https://chromascope.iser.io/guides/chromascope-lightroom/" }
+    ]
+  }
+  </script>
+</head>
+<body class="bg-zinc-950 text-zinc-100 antialiased">
+  <nav class="border-b border-white/[0.06] px-6 py-4">
+    <div class="max-w-6xl mx-auto flex items-center justify-between">
+      <a href="../../" class="flex items-center gap-2.5">
+        <div class="w-6 h-6 rounded-full" style="background:conic-gradient(from 0deg,#f43f5e,#f97316,#eab308,#22c55e,#06b6d4,#8b5cf6,#f43f5e);filter:blur(0.3px)"></div>
+        <span class="font-bold text-lg tracking-tight gradient-text-subtle">Chromascope</span>
+      </a>
+      <div class="flex items-center gap-1">
+        <a href="../../download/" class="px-3 py-1.5 rounded-md text-sm text-zinc-500 hover:text-zinc-300 transition-colors">Download</a>
+        <a href="../../docs/" class="px-3 py-1.5 rounded-md text-sm text-zinc-500 hover:text-zinc-300 transition-colors">Docs</a>
+        <a href="../" class="px-3 py-1.5 rounded-md text-sm text-zinc-100 bg-white/[0.04]">Guides</a>
+        <a href="https://github.com/kevinkiklee/chromascope" class="px-3 py-1.5 rounded-md text-sm text-zinc-500 hover:text-zinc-300 transition-colors">GitHub</a>
+        <a href="../../download/" class="btn-primary text-white px-4 py-1.5 rounded-lg text-sm font-medium ml-3">Download</a>
+      </div>
+    </div>
+  </nav>
+  <div class="min-h-screen">
+    <div class="max-w-6xl mx-auto px-6 py-16 flex gap-12">
+      <aside class="hidden md:block w-52 shrink-0">
+        <nav class="sticky top-8 space-y-0.5">
+          <a href="../" class="block text-xs text-zinc-600 hover:text-zinc-400 mb-4 transition-colors">&larr; All guides</a>
+          <div class="gradient-badge text-[11px] font-semibold uppercase tracking-[0.14em] mb-3">On this page</div>
+          <a href="#installation" class="block text-sm text-zinc-500 hover:text-zinc-300 py-1 transition-colors">Installation</a>
+          <a href="#opening-chromascope" class="block text-sm text-zinc-500 hover:text-zinc-300 py-1 transition-colors">Opening Chromascope</a>
+          <a href="#the-vectorscope-display" class="block text-sm text-zinc-500 hover:text-zinc-300 py-1 transition-colors">The vectorscope display</a>
+          <a href="#density-modes" class="block text-sm text-zinc-500 hover:text-zinc-300 py-1 transition-colors">Density modes</a>
+          <a href="#harmony-overlays" class="block text-sm text-zinc-500 hover:text-zinc-300 py-1 transition-colors">Harmony overlays</a>
+          <a href="#real-time-updates" class="block text-sm text-zinc-500 hover:text-zinc-300 py-1 transition-colors">Real-time updates</a>
+          <a href="#tips-for-daily-use" class="block text-sm text-zinc-500 hover:text-zinc-300 py-1 transition-colors">Tips for daily use</a>
+        </nav>
+      </aside>
+      <main class="flex-1 max-w-2xl">
+        <div class="mb-2 text-sm text-zinc-500">
+          <a href="../../" class="hover:text-zinc-300 transition-colors">Home</a>
+          <span class="mx-1.5">/</span>
+          <a href="../" class="hover:text-zinc-300 transition-colors">Guides</a>
+          <span class="mx-1.5">/</span>
+          <span class="text-zinc-400">Chromascope in Lightroom Classic</span>
+        </div>
+        <div class="mb-10">
+          <h1 class="text-3xl md:text-4xl font-bold tracking-tight mb-3">How to Use Chromascope in Lightroom Classic</h1>
+          <p class="text-zinc-400 text-[15px]">Install the plugin, learn the controls, and start analyzing color in your photos -- all in about five minutes.</p>
+        </div>
+        <div class="space-y-10 text-zinc-400 text-[15px] leading-relaxed">
+
+          <div>
+            <img src="images/lightroom-scope.jpg" alt="Chromascope vectorscope panel running inside Adobe Lightroom Classic, showing a bloom density plot of a landscape photograph" class="rounded-xl w-full mb-4">
+            <p>
+              Lightroom Classic has histograms. It does not have a vectorscope. That means you can see how bright your pixels are, but you cannot see where they sit on the color wheel, how saturated they are relative to each other, or whether your skin tones fall on the correct hue axis. Chromascope adds that missing tool directly inside Lightroom as a plugin.
+            </p>
+            <p class="mt-4">
+              This guide covers the practical steps: installing the plugin, opening it, understanding what you see, and using it during real editing sessions. If you want the theory behind vectorscopes first, read <a href="../what-is-a-vectorscope/" class="text-brand hover:underline">What Is a Vectorscope?</a> before continuing.
+            </p>
+          </div>
+
+          <div>
+            <h2 id="installation" class="text-xl font-semibold text-zinc-100 mb-4">Installation</h2>
+            <p>
+              <a href="../../download/" class="text-brand hover:underline">Download Chromascope</a> and unzip it. Inside the archive you will find a folder named <code class="text-zinc-300 bg-white/[0.06] px-1.5 py-0.5 rounded text-sm">chromascope.lrdevplugin</code>. This is the Lightroom plugin bundle.
+            </p>
+            <p class="mt-4">
+              To install it, open Lightroom Classic, go to <strong class="text-zinc-200">File &rarr; Plug-in Manager</strong>, and click <strong class="text-zinc-200">Add</strong>. Navigate to the <code class="text-zinc-300 bg-white/[0.06] px-1.5 py-0.5 rounded text-sm">chromascope.lrdevplugin</code> folder and select it. Lightroom will load the plugin immediately. You do not need to restart.
+            </p>
+            <p class="mt-4">
+              The plugin includes a bundled binary that handles image decoding and vectorscope rendering. Lightroom's plugin sandbox does not allow direct pixel access from Lua, so Chromascope uses a native renderer to produce the vectorscope image. This binary is included for both macOS (Apple Silicon and Intel) and Windows. No additional dependencies are required.
+            </p>
+          </div>
+
+          <div>
+            <h2 id="opening-chromascope" class="text-xl font-semibold text-zinc-100 mb-4">Opening Chromascope</h2>
+            <p>
+              Once the plugin is installed, open it from <strong class="text-zinc-200">File &rarr; Plug-in Extras &rarr; Chromascope</strong>. This opens a dialog window containing the vectorscope display and control panel.
+            </p>
+            <p class="mt-4">
+              The dialog works in the Develop module. Switch to Develop, select a photo, then open Chromascope. The vectorscope will render from the current state of your image, including any develop adjustments you have applied.
+            </p>
+          </div>
+
+          <div>
+            <h2 id="the-vectorscope-display" class="text-xl font-semibold text-zinc-100 mb-4">The vectorscope display</h2>
+            <p>
+              The main area of the Chromascope window is the vectorscope plot. It is a circular graph where the angle from center represents hue and the distance from center represents saturation. Pixels with no color (pure gray) appear at the center. Highly saturated pixels appear near the edge.
+            </p>
+            <p class="mt-4">
+              Around the perimeter you will see degree labels and color targets. The standard layout places red at the upper left, yellow at the upper right, green at the right, cyan at the lower right, blue at the lower left, and magenta at the left. If you are coming from video scopes, note that the exact positions depend on the color space -- Chromascope supports YCbCr, CIE LUV, and HSL, each of which arranges hues differently. YCbCr matches the traditional broadcast vectorscope layout. CIE LUV is perceptually uniform. HSL maps hue angle directly.
+            </p>
+            <p class="mt-4">
+              For most photography work, CIE LUV is the best starting point. Colors that look equally different to your eye are equally spaced on the plot, which makes it easier to judge color balance by the shape of the distribution rather than memorizing target positions. For a deeper explanation of reading vectorscope plots, see <a href="../what-is-a-vectorscope/" class="text-brand hover:underline">What Is a Vectorscope?</a>
+            </p>
+          </div>
+
+          <div>
+            <h2 id="density-modes" class="text-xl font-semibold text-zinc-100 mb-4">Density modes</h2>
+            <p>
+              Chromascope offers three density rendering modes: <strong class="text-zinc-200">scatter</strong>, <strong class="text-zinc-200">heatmap</strong>, and <strong class="text-zinc-200">bloom</strong>. You can switch between them using the density control in the settings panel.
+            </p>
+            <p class="mt-4">
+              <strong class="text-zinc-200">Scatter</strong> plots each sampled pixel as an individual dot with additive blending. Areas with many overlapping pixels appear brighter. This is the most literal representation of your data -- every pixel gets equal visual weight. Scatter is best for technical analysis where you need to see the exact distribution, including sparse outliers.
+            </p>
+            <p class="mt-4">
+              <strong class="text-zinc-200">Heatmap</strong> maps pixel density to a color ramp, typically from dark to bright. Dense regions appear as hot colors. This is useful when you want to quickly identify the dominant color populations in your image.
+            </p>
+            <p class="mt-4">
+              <strong class="text-zinc-200">Bloom</strong> adds a soft radial glow around each pixel, with overlapping glows blending additively. The result is a smooth, organic-looking plot that emphasizes where color mass is concentrated. Bloom is the best mode for getting a quick visual read on overall color balance.
+            </p>
+            <p class="mt-4">
+              For a detailed comparison of when to use each mode, see <a href="../scatter-vs-bloom/" class="text-brand hover:underline">Scatter vs Bloom</a>.
+            </p>
+          </div>
+
+          <div>
+            <h2 id="harmony-overlays" class="text-xl font-semibold text-zinc-100 mb-4">Harmony overlays</h2>
+            <p>
+              The harmony overlay draws a geometric guide on top of the vectorscope plot. Chromascope supports complementary, split-complementary, triadic, analogous, and square harmony schemes. You can rotate the overlay to align with any base hue.
+            </p>
+            <p class="mt-4">
+              The overlay is a compositional aid, not a rule. When you enable a complementary overlay, for example, you will see two zones 180 degrees apart on the scope. If your image's color distribution falls mostly within those two zones, the palette has a complementary relationship. If the distribution spills outside the zones, it does not -- and that may or may not be a problem, depending on your creative intent.
+            </p>
+            <p class="mt-4">
+              A practical use: enable the analogous overlay and rotate it to align with your subject's dominant color. If stray color populations fall well outside the analogous zone, those are candidates for targeted hue or saturation adjustments.
+            </p>
+          </div>
+
+          <div>
+            <h2 id="real-time-updates" class="text-xl font-semibold text-zinc-100 mb-4">Real-time updates</h2>
+            <p>
+              Chromascope updates the vectorscope as you edit. When you move a slider in the Develop module -- white balance, HSL, tone curve, or any other adjustment -- the plugin detects the change and re-renders the scope. There is a short debounce to avoid overwhelming the system while you are dragging a slider. The update typically appears within a fraction of a second after you release.
+            </p>
+            <p class="mt-4">
+              This feedback loop is the core value of having a vectorscope inside your editor. Instead of making an adjustment, exporting, opening in another tool, and checking, you see the effect on color distribution immediately. You can drag the temperature slider and watch the color mass shift between warm and cool in real time.
+            </p>
+            <p class="mt-4">
+              The plugin also includes a skin tone reference line. When enabled, a line is drawn from the center of the scope at the expected skin tone hue angle. This is useful during portrait editing -- as you adjust white balance or HSL sliders, you can watch whether skin tones are drifting toward or away from the reference. For a full walkthrough of this workflow, see <a href="../skin-tone-correction/" class="text-brand hover:underline">Skin Tone Correction</a>.
+            </p>
+          </div>
+
+          <div>
+            <h2 id="tips-for-daily-use" class="text-xl font-semibold text-zinc-100 mb-4">Tips for daily use</h2>
+            <p>
+              <strong class="text-zinc-200">Start with bloom, switch to scatter when needed.</strong> Bloom gives you the fastest read on overall color balance. Switch to scatter when you need to investigate specific outliers or see exactly how spread out a color cluster is.
+            </p>
+            <p class="mt-4">
+              <strong class="text-zinc-200">Use CIE LUV for color grading.</strong> Because it is perceptually uniform, the visual distance between two points on the plot corresponds to the perceived color difference. This makes it easier to judge whether your color grade is balanced without constantly cross-referencing target positions.
+            </p>
+            <p class="mt-4">
+              <strong class="text-zinc-200">Check before and after.</strong> Open Chromascope before you start editing to see the raw color distribution. As you work, the scope updates in real time. Comparing the starting shape to the current shape tells you exactly what your adjustments have done to the color palette.
+            </p>
+            <p class="mt-4">
+              <strong class="text-zinc-200">Pair with HSL adjustments.</strong> The vectorscope shows you where colors are; the HSL panel lets you move them. Identify a problematic hue on the scope, then use HSL sliders to shift, desaturate, or darken it. The scope updates as you drag, so you get immediate confirmation.
+            </p>
+            <p class="mt-4">
+              For the full reference of every setting and control, see the <a href="../../docs/lightroom/" class="text-brand hover:underline">Lightroom plugin documentation</a>.
+            </p>
+          </div>
+
+        </div>
+      </main>
+    </div>
+  </div>
+  <footer class="border-t border-white/[0.06] py-12 px-6">
+    <div class="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+      <div class="flex items-center gap-2.5">
+        <div class="w-5 h-5 rounded-full opacity-60" style="background:conic-gradient(from 0deg,#f43f5e,#f97316,#eab308,#22c55e,#06b6d4,#8b5cf6,#f43f5e)"></div>
+        <span class="text-sm text-zinc-500 font-medium">Chromascope</span>
+      </div>
+      <div class="flex gap-6 text-sm">
+        <a href="../../download/" class="text-zinc-500 hover:text-zinc-300 transition-colors">Download</a>
+        <a href="../../docs/" class="text-zinc-500 hover:text-zinc-300 transition-colors">Docs</a>
+        <a href="../" class="text-zinc-500 hover:text-zinc-300 transition-colors">Guides</a>
+        <a href="https://github.com/kevinkiklee/chromascope" class="text-zinc-500 hover:text-zinc-300 transition-colors">GitHub</a>
+      </div>
+      <p class="text-zinc-600 text-xs">&copy; 2025 Chromascope</p>
+    </div>
+  </footer>
+</body>
+</html>

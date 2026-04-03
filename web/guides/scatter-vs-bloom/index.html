@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Scatter vs Bloom: Choosing the Right Vectorscope Display Mode — Chromascope</title>
+  <meta name="description" content="When to use scatter mode and when to use bloom mode on a vectorscope. What each reveals about your image and how to choose between them.">
+  <link rel="canonical" href="https://chromascope.iser.io/guides/scatter-vs-bloom/">
+  <meta name="robots" content="index, follow">
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="https://chromascope.iser.io/guides/scatter-vs-bloom/">
+  <meta property="og:title" content="Scatter vs Bloom: Choosing the Right Vectorscope Display Mode — Chromascope">
+  <meta property="og:description" content="When to use scatter mode and when to use bloom mode on a vectorscope. What each reveals about your image and how to choose between them.">
+  <meta property="og:image" content="https://chromascope.iser.io/images/og-preview.jpg">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Scatter vs Bloom: Choosing the Right Vectorscope Display Mode — Chromascope">
+  <meta name="twitter:description" content="When to use scatter mode and when to use bloom mode on a vectorscope. What each reveals about your image and how to choose between them.">
+  <meta name="twitter:image" content="https://chromascope.iser.io/images/og-preview.jpg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>tailwind.config={theme:{extend:{colors:{brand:'#6366f1'}}}}</script>
+  <link rel="stylesheet" href="../../css/styles.css">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": "Scatter vs Bloom: Choosing the Right Vectorscope Display Mode",
+    "description": "When to use scatter mode and when to use bloom mode on a vectorscope. What each reveals about your image and how to choose between them.",
+    "datePublished": "2026-04-02",
+    "author": { "@type": "Organization", "name": "Chromascope" },
+    "publisher": { "@type": "Organization", "name": "Chromascope" }
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://chromascope.iser.io/" },
+      { "@type": "ListItem", "position": 2, "name": "Guides", "item": "https://chromascope.iser.io/guides/" },
+      { "@type": "ListItem", "position": 3, "name": "Scatter vs Bloom", "item": "https://chromascope.iser.io/guides/scatter-vs-bloom/" }
+    ]
+  }
+  </script>
+</head>
+<body class="bg-zinc-950 text-zinc-100 antialiased">
+  <nav class="border-b border-white/[0.06] px-6 py-4">
+    <div class="max-w-6xl mx-auto flex items-center justify-between">
+      <a href="../../" class="flex items-center gap-2.5">
+        <div class="w-6 h-6 rounded-full" style="background:conic-gradient(from 0deg,#f43f5e,#f97316,#eab308,#22c55e,#06b6d4,#8b5cf6,#f43f5e);filter:blur(0.3px)"></div>
+        <span class="font-bold text-lg tracking-tight gradient-text-subtle">Chromascope</span>
+      </a>
+      <div class="flex items-center gap-1">
+        <a href="../../download/" class="px-3 py-1.5 rounded-md text-sm text-zinc-500 hover:text-zinc-300 transition-colors">Download</a>
+        <a href="../../docs/" class="px-3 py-1.5 rounded-md text-sm text-zinc-500 hover:text-zinc-300 transition-colors">Docs</a>
+        <a href="../" class="px-3 py-1.5 rounded-md text-sm text-zinc-100 bg-white/[0.04]">Guides</a>
+        <a href="https://github.com/kevinkiklee/chromascope" class="px-3 py-1.5 rounded-md text-sm text-zinc-500 hover:text-zinc-300 transition-colors">GitHub</a>
+        <a href="../../download/" class="btn-primary text-white px-4 py-1.5 rounded-lg text-sm font-medium ml-3">Download</a>
+      </div>
+    </div>
+  </nav>
+  <div class="min-h-screen">
+    <div class="max-w-6xl mx-auto px-6 py-16 flex gap-12">
+      <aside class="hidden md:block w-52 shrink-0">
+        <nav class="sticky top-8 space-y-0.5">
+          <a href="../" class="block text-xs text-zinc-600 hover:text-zinc-400 mb-4 transition-colors">&larr; All guides</a>
+          <div class="gradient-badge text-[11px] font-semibold uppercase tracking-[0.14em] mb-3">On this page</div>
+          <a href="#what-scatter-mode-shows" class="block text-sm text-zinc-500 hover:text-zinc-300 py-1 transition-colors">What scatter mode shows</a>
+          <a href="#what-bloom-mode-shows" class="block text-sm text-zinc-500 hover:text-zinc-300 py-1 transition-colors">What bloom mode shows</a>
+          <a href="#when-to-use-scatter" class="block text-sm text-zinc-500 hover:text-zinc-300 py-1 transition-colors">When to use scatter</a>
+          <a href="#when-to-use-bloom" class="block text-sm text-zinc-500 hover:text-zinc-300 py-1 transition-colors">When to use bloom</a>
+          <a href="#side-by-side-comparison" class="block text-sm text-zinc-500 hover:text-zinc-300 py-1 transition-colors">Side-by-side comparison</a>
+        </nav>
+      </aside>
+      <main class="flex-1 max-w-2xl">
+        <div class="mb-2 text-sm text-zinc-500">
+          <a href="../../" class="hover:text-zinc-300 transition-colors">Home</a>
+          <span class="mx-1.5">/</span>
+          <a href="../" class="hover:text-zinc-300 transition-colors">Guides</a>
+          <span class="mx-1.5">/</span>
+          <span class="text-zinc-400">Scatter vs Bloom</span>
+        </div>
+        <div class="mb-10">
+          <h1 class="text-3xl md:text-4xl font-bold tracking-tight mb-3">Scatter vs Bloom: Choosing the Right Vectorscope Display Mode</h1>
+          <p class="text-zinc-400 text-[15px]">Both modes show the same data. They reveal different things about it.</p>
+        </div>
+        <div class="space-y-10 text-zinc-400 text-[15px] leading-relaxed">
+
+          <div>
+            <img src="images/scatter-example.jpg" alt="Vectorscope in scatter mode showing individual pixel dots with additive blending, revealing sparse color distribution of a landscape photograph" class="rounded-xl w-full mb-4">
+            <p>
+              Chromascope offers multiple density rendering modes for the vectorscope display. The two most commonly used are scatter and bloom. Both plot the same color data from your image onto the same circular graph. The difference is in how they visualize pixel density -- how they handle the fact that many pixels may map to the same position on the plot.
+            </p>
+            <p class="mt-4">
+              Choosing the right mode is not about one being better than the other. Each reveals different characteristics of your color distribution. Understanding what each mode emphasizes will help you pick the right one for the task at hand. If you are new to vectorscopes in general, read <a href="../how-to-read-a-vectorscope/" class="text-brand hover:underline">How to Read a Vectorscope</a> first.
+            </p>
+          </div>
+
+          <div>
+            <h2 id="what-scatter-mode-shows" class="text-xl font-semibold text-zinc-100 mb-4">What scatter mode shows</h2>
+            <p>
+              In scatter mode, every sampled pixel is plotted as a single dot on the vectorscope. The dot is placed at the position corresponding to that pixel's hue (angle) and saturation (distance from center). When multiple pixels map to the same or nearby positions, their dots overlap. Because Chromascope uses additive blending, overlapping dots produce a brighter result.
+            </p>
+            <p class="mt-4">
+              The visual effect is a star-field-like display. Sparse color populations appear as dim, scattered points. Dense populations -- where many pixels share similar hue and saturation values -- appear as bright clusters. The brightness at any point on the scatter plot is proportional to the number of pixels that map there.
+            </p>
+            <p class="mt-4">
+              Scatter mode preserves detail at the individual pixel level. A single outlier pixel -- say, a bright red mailbox in an otherwise muted scene -- will appear as a visible dot near the edge of the scope at the red hue angle. In bloom mode, that single pixel might be invisible because its glow is too faint to register against the background.
+            </p>
+            <p class="mt-4">
+              Scatter also preserves the exact shape of color clusters. If your skin tones form a tight, elongated cluster along the I-line, scatter mode will show that precise shape. You can see whether the cluster is round (evenly distributed) or stretched (spanning a range of hues or saturations).
+            </p>
+          </div>
+
+          <div>
+            <h2 id="what-bloom-mode-shows" class="text-xl font-semibold text-zinc-100 mb-4">What bloom mode shows</h2>
+            <img src="images/bloom-example.jpg" alt="Vectorscope in bloom mode showing soft radial glows blending additively, highlighting dominant color masses in a landscape photograph" class="rounded-xl w-full mb-4" loading="lazy">
+            <p>
+              In bloom mode, each sampled pixel is rendered not as a single dot but as a soft radial glow -- a small circle of light that fades from bright at the center to transparent at the edges. When many pixels map to nearby positions, their glows overlap and blend additively. The result is a smooth, organic-looking display where dense color populations appear as large, luminous clouds.
+            </p>
+            <p class="mt-4">
+              Bloom acts as a natural low-pass filter on the scatter data. It smooths out individual pixel noise and emphasizes the large-scale structure of the color distribution. The dominant color populations in your image become immediately obvious as bright, glowing masses on the scope. Secondary populations appear as dimmer clouds. Sparse outliers tend to disappear entirely.
+            </p>
+            <p class="mt-4">
+              This smoothing effect makes bloom mode faster to read at a glance. You do not need to study the plot carefully to understand the overall color balance. The shape and position of the bright clouds tell you immediately: where is the color mass, how spread out is it, and is it centered or shifted to one side?
+            </p>
+          </div>
+
+          <div>
+            <h2 id="when-to-use-scatter" class="text-xl font-semibold text-zinc-100 mb-4">When to use scatter</h2>
+            <p>
+              Scatter mode is the better choice when you need precision and completeness.
+            </p>
+            <p class="mt-4">
+              <strong class="text-zinc-200">Skin tone analysis.</strong> When checking skin tones against the I-line, scatter mode shows you the exact cluster shape. You can see whether skin tones are tightly grouped (good) or spread across a wide hue range (potential white balance or mixed lighting issue). The shape of the cluster matters, and scatter preserves it.
+            </p>
+            <p class="mt-4">
+              <strong class="text-zinc-200">Identifying outliers.</strong> If you suspect a small area of unwanted color in your image -- a color cast on a supposedly neutral surface, a stray reflection, a sensor artifact -- scatter mode will show it. The individual dot will be visible even if only a handful of pixels contribute to it.
+            </p>
+            <p class="mt-4">
+              <strong class="text-zinc-200">Evaluating color separation.</strong> When you want to see whether two color populations are distinct or overlapping, scatter gives you an honest answer. Two separate clusters with a gap between them are genuinely separated. In bloom mode, the glows might overlap and make them appear connected when they are not.
+            </p>
+            <p class="mt-4">
+              <strong class="text-zinc-200">Product photography.</strong> When color accuracy matters -- product shots, archival reproductions, scientific imaging -- scatter mode gives you the most truthful representation of where your colors actually are.
+            </p>
+          </div>
+
+          <div>
+            <h2 id="when-to-use-bloom" class="text-xl font-semibold text-zinc-100 mb-4">When to use bloom</h2>
+            <p>
+              Bloom mode is the better choice when you need speed and clarity of the overall picture.
+            </p>
+            <p class="mt-4">
+              <strong class="text-zinc-200">Quick color balance assessment.</strong> Open an image and glance at the bloom plot. If the bright cloud is centered, the image is relatively neutral. If it is offset toward a particular hue, you have a color cast in that direction. This takes less than a second.
+            </p>
+            <p class="mt-4">
+              <strong class="text-zinc-200">Color grading.</strong> During creative color grading, you are making broad adjustments to the overall palette. You care about the big picture: is the color mass moving in the direction you intend? Bloom shows this clearly. The smooth clouds respond visibly to slider adjustments, making it easy to see the effect of each change.
+            </p>
+            <p class="mt-4">
+              <strong class="text-zinc-200">Comparing images.</strong> When evaluating a series of images for color consistency -- a wedding set, a product catalog, a portrait session -- bloom mode lets you quickly compare the overall color signature. Consistent images will have similarly shaped and positioned bloom clouds.
+            </p>
+            <p class="mt-4">
+              <strong class="text-zinc-200">Working with harmony overlays.</strong> Bloom's smooth masses are easier to evaluate against harmony overlay zones than scatter's granular dots. You can see at a glance whether the bulk of your color falls within the harmony zones or outside them.
+            </p>
+          </div>
+
+          <div>
+            <h2 id="side-by-side-comparison" class="text-xl font-semibold text-zinc-100 mb-4">Side-by-side comparison</h2>
+            <p>
+              The following table summarizes the key differences between scatter and bloom modes.
+            </p>
+            <div class="overflow-x-auto mt-4">
+              <table class="w-full text-sm text-left">
+                <thead>
+                  <tr class="border-b border-white/[0.08]">
+                    <th class="py-3 pr-6 text-zinc-300 font-semibold">Characteristic</th>
+                    <th class="py-3 pr-6 text-zinc-300 font-semibold">Scatter</th>
+                    <th class="py-3 text-zinc-300 font-semibold">Bloom</th>
+                  </tr>
+                </thead>
+                <tbody class="text-zinc-400">
+                  <tr class="border-b border-white/[0.04]">
+                    <td class="py-3 pr-6 text-zinc-300">Rendering</td>
+                    <td class="py-3 pr-6">One dot per pixel, additive blending</td>
+                    <td class="py-3">Soft radial glow per pixel, additive blending</td>
+                  </tr>
+                  <tr class="border-b border-white/[0.04]">
+                    <td class="py-3 pr-6 text-zinc-300">Detail level</td>
+                    <td class="py-3 pr-6">Individual pixels visible</td>
+                    <td class="py-3">Smoothed, populations visible</td>
+                  </tr>
+                  <tr class="border-b border-white/[0.04]">
+                    <td class="py-3 pr-6 text-zinc-300">Outlier visibility</td>
+                    <td class="py-3 pr-6">High -- single pixels show</td>
+                    <td class="py-3">Low -- sparse samples disappear</td>
+                  </tr>
+                  <tr class="border-b border-white/[0.04]">
+                    <td class="py-3 pr-6 text-zinc-300">Read speed</td>
+                    <td class="py-3 pr-6">Slower -- requires study</td>
+                    <td class="py-3">Faster -- glanceable</td>
+                  </tr>
+                  <tr class="border-b border-white/[0.04]">
+                    <td class="py-3 pr-6 text-zinc-300">Best for</td>
+                    <td class="py-3 pr-6">Technical analysis, precision work</td>
+                    <td class="py-3">Creative grading, quick assessment</td>
+                  </tr>
+                  <tr>
+                    <td class="py-3 pr-6 text-zinc-300">Cluster shape</td>
+                    <td class="py-3 pr-6">Exact, preserves boundaries</td>
+                    <td class="py-3">Approximate, smoothed boundaries</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div>
+            <h2 class="text-xl font-semibold text-zinc-100 mb-4">Practical recommendation</h2>
+            <p>
+              Start with bloom. It gives you the fastest initial read on any image. When you see something that needs closer investigation -- a cluster that might be split, an unexpected hue offset, a skin tone that looks borderline -- switch to scatter for the precise view.
+            </p>
+            <p class="mt-4">
+              There is also a third mode, heatmap, which maps pixel density to a color ramp. Heatmap sits between scatter and bloom in terms of detail: it smooths less aggressively than bloom but is easier to read than raw scatter. Some photographers prefer it as a middle-ground option.
+            </p>
+            <p class="mt-4">
+              All three modes are available in both the <a href="../chromascope-lightroom/" class="text-brand hover:underline">Lightroom Classic plugin</a> and the <a href="../chromascope-photoshop/" class="text-brand hover:underline">Photoshop panel</a>. You can switch between them at any time without losing your place -- the same image data is simply re-rendered with the new visualization. <a href="../../download/" class="text-brand hover:underline">Download Chromascope</a> to try them side by side on your own images.
+            </p>
+          </div>
+
+        </div>
+      </main>
+    </div>
+  </div>
+  <footer class="border-t border-white/[0.06] py-12 px-6">
+    <div class="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+      <div class="flex items-center gap-2.5">
+        <div class="w-5 h-5 rounded-full opacity-60" style="background:conic-gradient(from 0deg,#f43f5e,#f97316,#eab308,#22c55e,#06b6d4,#8b5cf6,#f43f5e)"></div>
+        <span class="text-sm text-zinc-500 font-medium">Chromascope</span>
+      </div>
+      <div class="flex gap-6 text-sm">
+        <a href="../../download/" class="text-zinc-500 hover:text-zinc-300 transition-colors">Download</a>
+        <a href="../../docs/" class="text-zinc-500 hover:text-zinc-300 transition-colors">Docs</a>
+        <a href="../" class="text-zinc-500 hover:text-zinc-300 transition-colors">Guides</a>
+        <a href="https://github.com/kevinkiklee/chromascope" class="text-zinc-500 hover:text-zinc-300 transition-colors">GitHub</a>
+      </div>
+      <p class="text-zinc-600 text-xs">&copy; 2025 Chromascope</p>
+    </div>
+  </footer>
+</body>
+</html>
