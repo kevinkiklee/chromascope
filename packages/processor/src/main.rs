@@ -74,8 +74,8 @@ pub struct RenderArgs {
     #[arg(long, default_value = "scatter")]
     density: String,
 
-    /// Color space (ycbcr, cieluv, hsl)
-    #[arg(long, default_value = "ycbcr")]
+    /// Color space (hsl, ycbcr, cieluv)
+    #[arg(long, default_value = "hsl")]
     color_space: String,
 }
 

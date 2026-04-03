@@ -101,16 +101,14 @@ export function createControls(
 
   container.innerHTML = "";
 
-  // --- Display group ---
-  const displayGroup = document.createElement("details");
+  // --- Type (density mode) ---
+  const displayGroup = document.createElement("div");
   displayGroup.className = "vs-control-group";
-  displayGroup.open = true;
-  displayGroup.innerHTML = "<summary>Display</summary>";
 
   const dmRow = document.createElement("div");
   dmRow.className = "vs-control-row";
   const dmLabel = document.createElement("label");
-  dmLabel.textContent = "Density";
+  dmLabel.textContent = "Type";
   dmRow.appendChild(dmLabel);
   dmRow.appendChild(
     renderButtonGroup(DENSITY_MODES, current.densityMode, (id) => {
@@ -122,11 +120,9 @@ export function createControls(
 
   container.appendChild(displayGroup);
 
-  // --- Harmony group ---
-  const harmonyGroup = document.createElement("details");
+  // --- Harmony (scheme, rotation, zone width) ---
+  const harmonyGroup = document.createElement("div");
   harmonyGroup.className = "vs-control-group";
-  harmonyGroup.open = true;
-  harmonyGroup.innerHTML = "<summary>Harmony</summary>";
 
   const schemeRow = document.createElement("div");
   schemeRow.className = "vs-control-row";

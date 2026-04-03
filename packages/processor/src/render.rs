@@ -141,7 +141,8 @@ fn map_hsl(r: f64, g: f64, b: f64) -> (f64, f64) {
     let s = if l <= 0.5 { delta / (max + min) } else { delta / (2.0 - max - min) };
 
     let hue_seg = if max == rn {
-        ((gn - bn) / delta) % 6.0
+        let h = ((gn - bn) / delta) % 6.0;
+        if h < 0.0 { h + 6.0 } else { h }
     } else if max == gn {
         (bn - rn) / delta + 2.0
     } else {
@@ -166,9 +167,9 @@ fn map_pixels(rgb_data: &[u8], width: u32, height: u32, center: f64, radius: f64
         let b = rgb_data[off + 2] as f64;
 
         let (nx, ny) = match color_space {
+            "ycbcr" => map_ycbcr(r, g, b),
             "cieluv" => map_cieluv(r, g, b),
-            "hsl" => map_hsl(r, g, b),
-            _ => map_ycbcr(r, g, b),
+            _ => map_hsl(r, g, b),
         };
 
         let dist = (nx * nx + ny * ny).sqrt();
@@ -179,9 +180,9 @@ fn map_pixels(rgb_data: &[u8], width: u32, height: u32, center: f64, radius: f64
         points.push(ScopePoint {
             px: center + nx * radius,
             py: center - ny * radius,
-            r: (r * 0.8 + 80.0).min(255.0) as u8,
-            g: (g * 0.8 + 80.0).min(255.0) as u8,
-            b: (b * 0.8 + 80.0).min(255.0) as u8,
+            r: (r * 0.9 + 30.0).min(255.0) as u8,
+            g: (g * 0.9 + 30.0).min(255.0) as u8,
+            b: (b * 0.9 + 30.0).min(255.0) as u8,
         });
     }
     points
@@ -334,6 +335,7 @@ pub fn render_vectorscope(
 
     draw_graticule(&mut img, center, radius, size);
     draw_degree_markers(&mut img, center, radius, size);
+    draw_color_ring(&mut img, center, radius, size);
 
     if show_skin_tone {
         draw_skin_tone_line(&mut img, center, radius);
@@ -550,6 +552,61 @@ fn draw_degree_markers(img: &mut RgbImage, center: f64, radius: f64, size: u32) 
                     }
                 }
             }
+        }
+    }
+}
+
+/// Convert HSV (h: 0-360, s: 0-1, v: 0-1) to RGB.
+fn hsv_to_rgb(h: f64, s: f64, v: f64) -> Rgb<u8> {
+    let h = ((h % 360.0) + 360.0) % 360.0;
+    let c = v * s;
+    let x = c * (1.0 - ((h / 60.0) % 2.0 - 1.0).abs());
+    let m = v - c;
+    let (r, g, b) = if h < 60.0 { (c, x, 0.0) }
+        else if h < 120.0 { (x, c, 0.0) }
+        else if h < 180.0 { (0.0, c, x) }
+        else if h < 240.0 { (0.0, x, c) }
+        else if h < 300.0 { (x, 0.0, c) }
+        else { (c, 0.0, x) };
+    Rgb([((r + m) * 255.0) as u8, ((g + m) * 255.0) as u8, ((b + m) * 255.0) as u8])
+}
+
+/// Draw a continuous color ring just outside the graticule.
+/// Matches Lightroom's color grading wheel: red at 0° (right), yellow at ~60° (top-right),
+/// green at ~120° (top-left), cyan at 180° (left), blue at ~240° (bottom-left),
+/// magenta at ~300° (bottom-right). This is a standard HSV hue wheel with hue 0 = red at 3 o'clock.
+fn draw_color_ring(img: &mut RgbImage, center: f64, radius: f64, size: u32) {
+    let ring_inner = radius * 1.005;
+    let ring_outer = radius * 1.02;
+    let ring_mid = (ring_inner + ring_outer) / 2.0;
+    let ring_half = (ring_outer - ring_inner) / 2.0;
+
+    let scan_min = (center - ring_outer - 1.0).max(0.0) as u32;
+    let scan_max = (center + ring_outer + 1.0).min(size as f64 - 1.0) as u32;
+
+    for py in scan_min..=scan_max {
+        for px in scan_min..=scan_max {
+            let dx = px as f64 - center;
+            let dy = py as f64 - center;
+            let dist = (dx * dx + dy * dy).sqrt();
+
+            let ring_dist = (dist - ring_mid).abs();
+            if ring_dist > ring_half + 0.5 { continue; }
+
+            let alpha = if ring_dist > ring_half - 0.5 {
+                (1.0 - (ring_dist - (ring_half - 0.5))).clamp(0.0, 1.0)
+            } else {
+                1.0
+            };
+
+            // Angle: 0° at right, counter-clockwise (matching graticule).
+            // atan2(-dy, dx) because canvas y points down.
+            let angle_rad = (-dy).atan2(dx);
+            let hue_deg = ((angle_rad.to_degrees()) + 360.0) % 360.0;
+
+            // Direct HSV hue wheel: hue 0 (red) at 0° (right), matching Lightroom's layout
+            let color = hsv_to_rgb(hue_deg, 0.9, 0.85);
+            blend_pixel(img, px, py, color, alpha * 0.85);
         }
     }
 }

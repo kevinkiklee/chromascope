@@ -1,24 +1,14 @@
-const { app, imaging, core, action } = require("photoshop");
+const { app, imaging, core } = require("photoshop");
 
 async function getDocumentPixels() {
   const doc = app.activeDocument;
   if (!doc) return null;
 
-  const targetSize = 256;
+  // 128×128 = 16K pixels is enough for vectorscope accuracy.
+  // 256 was 4× more pixels to plot with no visible improvement.
+  const targetSize = 128;
 
   return await core.executeAsModal(async (context) => {
-    // Use batchPlay to get composite pixel data, which avoids
-    // smart object and clipboard errors from imaging.getPixels
-    const [desc] = await action.batchPlay([
-      {
-        _obj: "get",
-        _target: [
-          { _property: "numberOfChannels" },
-          { _ref: "document", _id: doc.id },
-        ],
-      },
-    ], { modalBehavior: "execute" });
-
     const result = await imaging.getPixels({
       documentID: doc.id,
       targetSize: { width: targetSize, height: targetSize },

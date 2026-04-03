@@ -145,8 +145,13 @@ function ChromascopeDialog.show(context)
     _adjustVersion = _adjustVersion + 1
     local av = _adjustVersion
     LrTasks.startAsyncTask(function()
-      LrTasks.sleep(0.3)
+      -- Wait for the develop module to commit the preview update.
+      -- requestJpegThumbnail returns a cached thumbnail — too short a delay
+      -- means we re-render with stale pixel data. 500ms is enough for LrC
+      -- to update the preview after a slider drag stops.
+      LrTasks.sleep(0.5)
       if av ~= _adjustVersion then return end  -- stale, exit immediately
+      ImagePipeline.resetChangeDetection()  -- Force hash re-check so poll loop doesn't skip
       ImagePipeline.refresh(props)
     end)
   end)

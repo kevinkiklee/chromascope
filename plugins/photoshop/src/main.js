@@ -5,6 +5,7 @@ let getDocumentPixels, events, handleEditCommand;
 let isRefreshing = false;
 let scopeSize = 300;
 let lastPixels = null;
+var showSkinTone = false;
 
 // Minimal 3×5 bitmap font for digits and degree symbol.
 // UXP canvas doesn't support fillText reliably, so we rasterize text manually.
@@ -36,8 +37,7 @@ function drawChar(buf, size, ch, ox, oy, r, g, b) {
 }
 
 function drawString(buf, size, str, cx, cy, r, g, b) {
-  // cx, cy is the center of the string
-  var charW = 4; // 3px char + 1px gap
+  var charW = 4;
   var totalW = str.length * charW - 1;
   var ox = cx - totalW / 2;
   var oy = cy - 2.5;
@@ -46,294 +46,443 @@ function drawString(buf, size, str, cx, cy, r, g, b) {
   }
 }
 
-// Software renderer: draws vectorscope into an RGBA pixel buffer.
-// We can't use Canvas 2D in UXP (no drawImage/getImageData/putImageData/toDataURL),
-// so everything is rendered pixel-by-pixel into a Uint8Array, then encoded to JPEG
-// via the Photoshop Imaging API for display in an <img> element.
-function renderToBuffer(size, pixels) {
-  const buf = new Uint8Array(size * size * 4);
-  const half = size / 2;
-  const radius = size * 0.40;
+// HSV to RGB (h: 0-360, s: 0-1, v: 0-1) — matches Rust renderer's hsv_to_rgb
+function hsvToRgb(h, s, v) {
+  h = ((h % 360) + 360) % 360;
+  var c = v * s;
+  var x = c * (1.0 - Math.abs((h / 60) % 2 - 1));
+  var m = v - c;
+  var r, g, b;
+  if (h < 60)       { r=c; g=x; b=0; }
+  else if (h < 120) { r=x; g=c; b=0; }
+  else if (h < 180) { r=0; g=c; b=x; }
+  else if (h < 240) { r=0; g=x; b=c; }
+  else if (h < 300) { r=x; g=0; b=c; }
+  else               { r=c; g=0; b=x; }
+  return [((r+m)*255)|0, ((g+m)*255)|0, ((b+m)*255)|0];
+}
 
-  // Fill background #111111
+// Cached graticule buffer — matches Rust renderer's visual style.
+// Contains background, grid rings, crosshair, color ring, tick marks, degree labels.
+var cachedGraticuleBuf = null;
+var cachedGraticuleSize = 0;
+
+function renderGraticule(size) {
+  if (cachedGraticuleBuf && cachedGraticuleSize === size) return cachedGraticuleBuf;
+
+  var buf = new Uint8Array(size * size * 4);
+  var half = size / 2;
+  // Match Rust: radius = center * 0.82
+  var radius = half * 0.82;
+
+  // Background: match Rust BG = Rgb([9, 9, 11])
   for (var i = 0; i < size * size; i++) {
-    buf[i * 4] = 0x11;
-    buf[i * 4 + 1] = 0x11;
-    buf[i * 4 + 2] = 0x11;
-    buf[i * 4 + 3] = 255;
+    var idx = i * 4;
+    buf[idx] = 9; buf[idx+1] = 9; buf[idx+2] = 11; buf[idx+3] = 255;
   }
 
   function setPixel(x, y, r, g, b) {
-    x = Math.round(x);
-    y = Math.round(y);
+    x = Math.round(x); y = Math.round(y);
     if (x < 0 || x >= size || y < 0 || y >= size) return;
     var idx = (y * size + x) * 4;
-    buf[idx] = r;
-    buf[idx + 1] = g;
-    buf[idx + 2] = b;
-    buf[idx + 3] = 255;
+    buf[idx] = r; buf[idx+1] = g; buf[idx+2] = b; buf[idx+3] = 255;
   }
 
-  // Draw graticule rings (Bresenham circle)
-  function drawCircle(cx, cy, r, cr, cg, cb) {
-    var steps = Math.max(Math.round(r * 6.28), 60);
-    for (var i = 0; i < steps; i++) {
-      var a = (i / steps) * Math.PI * 2;
-      setPixel(cx + Math.cos(a) * r, cy + Math.sin(a) * r, cr, cg, cb);
+  // Blend a pixel with alpha (matches Rust blend_pixel)
+  function blendPixel(x, y, r, g, b, a) {
+    x = Math.round(x); y = Math.round(y);
+    if (x < 0 || x >= size || y < 0 || y >= size) return;
+    var idx = (y * size + x) * 4;
+    var inv = 1.0 - a;
+    buf[idx]   = Math.round(buf[idx]   * inv + r * a);
+    buf[idx+1] = Math.round(buf[idx+1] * inv + g * a);
+    buf[idx+2] = Math.round(buf[idx+2] * inv + b * a);
+    buf[idx+3] = 255;
+  }
+
+  // Grid rings at 25%, 50%, 75%, 100% — match Rust GRID = Rgb([30, 30, 35])
+  for (var ri = 0; ri < 4; ri++) {
+    var ringR = radius * [0.25, 0.5, 0.75, 1.0][ri];
+    var steps = Math.max(Math.round(ringR * 6.28), 360);
+    for (var si = 0; si < steps; si++) {
+      var a = (si / steps) * Math.PI * 2;
+      setPixel(half + Math.cos(a) * ringR, half + Math.sin(a) * ringR, 30, 30, 35);
     }
   }
 
-  [0.25, 0.5, 0.75, 1.0].forEach(function(r) {
-    drawCircle(half, half, radius * r, 0x33, 0x33, 0x33);
-  });
-
-  // Crosshair
-  for (var cx = Math.round(half - radius); cx <= Math.round(half + radius); cx++) {
-    setPixel(cx, half, 0x2a, 0x2a, 0x2a);
-  }
-  for (var cy = Math.round(half - radius); cy <= Math.round(half + radius); cy++) {
-    setPixel(half, cy, 0x2a, 0x2a, 0x2a);
+  // Crosshair with alpha blend (match Rust: 0.5 alpha)
+  for (var ci = 0; ci < size; ci++) {
+    blendPixel(ci, half, 30, 30, 35, 0.5);
+    blendPixel(half, ci, 30, 30, 35, 0.5);
   }
 
-  // Degree labels around the outer rim
-  var labelRadius = radius * 1.08;
+  // Color ring: HSV hue wheel just outside the graticule (matches Rust draw_color_ring)
+  var ringInner = radius * 1.005;
+  var ringOuter = radius * 1.02;
+  var ringMid = (ringInner + ringOuter) / 2;
+  var ringHalf = (ringOuter - ringInner) / 2;
+  var scanMin = Math.max(0, Math.floor(half - ringOuter - 1));
+  var scanMax = Math.min(size - 1, Math.ceil(half + ringOuter + 1));
+
+  for (var py = scanMin; py <= scanMax; py++) {
+    for (var px = scanMin; px <= scanMax; px++) {
+      var dx = px - half;
+      var dy = py - half;
+      var dist = Math.sqrt(dx * dx + dy * dy);
+      var ringDist = Math.abs(dist - ringMid);
+      if (ringDist > ringHalf + 0.5) continue;
+
+      var alpha = ringDist > ringHalf - 0.5
+        ? Math.max(0, Math.min(1, 1.0 - (ringDist - (ringHalf - 0.5))))
+        : 1.0;
+
+      // atan2(-dy, dx): 0° at right, CCW, matching graticule convention
+      var angleRad = Math.atan2(-dy, dx);
+      var hueDeg = ((angleRad * 180 / Math.PI) + 360) % 360;
+      var rgb = hsvToRgb(hueDeg, 0.9, 0.85);
+      blendPixel(px, py, rgb[0], rgb[1], rgb[2], alpha * 0.85);
+    }
+  }
+
+  // Tick marks at 30° intervals (match Rust: 0.94 to 1.0 radius, LABEL alpha 0.7)
   var degrees = [0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330];
+  for (var di = 0; di < degrees.length; di++) {
+    var deg = degrees[di];
+    var da = deg * Math.PI / 180;
+    var tickInner = radius * 0.94;
+    var tickOuter = radius;
+    var tickSteps = Math.round((tickOuter - tickInner) * 2.5);
+    for (var ti = 0; ti < tickSteps; ti++) {
+      var t = ti / tickSteps;
+      var td = tickInner + (tickOuter - tickInner) * t;
+      blendPixel(half + Math.cos(da) * td, half - Math.sin(da) * td, 110, 110, 115, 0.7);
+    }
+  }
+
+  // Degree labels outside the ring (match Rust: radius * 1.09, LABEL color)
+  var labelRadius = radius * 1.09;
   for (var di = 0; di < degrees.length; di++) {
     var deg = degrees[di];
     var da = deg * Math.PI / 180;
     var lx = half + Math.cos(da) * labelRadius;
     var ly = half - Math.sin(da) * labelRadius;
-    drawString(buf, size, String(deg) + '\xB0', lx, ly, 0x66, 0x66, 0x66);
-    // Small tick mark at the rim
-    var tickInner = radius * 0.97;
-    var tickOuter = radius * 1.02;
-    for (var ti = 0; ti < 5; ti++) {
-      var td = tickInner + (tickOuter - tickInner) * ti / 4;
-      setPixel(half + Math.cos(da) * td, half - Math.sin(da) * td, 0x55, 0x55, 0x55);
-    }
+    drawString(buf, size, String(deg), lx, ly, 110, 110, 115);
   }
 
-  // Color targets at actual YCbCr BT.601 chrominance positions
-  // Each: [cb, cr, R, G, B] where cb/cr are normalized to [-1,1]
-  // Computed from BT.601: Cb = (-0.168736*R - 0.331264*G + 0.5*B)*2
-  //                        Cr = (0.5*R - 0.418688*G - 0.081312*B)*2
-  var targets = [
-    [-0.3375, 1.0,    0xff, 0x00, 0x00],  // Red
-    [-1.0,    0.1626, 0xff, 0xff, 0x00],  // Yellow
-    [-0.6625, -0.8374, 0x00, 0xff, 0x00], // Green
-    [0.3375, -1.0,    0x00, 0xff, 0xff],  // Cyan
-    [1.0,    -0.1626, 0x00, 0x00, 0xff],  // Blue
-    [0.6625,  0.8374, 0xff, 0x00, 0xff],  // Magenta
-  ];
-  var dotR = Math.max(3, Math.round(size * 0.014));
-  targets.forEach(function(t) {
-    var tx = half + t[0] * radius;
-    var ty = half - t[1] * radius;
-    for (var dy = -dotR; dy <= dotR; dy++) {
-      for (var dx = -dotR; dx <= dotR; dx++) {
-        if (dx * dx + dy * dy <= dotR * dotR) {
-          setPixel(tx + dx, ty + dy, t[2], t[3], t[4]);
-        }
-      }
-    }
-  });
+  cachedGraticuleBuf = buf;
+  cachedGraticuleSize = size;
+  return buf;
+}
 
-  // Center dot
-  setPixel(half, half, 0x55, 0x55, 0x55);
-  setPixel(half + 1, half, 0x55, 0x55, 0x55);
-  setPixel(half - 1, half, 0x55, 0x55, 0x55);
-  setPixel(half, half + 1, 0x55, 0x55, 0x55);
-  setPixel(half, half - 1, 0x55, 0x55, 0x55);
+// Software renderer: plots pixel data onto a copy of the graticule buffer.
+// Graticule is cached and reused — only the pixel plotting runs per refresh.
+function renderToBuffer(size, pixels) {
+  var graticule = renderGraticule(size);
+  var buf = new Uint8Array(graticule); // copy
+  var half = size / 2;
+  var radius = half * 0.82; // match Rust renderer
 
-  // Get density mode from core settings
+  if (!pixels) return buf;
+
   var densityMode = "scatter";
   if (window.__chromascope) {
     var settings = window.__chromascope.getSettings();
     if (settings && settings.densityMode) densityMode = settings.densityMode;
   }
 
-  // Map RGB pixel to YCbCr BT.601 scope coordinates
-  // Returns [cb, cr] normalized to [-1, 1]
-  function mapToScope(r255, g255, b255) {
-    var cb = (-0.168736 * r255 - 0.331264 * g255 + 0.5 * b255) * 2;
-    var cr = (0.5 * r255 - 0.418688 * g255 - 0.081312 * b255) * 2;
-    return [cb, cr];
+  var data = pixels.data;
+  var total = pixels.width * pixels.height;
+
+  // HSL mapping: hue → angle, saturation → radius.
+  // Matches the Rust renderer default (--color-space hsl) and the HSV color ring.
+  // Hue maps directly to polar angle, saturation to distance from center.
+  function mapHSL(r255, g255, b255) {
+    var rn = r255 / 255, gn = g255 / 255, bn = b255 / 255;
+    var max = Math.max(rn, gn, bn), min = Math.min(rn, gn, bn);
+    var delta = max - min;
+    if (delta === 0) return null; // achromatic — skip
+    var l = (max + min) / 2;
+    var s = l <= 0.5 ? delta / (max + min) : delta / (2 - max - min);
+    var h;
+    if (max === rn) { h = ((gn - bn) / delta) % 6; if (h < 0) h += 6; }
+    else if (max === gn) { h = (bn - rn) / delta + 2; }
+    else { h = (rn - gn) / delta + 4; }
+    var hueRad = (h / 6) * Math.PI * 2;
+    return { x: s * Math.cos(hueRad), y: s * Math.sin(hueRad) };
   }
 
-  // Plot pixels
-  if (pixels) {
-    var data = pixels.data;
-    var total = pixels.width * pixels.height;
+  if (densityMode === "scatter") {
+    for (var pi = 0; pi < total; pi++) {
+      var off = pi * 3;
+      var r = data[off], g = data[off+1], b = data[off+2];
+      var mapped = mapHSL(r, g, b);
+      if (!mapped) continue;
+      var px = Math.round(half + mapped.x * radius);
+      var py = Math.round(half - mapped.y * radius);
+      if (px >= 0 && px < size && py >= 0 && py < size) {
+        var idx = (py * size + px) * 4;
+        buf[idx]   = Math.min(255, Math.round(r * 0.9 + 30));
+        buf[idx+1] = Math.min(255, Math.round(g * 0.9 + 30));
+        buf[idx+2] = Math.min(255, Math.round(b * 0.9 + 30));
+        buf[idx+3] = 255;
+      }
+    }
+  } else if (densityMode === "heatmap") {
+    var density = new Uint32Array(size * size);
+    var maxDensity = 0;
+    for (var pi = 0; pi < total; pi++) {
+      var off = pi * 3;
+      var mapped = mapHSL(data[off], data[off+1], data[off+2]);
+      if (!mapped) continue;
+      var px = Math.round(half + mapped.x * radius);
+      var py = Math.round(half - mapped.y * radius);
+      if (px >= 0 && px < size && py >= 0 && py < size) {
+        var di = py * size + px;
+        density[di]++;
+        if (density[di] > maxDensity) maxDensity = density[di];
+      }
+    }
+    if (maxDensity > 0) {
+      var logMax = Math.log(maxDensity + 1);
+      for (var i = 0; i < size * size; i++) {
+        var dv = density[i];
+        if (dv === 0) continue;
+        var t = Math.log(dv + 1) / logMax;
+        var idx = i * 4;
+        if (t < 0.2)      { var s = t/0.2;       buf[idx]=0;                    buf[idx+1]=0;                    buf[idx+2]=Math.round(s*255); }
+        else if (t < 0.4) { var s = (t-0.2)/0.2; buf[idx]=0;                    buf[idx+1]=Math.round(s*255);    buf[idx+2]=255; }
+        else if (t < 0.6) { var s = (t-0.4)/0.2; buf[idx]=0;                    buf[idx+1]=255;                  buf[idx+2]=Math.round((1-s)*255); }
+        else if (t < 0.8) { var s = (t-0.6)/0.2; buf[idx]=Math.round(s*255);    buf[idx+1]=255;                  buf[idx+2]=0; }
+        else              { var s = (t-0.8)/0.2; buf[idx]=255;                   buf[idx+1]=Math.round((1-s)*255); buf[idx+2]=0; }
+        buf[idx+3] = 255;
+      }
+    }
+  } else if (densityMode === "bloom") {
+    // Bloom via density accumulation + 3-pass box blur (much faster than per-pixel radial glow).
+    // Old approach: O(pixels × glowRadius²) ≈ 52M ops for 65K pixels.
+    // New approach: O(pixels + size² × 3 passes) ≈ 300K ops total.
+    var alpha = Math.min(0.5, Math.max(0.03, 300 / total));
+    var n = size * size;
+    var bloomR = new Float32Array(n);
+    var bloomG = new Float32Array(n);
+    var bloomB = new Float32Array(n);
 
-    if (densityMode === "heatmap" || densityMode === "bloom") {
-      if (densityMode === "heatmap") {
-        // Accumulate density map for heatmap
-        var density = new Uint32Array(size * size);
-        var maxDensity = 0;
-        for (var pi = 0; pi < total; pi++) {
-          var ri = data[pi * 3], gi = data[pi * 3 + 1], bi = data[pi * 3 + 2];
-          var sc = mapToScope(ri / 255, gi / 255, bi / 255);
-          var px = Math.round(half + sc[0] * radius);
-          var py = Math.round(half - sc[1] * radius);
-          if (px >= 0 && px < size && py >= 0 && py < size) {
-            var di = py * size + px;
-            density[di]++;
-            if (density[di] > maxDensity) maxDensity = density[di];
-          }
+    // Step 1: accumulate colored energy at each pixel location (single pass over input)
+    for (var pi = 0; pi < total; pi++) {
+      var off = pi * 3;
+      var mapped = mapHSL(data[off], data[off+1], data[off+2]);
+      if (!mapped) continue;
+      var px = Math.round(half + mapped.x * radius);
+      var py = Math.round(half - mapped.y * radius);
+      if (px >= 0 && px < size && py >= 0 && py < size) {
+        var bi = py * size + px;
+        bloomR[bi] += Math.min(255, data[off] * 0.9 + 30) * alpha;
+        bloomG[bi] += Math.min(255, data[off+1] * 0.9 + 30) * alpha;
+        bloomB[bi] += Math.min(255, data[off+2] * 0.9 + 30) * alpha;
+      }
+    }
+
+    // Step 2: box blur (3 passes for smooth gaussian-like falloff).
+    // Each pass is O(size²) — separable horizontal then vertical.
+    var blurRadius = Math.max(2, Math.round(size / 60));
+    var tmpR = new Float32Array(n);
+    var tmpG = new Float32Array(n);
+    var tmpB = new Float32Array(n);
+
+    for (var pass = 0; pass < 3; pass++) {
+      var srcR = pass === 0 ? bloomR : (pass % 2 === 1 ? tmpR : bloomR);
+      var srcG = pass === 0 ? bloomG : (pass % 2 === 1 ? tmpG : bloomG);
+      var srcB = pass === 0 ? bloomB : (pass % 2 === 1 ? tmpB : bloomB);
+      var dstR = pass % 2 === 0 ? tmpR : bloomR;
+      var dstG = pass % 2 === 0 ? tmpG : bloomG;
+      var dstB = pass % 2 === 0 ? tmpB : bloomB;
+
+      // Horizontal blur
+      var w = 2 * blurRadius + 1;
+      var invW = 1.0 / w;
+      for (var y = 0; y < size; y++) {
+        var rowOff = y * size;
+        var sumR = 0, sumG = 0, sumB = 0;
+        // Seed window
+        for (var k = -blurRadius; k <= blurRadius; k++) {
+          var sx = Math.max(0, Math.min(size - 1, k));
+          sumR += srcR[rowOff + sx]; sumG += srcG[rowOff + sx]; sumB += srcB[rowOff + sx];
+        }
+        dstR[rowOff] = sumR * invW; dstG[rowOff] = sumG * invW; dstB[rowOff] = sumB * invW;
+        for (var x = 1; x < size; x++) {
+          var addIdx = Math.min(size - 1, x + blurRadius);
+          var remIdx = Math.max(0, x - blurRadius - 1);
+          sumR += srcR[rowOff + addIdx] - srcR[rowOff + remIdx];
+          sumG += srcG[rowOff + addIdx] - srcG[rowOff + remIdx];
+          sumB += srcB[rowOff + addIdx] - srcB[rowOff + remIdx];
+          dstR[rowOff + x] = sumR * invW; dstG[rowOff + x] = sumG * invW; dstB[rowOff + x] = sumB * invW;
         }
       }
 
-      if (densityMode === "bloom") {
-        // Bloom: additive colored glow per point (matches Rust renderer)
-        var glowR = Math.min(20, Math.max(2, size / 20 * (500 / total)));
-        var alpha = Math.min(0.3, Math.max(0.01, 200 / total));
-        var bloomR = new Float32Array(size * size);
-        var bloomG = new Float32Array(size * size);
-        var bloomB = new Float32Array(size * size);
+      // Vertical blur (swap src/dst)
+      srcR = dstR; srcG = dstG; srcB = dstB;
+      dstR = pass % 2 === 0 ? bloomR : tmpR;
+      dstG = pass % 2 === 0 ? bloomG : tmpG;
+      dstB = pass % 2 === 0 ? bloomB : tmpB;
 
-        for (var pi2 = 0; pi2 < total; pi2++) {
-          var ri2 = data[pi2 * 3], gi2 = data[pi2 * 3 + 1], bi2 = data[pi2 * 3 + 2];
-          var sc2 = mapToScope(ri2 / 255, gi2 / 255, bi2 / 255);
-          var cx2 = half + sc2[0] * radius;
-          var cy2 = half - sc2[1] * radius;
-          var pr = ri2 * alpha, pg = gi2 * alpha, pb = bi2 * alpha;
-
-          var xMin = Math.max(0, Math.floor(cx2 - glowR));
-          var xMax = Math.min(size - 1, Math.ceil(cx2 + glowR));
-          var yMin = Math.max(0, Math.floor(cy2 - glowR));
-          var yMax = Math.min(size - 1, Math.ceil(cy2 + glowR));
-
-          for (var iy = yMin; iy <= yMax; iy++) {
-            for (var ix = xMin; ix <= xMax; ix++) {
-              var ddx = ix - cx2, ddy = iy - cy2;
-              var dist = Math.sqrt(ddx * ddx + ddy * ddy);
-              if (dist > glowR) continue;
-              var falloff = 1.0 - dist / glowR;
-              var bi3 = iy * size + ix;
-              bloomR[bi3] += pr * falloff;
-              bloomG[bi3] += pg * falloff;
-              bloomB[bi3] += pb * falloff;
-            }
-          }
+      for (var x = 0; x < size; x++) {
+        var sumR = 0, sumG = 0, sumB = 0;
+        for (var k = -blurRadius; k <= blurRadius; k++) {
+          var sy = Math.max(0, Math.min(size - 1, k));
+          sumR += srcR[sy * size + x]; sumG += srcG[sy * size + x]; sumB += srcB[sy * size + x];
         }
-
-        // Composite bloom onto buffer additively
-        for (var ci = 0; ci < size * size; ci++) {
-          if (bloomR[ci] <= 0 && bloomG[ci] <= 0 && bloomB[ci] <= 0) continue;
-          var idx = ci * 4;
-          buf[idx] = Math.min(255, Math.round(buf[idx] + bloomR[ci]));
-          buf[idx+1] = Math.min(255, Math.round(buf[idx+1] + bloomG[ci]));
-          buf[idx+2] = Math.min(255, Math.round(buf[idx+2] + bloomB[ci]));
-          buf[idx+3] = 255;
-        }
-      } else {
-        // Heatmap: density accumulation with color ramp
-        // Render density to color
-        if (maxDensity > 0) {
-          var logMax = Math.log(maxDensity + 1);
-          for (var dy = 0; dy < size; dy++) {
-            for (var dx = 0; dx < size; dx++) {
-              var dv = density[dy * size + dx];
-              if (dv === 0) continue;
-              var t = Math.log(dv + 1) / logMax;
-              var idx = (dy * size + dx) * 4;
-              // Black → blue → cyan → green → yellow → red
-              if (t < 0.2)      { var s = t/0.2;       buf[idx]=0;                    buf[idx+1]=0;                    buf[idx+2]=Math.round(s*255); }
-              else if (t < 0.4) { var s = (t-0.2)/0.2; buf[idx]=0;                    buf[idx+1]=Math.round(s*255);    buf[idx+2]=255; }
-              else if (t < 0.6) { var s = (t-0.4)/0.2; buf[idx]=0;                    buf[idx+1]=255;                  buf[idx+2]=Math.round((1-s)*255); }
-              else if (t < 0.8) { var s = (t-0.6)/0.2; buf[idx]=Math.round(s*255);    buf[idx+1]=255;                  buf[idx+2]=0; }
-              else              { var s = (t-0.8)/0.2; buf[idx]=255;                   buf[idx+1]=Math.round((1-s)*255); buf[idx+2]=0; }
-              buf[idx + 3] = 255;
-            }
-          }
-        }
-      }
-    } else {
-      // Scatter mode: direct pixel plotting
-      for (var pi = 0; pi < total; pi++) {
-        var ri = data[pi * 3], gi = data[pi * 3 + 1], bi = data[pi * 3 + 2];
-        var sc = mapToScope(ri / 255, gi / 255, bi / 255);
-        var px = Math.round(half + sc[0] * radius);
-        var py = Math.round(half - sc[1] * radius);
-        if (px >= 0 && px < size && py >= 0 && py < size) {
-          var idx = (py * size + px) * 4;
-          buf[idx] = ri;
-          buf[idx + 1] = gi;
-          buf[idx + 2] = bi;
-          buf[idx + 3] = 255;
+        dstR[x] = sumR * invW; dstG[x] = sumG * invW; dstB[x] = sumB * invW;
+        for (var y = 1; y < size; y++) {
+          var addIdx = Math.min(size - 1, y + blurRadius) * size + x;
+          var remIdx = Math.max(0, y - blurRadius - 1) * size + x;
+          sumR += srcR[addIdx] - srcR[remIdx];
+          sumG += srcG[addIdx] - srcG[remIdx];
+          sumB += srcB[addIdx] - srcB[remIdx];
+          var di = y * size + x;
+          dstR[di] = sumR * invW; dstG[di] = sumG * invW; dstB[di] = sumB * invW;
         }
       }
     }
-    console.log("[renderScope] drew", total, "points as", densityMode, "on", size, "buffer");
+
+    // Step 3: composite bloom onto the graticule buffer (additive blend)
+    var finalR = tmpR, finalG = tmpG, finalB = tmpB; // after 3 passes, result is in tmp
+    for (var ci = 0; ci < n; ci++) {
+      var r = finalR[ci], g = finalG[ci], b = finalB[ci];
+      if (r <= 0 && g <= 0 && b <= 0) continue;
+      var idx = ci * 4;
+      buf[idx]   = Math.min(255, buf[idx]   + (r + 0.5) | 0);
+      buf[idx+1] = Math.min(255, buf[idx+1] + (g + 0.5) | 0);
+      buf[idx+2] = Math.min(255, buf[idx+2] + (b + 0.5) | 0);
+      buf[idx+3] = 255;
+    }
+  }
+
+  // Skin tone line at 123° — matches Rust renderer's draw_skin_tone_line.
+  // Solid line from center to rim with fading alpha (0.7 at center, 0.42 at rim).
+  if (showSkinTone) {
+    var stAngle = 123 * Math.PI / 180;
+    var stCos = Math.cos(stAngle);
+    var stSin = -Math.sin(stAngle); // negate for canvas y-down
+    var stSteps = Math.round(radius * 1.5);
+    for (var si = 0; si < stSteps; si++) {
+      var t = si / stSteps;
+      var sx = Math.round(half + stCos * radius * t);
+      var sy = Math.round(half + stSin * radius * t);
+      if (sx >= 0 && sx < size && sy >= 0 && sy < size) {
+        var stAlpha = 0.7 * (1.0 - t * 0.4); // match Rust: alpha * (1 - t*0.4)
+        var idx = (sy * size + sx) * 4;
+        var inv = 1.0 - stAlpha;
+        buf[idx]   = Math.round(buf[idx]   * inv + 180 * stAlpha);
+        buf[idx+1] = Math.round(buf[idx+1] * inv + 120 * stAlpha);
+        buf[idx+2] = Math.round(buf[idx+2] * inv +  60 * stAlpha);
+        buf[idx+3] = 255;
+      }
+    }
   }
 
   return buf;
 }
 
-// Draw harmony overlay onto a copy of the base buffer.
-// Creates a new buffer each time so we can re-render overlays without re-plotting pixels.
+// Pre-built lookup table of which pixels belong to each harmony zone.
+// Avoids sqrt + atan2 per pixel on every overlay render.
+var overlayLutSize = 0;
+var overlayAngleLut = null;  // Float32Array of atan2 per pixel
+var overlayDistLut = null;   // Float32Array of distance per pixel
+
+function ensureOverlayLut(size) {
+  if (overlayLutSize === size) return;
+  var half = size / 2;
+  var n = size * size;
+  overlayAngleLut = new Float32Array(n);
+  overlayDistLut = new Float32Array(n);
+  for (var y = 0; y < size; y++) {
+    var wdy = -(y - half);
+    for (var x = 0; x < size; x++) {
+      var wdx = x - half;
+      var i = y * size + x;
+      overlayDistLut[i] = Math.sqrt(wdx * wdx + wdy * wdy);
+      overlayAngleLut[i] = Math.atan2(wdy, wdx);
+    }
+  }
+  overlayLutSize = size;
+}
+
+// Apply harmony overlay by tinting pixels inside zone wedges.
+// Uses pre-computed angle/distance LUT instead of per-pixel trig.
 function applyHarmonyOverlay(baseBuf, size) {
   if (!window.__chromascope) return baseBuf;
   var hSettings = window.__chromascope.getSettings();
   if (!hSettings || !hSettings.harmony || !hSettings.harmony.scheme) return baseBuf;
 
-  var buf = new Uint8Array(baseBuf); // Copy base buffer
-  var half = size / 2;
-  var radius = size * 0.40;
+  var buf = new Uint8Array(baseBuf);
+  var radius = (size / 2) * 0.82; // match Rust renderer
   var scheme = hSettings.harmony.scheme;
   var rot = hSettings.harmony.rotation || 0;
   var zoneWidth = hSettings.harmony.zoneWidth || 1.0;
-  var baseHalfWidth = Math.PI / 12;
-  var halfWidth = baseHalfWidth * zoneWidth;
+  var halfWidth = (Math.PI / 12) * zoneWidth;
 
-  var baseAngles = [];
+  var baseAngles;
   if (scheme === "complementary") baseAngles = [0, Math.PI];
   else if (scheme === "splitComplementary") baseAngles = [0, Math.PI - Math.PI/12, Math.PI + Math.PI/12];
   else if (scheme === "triadic") baseAngles = [0, Math.PI*2/3, Math.PI*4/3];
   else if (scheme === "tetradic") baseAngles = [0, Math.PI/2, Math.PI, Math.PI*3/2];
   else if (scheme === "analogous") baseAngles = [0, Math.PI/6, -Math.PI/6];
+  else return buf;
 
-  for (var ai = 0; ai < baseAngles.length; ai++) {
-    var centerAngle = baseAngles[ai] + rot;
-    for (var wy = 0; wy < size; wy++) {
-      for (var wx = 0; wx < size; wx++) {
-        var wdx = wx - half;
-        var wdy = -(wy - half);
-        var wdist = Math.sqrt(wdx * wdx + wdy * wdy);
-        if (wdist < 2 || wdist > radius) continue;
-        var pAngle = Math.atan2(wdy, wdx);
-        var aDiff = pAngle - centerAngle;
-        while (aDiff > Math.PI) aDiff -= Math.PI * 2;
-        while (aDiff < -Math.PI) aDiff += Math.PI * 2;
-        if (Math.abs(aDiff) <= halfWidth) {
-          var idx = (wy * size + wx) * 4;
-          buf[idx] = Math.min(255, Math.round(buf[idx] * 0.8 + 0x5a * 0.2));
-          buf[idx+1] = Math.min(255, Math.round(buf[idx+1] * 0.8 + 0x8f * 0.2));
-          buf[idx+2] = Math.min(255, Math.round(buf[idx+2] * 0.8 + 0xd5 * 0.2));
-        }
-      }
+  ensureOverlayLut(size);
+  var n = size * size;
+
+  // Build zone center angles array
+  var zoneCount = baseAngles.length;
+  var centerAngles = new Float64Array(zoneCount);
+  for (var z = 0; z < zoneCount; z++) {
+    centerAngles[z] = baseAngles[z] + rot;
+  }
+
+  // Single pass over all pixels using LUT
+  for (var i = 0; i < n; i++) {
+    var dist = overlayDistLut[i];
+    if (dist < 2 || dist > radius) continue;
+
+    var pAngle = overlayAngleLut[i];
+    var inZone = false;
+    for (var z = 0; z < zoneCount; z++) {
+      var aDiff = pAngle - centerAngles[z];
+      // Normalize to [-π, π]
+      if (aDiff > Math.PI) aDiff -= 6.283185307179586;
+      else if (aDiff < -Math.PI) aDiff += 6.283185307179586;
+      if (aDiff > Math.PI) aDiff -= 6.283185307179586;
+      else if (aDiff < -Math.PI) aDiff += 6.283185307179586;
+      if (Math.abs(aDiff) <= halfWidth) { inZone = true; break; }
+    }
+
+    if (inZone) {
+      var idx = i * 4;
+      buf[idx]   = Math.min(255, (buf[idx]   * 205 + 0x5a * 51 + 128) >> 8);
+      buf[idx+1] = Math.min(255, (buf[idx+1] * 205 + 0x8f * 51 + 128) >> 8);
+      buf[idx+2] = Math.min(255, (buf[idx+2] * 205 + 0xd5 * 51 + 128) >> 8);
     }
   }
 
   return buf;
 }
 
-// Cached base buffer (without overlay)
 var cachedBaseBuf = null;
 
 // Encode RGBA buffer to base64 JPEG via Photoshop Imaging API and display in <img>.
-// This is the only way to render custom graphics in UXP — canvas toDataURL is unavailable.
+// Renders directly to RGB (3-channel) to avoid an extra RGBA→RGB copy pass.
 async function displayScope(rgbaBuf, size) {
   var img = document.getElementById("scope-image");
   if (!img) return;
 
   try {
-    // Create RGB buffer (no alpha) for encoding
-    var rgbBuf = new Uint8Array(size * size * 3);
-    for (var i = 0; i < size * size; i++) {
-      rgbBuf[i * 3] = rgbaBuf[i * 4];
-      rgbBuf[i * 3 + 1] = rgbaBuf[i * 4 + 1];
-      rgbBuf[i * 3 + 2] = rgbaBuf[i * 4 + 2];
+    // Convert RGBA → RGB in one pass
+    var n = size * size;
+    var rgbBuf = new Uint8Array(n * 3);
+    for (var i = 0, ri = 0, si = 0; i < n; i++, ri += 3, si += 4) {
+      rgbBuf[ri]   = rgbaBuf[si];
+      rgbBuf[ri+1] = rgbaBuf[si+1];
+      rgbBuf[ri+2] = rgbaBuf[si+2];
     }
 
     var imageData = await imaging.createImageDataFromBuffer(rgbBuf, {
@@ -361,10 +510,8 @@ async function displayScope(rgbaBuf, size) {
 async function renderScope(pixels, overlayOnly) {
   var buf;
   if (overlayOnly && cachedBaseBuf) {
-    // Fast path: reuse cached base, only re-draw overlay
     buf = applyHarmonyOverlay(cachedBaseBuf, scopeSize);
   } else {
-    // Full render: build base + apply overlay
     cachedBaseBuf = renderToBuffer(scopeSize, pixels);
     buf = applyHarmonyOverlay(cachedBaseBuf, scopeSize);
   }
@@ -376,19 +523,14 @@ async function refresh() {
   isRefreshing = true;
 
   try {
-
     const pixels = await getDocumentPixels();
 
     if (pixels) {
       lastPixels = pixels;
       await renderScope(pixels);
-
-    } else {
-
     }
   } catch (err) {
     console.error("Chromascope refresh error:", err);
-
   } finally {
     isRefreshing = false;
   }
@@ -400,16 +542,12 @@ async function init() {
   events = require("./src/events.js");
   handleEditCommand = require("./src/edits.js").handleEditCommand;
 
-
-
-  // Fixed render resolution independent of panel size.
-  // CSS width:100% on the <img> scales it to fill the container.
-  // Higher values = sharper but slower; 500 is a good balance.
-  scopeSize = 500;
+  // 300px render buffer. The <img> CSS scales it to fill the panel.
+  // 500 was visually identical but 2.8× more pixels to process and encode.
+  scopeSize = 300;
 
   console.log("[main] scopeSize:", scopeSize);
 
-  // After a short delay, measure actual container width and lock its height to match (square)
   await new Promise(function(resolve) { setTimeout(resolve, 300); });
   var container = document.getElementById("scope-canvas-container");
   if (container) {
@@ -420,31 +558,42 @@ async function init() {
     }
   }
 
-  // Debounced settings listener: waits 300ms after the last change before re-rendering.
-  // Without debouncing, dragging the rotation slider would trigger hundreds of full renders.
+  // Debounced settings listener: overlay-only re-render for fast response.
+  // Full pixel re-render is only needed when density mode changes.
   if (window.__chromascope) {
     var settingsTimer = null;
     var settingsRendering = false;
     var settingsDirty = false;
+    var lastDensityMode = null;
     window.__chromascope.onSettingsChanged = function() {
       if (settingsRendering) { settingsDirty = true; return; }
       if (settingsTimer) clearTimeout(settingsTimer);
       settingsTimer = setTimeout(function() {
         settingsTimer = null;
         settingsRendering = true;
-        console.log("[main] settings changed, re-rendering");
-        renderScope(lastPixels, false).then(function() {
+
+        // Only re-render pixels when density mode changes; otherwise just re-apply overlay
+        var settings = window.__chromascope.getSettings();
+        var currentDensity = settings && settings.densityMode;
+        var needFullRender = currentDensity !== lastDensityMode;
+        lastDensityMode = currentDensity;
+
+        if (needFullRender) {
+          cachedBaseBuf = null; // force full re-render
+        }
+
+        renderScope(needFullRender ? lastPixels : null, !needFullRender).then(function() {
           settingsRendering = false;
           if (settingsDirty) {
             settingsDirty = false;
             window.__chromascope.onSettingsChanged();
           }
         });
-      }, 300);
+      }, 150); // Reduced from 300ms for snappier response
     };
   }
 
-  // Click-to-rotate overlay on the scope image
+  // Click-to-rotate overlay
   var scopeContainer = document.getElementById("scope-canvas-container");
   if (scopeContainer && window.__chromascope) {
     scopeContainer.addEventListener("click", function(e) {
@@ -469,7 +618,30 @@ async function init() {
     });
   }
 
-  // Initial render with no data (just graticule), then fetch pixels
+  // Skin tone indicator toggle — appended at the bottom of controls
+  var controlsEl = document.getElementById("controls-container");
+  if (controlsEl) {
+    var stRow = document.createElement("div");
+    stRow.className = "vs-control-row";
+    stRow.style.marginTop = "2px";
+    var stLabel = document.createElement("label");
+    stLabel.textContent = "Skin";
+    stRow.appendChild(stLabel);
+    var stBtn = document.createElement("button");
+    stBtn.className = "vs-btn";
+    stBtn.textContent = "Skin Tone";
+    stBtn.style.flex = "0 0 auto";
+    stBtn.style.padding = "0 6px";
+    stBtn.addEventListener("click", function() {
+      showSkinTone = !showSkinTone;
+      stBtn.classList.toggle("active", showSkinTone);
+      cachedBaseBuf = null;
+      renderScope(lastPixels, false);
+    });
+    stRow.appendChild(stBtn);
+    controlsEl.appendChild(stRow);
+  }
+
   await renderScope(null);
   await refresh();
   await events.startListening(refresh);

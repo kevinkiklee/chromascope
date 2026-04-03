@@ -66,10 +66,6 @@ local function appendOverlayFlags(cmd, props)
   if density and density ~= "" and density ~= "scatter" then
     cmd = cmd .. string.format(' --density %s', density)
   end
-  local colorSpace = props.colorSpace
-  if colorSpace and colorSpace ~= "" and colorSpace ~= "ycbcr" then
-    cmd = cmd .. string.format(' --color-space %s', colorSpace)
-  end
   return cmd
 end
 
@@ -98,20 +94,35 @@ local function hashSettings(photo)
   -- Sum key slider values with position weighting to avoid collisions
   local sum = id
   local vals = {
+    -- Basic
     settings.Exposure2012, settings.Contrast2012,
     settings.Highlights2012, settings.Shadows2012,
     settings.Whites2012, settings.Blacks2012,
     settings.Clarity2012, settings.Vibrance, settings.Saturation,
+    settings.Temperature, settings.Tint,
+    -- HSL Hue
     settings.HueAdjustmentRed, settings.HueAdjustmentOrange,
     settings.HueAdjustmentYellow, settings.HueAdjustmentGreen,
-    settings.HueAdjustmentBlue, settings.HueAdjustmentPurple,
+    settings.HueAdjustmentAqua, settings.HueAdjustmentBlue,
+    settings.HueAdjustmentPurple, settings.HueAdjustmentMagenta,
+    -- HSL Saturation
     settings.SaturationAdjustmentRed, settings.SaturationAdjustmentOrange,
     settings.SaturationAdjustmentYellow, settings.SaturationAdjustmentGreen,
-    settings.SaturationAdjustmentBlue,
+    settings.SaturationAdjustmentAqua, settings.SaturationAdjustmentBlue,
+    settings.SaturationAdjustmentPurple, settings.SaturationAdjustmentMagenta,
+    -- HSL Luminance
     settings.LuminanceAdjustmentRed, settings.LuminanceAdjustmentOrange,
     settings.LuminanceAdjustmentYellow, settings.LuminanceAdjustmentGreen,
-    settings.LuminanceAdjustmentBlue,
-    settings.SplitToningHighlightHue, settings.SplitToningShadowHue,
+    settings.LuminanceAdjustmentAqua, settings.LuminanceAdjustmentBlue,
+    settings.LuminanceAdjustmentPurple, settings.LuminanceAdjustmentMagenta,
+    -- Color Grading
+    settings.SplitToningHighlightHue, settings.SplitToningHighlightSaturation,
+    settings.SplitToningShadowHue, settings.SplitToningShadowSaturation,
+    settings.ColorGradeMidtoneHue, settings.ColorGradeMidtoneSat,
+    settings.ColorGradeGlobalHue, settings.ColorGradeGlobalSat,
+    -- Tone Curve
+    settings.ParametricShadows, settings.ParametricDarks,
+    settings.ParametricLights, settings.ParametricHighlights,
   }
   for i, v in ipairs(vals) do
     sum = sum + (v or 0) * i
@@ -133,6 +144,11 @@ function ImagePipeline.settingsChanged()
     return true
   end
   return false
+end
+
+-- Force the next settingsChanged() call to return true.
+function ImagePipeline.resetChangeDetection()
+  _lastSettingsHash = nil
 end
 
 -- Clean up stale temp files from previous sessions
