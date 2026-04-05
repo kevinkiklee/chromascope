@@ -94,41 +94,36 @@ jobs:
           name: plugins-windows
           path: artifacts/windows
 
-      - name: Package macOS ZIP
+      - name: Package Photoshop ZIP
         run: |
-          mkdir -p dist stage/chromascope-macos
+          mkdir -p dist stage
+          cp -r artifacts/macos/plugins/photoshop stage/Chromascope-Photoshop
+          (cd stage && zip -r ../dist/Chromascope-Photoshop.zip Chromascope-Photoshop/)
 
-          # Photoshop (platform-independent)
-          cp -r artifacts/macos/plugins/photoshop stage/chromascope-macos/Chromascope-Photoshop
-
-          # Lightroom with macOS binaries only
-          mkdir -p stage/chromascope-macos/chromascope.lrdevplugin/bin/macos-arm64
-          mkdir -p stage/chromascope-macos/chromascope.lrdevplugin/bin/macos-x64
+      - name: Package Lightroom macOS ZIP
+        run: |
+          mkdir -p stage/chromascope.lrdevplugin/bin/macos-arm64
+          mkdir -p stage/chromascope.lrdevplugin/bin/macos-x64
 
           LR="artifacts/macos/plugins/lightroom/chromascope.lrdevplugin"
-          cp "$LR"/*.lua stage/chromascope-macos/chromascope.lrdevplugin/
-          [ -d "$LR/core" ] && cp -r "$LR/core" stage/chromascope-macos/chromascope.lrdevplugin/core
-          [ -f "$LR/bin/macos-arm64/processor" ] && cp "$LR/bin/macos-arm64/processor" stage/chromascope-macos/chromascope.lrdevplugin/bin/macos-arm64/
-          [ -f "$LR/bin/macos-x64/processor" ] && cp "$LR/bin/macos-x64/processor" stage/chromascope-macos/chromascope.lrdevplugin/bin/macos-x64/
+          cp "$LR"/*.lua "$LR"/README.txt stage/chromascope.lrdevplugin/
+          [ -d "$LR/core" ] && cp -r "$LR/core" stage/chromascope.lrdevplugin/core
+          [ -f "$LR/bin/macos-arm64/processor" ] && cp "$LR/bin/macos-arm64/processor" stage/chromascope.lrdevplugin/bin/macos-arm64/
+          [ -f "$LR/bin/macos-x64/processor" ] && cp "$LR/bin/macos-x64/processor" stage/chromascope.lrdevplugin/bin/macos-x64/
 
-          (cd stage && zip -r ../dist/chromascope-macos.zip chromascope-macos/)
+          (cd stage && zip -r ../dist/Chromascope-Lightroom-macOS.zip chromascope.lrdevplugin/)
+          rm -rf stage/chromascope.lrdevplugin
 
-      - name: Package Windows ZIP
+      - name: Package Lightroom Windows ZIP
         run: |
-          mkdir -p stage/chromascope-windows
-
-          # Photoshop (platform-independent)
-          cp -r artifacts/windows/plugins/photoshop stage/chromascope-windows/Chromascope-Photoshop
-
-          # Lightroom with Windows binary only
-          mkdir -p stage/chromascope-windows/chromascope.lrdevplugin/bin/win-x64
+          mkdir -p stage/chromascope.lrdevplugin/bin/win-x64
 
           LR="artifacts/windows/plugins/lightroom/chromascope.lrdevplugin"
-          cp "$LR"/*.lua stage/chromascope-windows/chromascope.lrdevplugin/
-          [ -d "$LR/core" ] && cp -r "$LR/core" stage/chromascope-windows/chromascope.lrdevplugin/core
-          [ -f "$LR/bin/win-x64/processor.exe" ] && cp "$LR/bin/win-x64/processor.exe" stage/chromascope-windows/chromascope.lrdevplugin/bin/win-x64/
+          cp "$LR"/*.lua "$LR"/README.txt stage/chromascope.lrdevplugin/
+          [ -d "$LR/core" ] && cp -r "$LR/core" stage/chromascope.lrdevplugin/core
+          [ -f "$LR/bin/win-x64/processor.exe" ] && cp "$LR/bin/win-x64/processor.exe" stage/chromascope.lrdevplugin/bin/win-x64/
 
-          (cd stage && zip -r ../dist/chromascope-windows.zip chromascope-windows/)
+          (cd stage && zip -r ../dist/Chromascope-Lightroom-Windows.zip chromascope.lrdevplugin/)
 
       - name: Generate checksums
         run: (cd dist && sha256sum *.zip > checksums.txt && cat checksums.txt)
@@ -138,6 +133,7 @@ jobs:
         with:
           generate_release_notes: true
           files: |
-            dist/chromascope-macos.zip
-            dist/chromascope-windows.zip
+            dist/Chromascope-Photoshop.zip
+            dist/Chromascope-Lightroom-macOS.zip
+            dist/Chromascope-Lightroom-Windows.zip
             dist/checksums.txt
