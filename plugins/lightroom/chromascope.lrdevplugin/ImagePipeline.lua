@@ -279,7 +279,7 @@ function ImagePipeline.refresh(props)
 
   if _pendingRefresh then
     _pendingRefresh = false
-    ImagePipeline.refresh(props)
+    return ImagePipeline.refresh(props)
   end
 end
 
@@ -310,7 +310,7 @@ function ImagePipeline.refreshOverlayFast(props)
 
   if _pendingRefresh then
     _pendingRefresh = false
-    ImagePipeline.refresh(props)
+    return ImagePipeline.refresh(props)
   end
 end
 
@@ -342,7 +342,7 @@ function ImagePipeline.refreshOverlayFull(props)
 
   if _pendingRefresh then
     _pendingRefresh = false
-    ImagePipeline.refresh(props)
+    return ImagePipeline.refresh(props)
   end
 end
 

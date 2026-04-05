@@ -116,9 +116,10 @@ function renderGraticule(size) {
     blendPixel(half, ci, 30, 30, 35, 0.5);
   }
 
-  // Color ring: HSV hue wheel just outside the graticule (matches Rust draw_color_ring)
-  var ringInner = radius * 1.005;
-  var ringOuter = radius * 1.02;
+  // Color ring: HSV hue wheel just outside the graticule.
+  // Thicker than Rust renderer (which renders at 700px) to be visible at 300px.
+  var ringInner = radius * 1.01;
+  var ringOuter = radius * 1.05;
   var ringMid = (ringInner + ringOuter) / 2;
   var ringHalf = (ringOuter - ringInner) / 2;
   var scanMin = Math.max(0, Math.floor(half - ringOuter - 1));
@@ -193,37 +194,48 @@ function renderToBuffer(size, pixels) {
   var data = pixels.data;
   var total = pixels.width * pixels.height;
 
-  // HSL mapping: hue → angle, saturation → radius.
-  // Matches the Rust renderer default (--color-space hsl) and the HSV color ring.
-  // Hue maps directly to polar angle, saturation to distance from center.
-  function mapHSL(r255, g255, b255) {
-    var rn = r255 / 255, gn = g255 / 255, bn = b255 / 255;
-    var max = Math.max(rn, gn, bn), min = Math.min(rn, gn, bn);
+  // Inline HSL mapping: hue → angle, saturation → radius.
+  // Avoids function calls and object allocation per pixel — critical for UXP performance.
+  // Writes px/py directly into reusable vars instead of returning objects.
+  var _mapPx = 0, _mapPy = 0, _mapOk = false;
+  function mapHSLInline(r255, g255, b255) {
+    var rn = r255 * 0.003921569; // 1/255
+    var gn = g255 * 0.003921569;
+    var bn = b255 * 0.003921569;
+    var max = rn > gn ? (rn > bn ? rn : bn) : (gn > bn ? gn : bn);
+    var min = rn < gn ? (rn < bn ? rn : bn) : (gn < bn ? gn : bn);
     var delta = max - min;
-    if (delta === 0) return null; // achromatic — skip
-    var l = (max + min) / 2;
+    if (delta < 0.001) { _mapOk = false; return; }
+    var l = (max + min) * 0.5;
     var s = l <= 0.5 ? delta / (max + min) : delta / (2 - max - min);
     var h;
     if (max === rn) { h = ((gn - bn) / delta) % 6; if (h < 0) h += 6; }
     else if (max === gn) { h = (bn - rn) / delta + 2; }
     else { h = (rn - gn) / delta + 4; }
-    var hueRad = (h / 6) * Math.PI * 2;
-    return { x: s * Math.cos(hueRad), y: s * Math.sin(hueRad) };
+    var hueRad = h * 1.0471975511966; // h/6 * 2π = h * π/3
+    var sr = s * radius;
+    _mapPx = Math.round(half + sr * Math.cos(hueRad));
+    _mapPy = Math.round(half - sr * Math.sin(hueRad));
+    _mapOk = true;
   }
 
   if (densityMode === "scatter") {
+    // Additive blending: each dot adds its color to the existing pixel.
+    // Dense clusters accumulate brightness naturally, preserving hue.
+    // Matches Rust renderer's blend_pixel with alpha=0.9.
     for (var pi = 0; pi < total; pi++) {
       var off = pi * 3;
-      var r = data[off], g = data[off+1], b = data[off+2];
-      var mapped = mapHSL(r, g, b);
-      if (!mapped) continue;
-      var px = Math.round(half + mapped.x * radius);
-      var py = Math.round(half - mapped.y * radius);
-      if (px >= 0 && px < size && py >= 0 && py < size) {
-        var idx = (py * size + px) * 4;
-        buf[idx]   = Math.min(255, Math.round(r * 0.9 + 30));
-        buf[idx+1] = Math.min(255, Math.round(g * 0.9 + 30));
-        buf[idx+2] = Math.min(255, Math.round(b * 0.9 + 30));
+      mapHSLInline(data[off], data[off+1], data[off+2]);
+      if (!_mapOk) continue;
+      if (_mapPx >= 0 && _mapPx < size && _mapPy >= 0 && _mapPy < size) {
+        var idx = (_mapPy * size + _mapPx) * 4;
+        var pr = (data[off] * 230 + 7650) >> 8;
+        var pg = (data[off+1] * 230 + 7650) >> 8;
+        var pb = (data[off+2] * 230 + 7650) >> 8;
+        // Alpha blend at 0.9: new = old * 0.1 + pixel * 0.9
+        buf[idx]   = Math.min(255, (buf[idx]   * 26 + pr * 230 + 128) >> 8);
+        buf[idx+1] = Math.min(255, (buf[idx+1] * 26 + pg * 230 + 128) >> 8);
+        buf[idx+2] = Math.min(255, (buf[idx+2] * 26 + pb * 230 + 128) >> 8);
         buf[idx+3] = 255;
       }
     }
@@ -232,10 +244,9 @@ function renderToBuffer(size, pixels) {
     var maxDensity = 0;
     for (var pi = 0; pi < total; pi++) {
       var off = pi * 3;
-      var mapped = mapHSL(data[off], data[off+1], data[off+2]);
-      if (!mapped) continue;
-      var px = Math.round(half + mapped.x * radius);
-      var py = Math.round(half - mapped.y * radius);
+      mapHSLInline(data[off], data[off+1], data[off+2]);
+      if (!_mapOk) continue;
+      var px = _mapPx, py = _mapPy;
       if (px >= 0 && px < size && py >= 0 && py < size) {
         var di = py * size + px;
         density[di]++;
@@ -270,15 +281,13 @@ function renderToBuffer(size, pixels) {
     // Step 1: accumulate colored energy at each pixel location (single pass over input)
     for (var pi = 0; pi < total; pi++) {
       var off = pi * 3;
-      var mapped = mapHSL(data[off], data[off+1], data[off+2]);
-      if (!mapped) continue;
-      var px = Math.round(half + mapped.x * radius);
-      var py = Math.round(half - mapped.y * radius);
-      if (px >= 0 && px < size && py >= 0 && py < size) {
-        var bi = py * size + px;
-        bloomR[bi] += Math.min(255, data[off] * 0.9 + 30) * alpha;
-        bloomG[bi] += Math.min(255, data[off+1] * 0.9 + 30) * alpha;
-        bloomB[bi] += Math.min(255, data[off+2] * 0.9 + 30) * alpha;
+      mapHSLInline(data[off], data[off+1], data[off+2]);
+      if (!_mapOk) continue;
+      if (_mapPx >= 0 && _mapPx < size && _mapPy >= 0 && _mapPy < size) {
+        var bi = _mapPy * size + _mapPx;
+        bloomR[bi] += Math.min(255, (data[off] * 230 + 7650) >> 8) * alpha;
+        bloomG[bi] += Math.min(255, (data[off+1] * 230 + 7650) >> 8) * alpha;
+        bloomB[bi] += Math.min(255, (data[off+2] * 230 + 7650) >> 8) * alpha;
       }
     }
 
@@ -350,9 +359,9 @@ function renderToBuffer(size, pixels) {
       var r = finalR[ci], g = finalG[ci], b = finalB[ci];
       if (r <= 0 && g <= 0 && b <= 0) continue;
       var idx = ci * 4;
-      buf[idx]   = Math.min(255, buf[idx]   + (r + 0.5) | 0);
-      buf[idx+1] = Math.min(255, buf[idx+1] + (g + 0.5) | 0);
-      buf[idx+2] = Math.min(255, buf[idx+2] + (b + 0.5) | 0);
+      buf[idx]   = Math.min(255, buf[idx]   + ((r + 0.5) | 0));
+      buf[idx+1] = Math.min(255, buf[idx+1] + ((g + 0.5) | 0));
+      buf[idx+2] = Math.min(255, buf[idx+2] + ((b + 0.5) | 0));
       buf[idx+3] = 255;
     }
   }

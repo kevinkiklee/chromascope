@@ -44,24 +44,34 @@ function ChromascopeDialog.show(context)
   -- Only ONE settle task runs at a time — stale ones exit early.
   -- The fast task is also versioned so rapid slider ticks don't pile up.
   local _fastVersion = 0
+  local _fastTaskRunning = false
+  local _settleTaskRunning = false
 
   local function onOverlayChange()
     -- Bump both versions — any in-flight tasks will see they're stale and exit
     _settleVersion = _settleVersion + 1
     _fastVersion = _fastVersion + 1
-    local fv = _fastVersion
-    local sv = _settleVersion
 
-    LrTasks.startAsyncTask(function()
-      if fv ~= _fastVersion then return end  -- stale, exit immediately
-      ImagePipeline.refreshOverlayFast(props)
-    end)
+    if not _fastTaskRunning then
+      _fastTaskRunning = true
+      LrTasks.startAsyncTask(function()
+        _fastTaskRunning = false
+        ImagePipeline.refreshOverlayFast(props)
+      end)
+    end
 
-    LrTasks.startAsyncTask(function()
-      LrTasks.sleep(0.4)
-      if sv ~= _settleVersion then return end  -- stale, exit immediately
-      ImagePipeline.refreshOverlayFull(props)
-    end)
+    if not _settleTaskRunning then
+      _settleTaskRunning = true
+      LrTasks.startAsyncTask(function()
+        local lastVersion = 0
+        while lastVersion ~= _settleVersion do
+          lastVersion = _settleVersion
+          LrTasks.sleep(0.4)
+        end
+        _settleTaskRunning = false
+        ImagePipeline.refreshOverlayFull(props)
+      end)
+    end
   end
 
   props:addObserver("scheme", function() onOverlayChange() end)
@@ -141,19 +151,26 @@ function ChromascopeDialog.show(context)
   -- Without debounce, dragging a slider fires hundreds of startAsyncTask per second,
   -- accumulating Lua coroutines and causing unbounded memory growth.
   local _adjustVersion = 0
+  local _adjustTaskRunning = false
   LrDevelopController.addAdjustmentChangeObserver(context, props, function()
     _adjustVersion = _adjustVersion + 1
-    local av = _adjustVersion
-    LrTasks.startAsyncTask(function()
-      -- Wait for the develop module to commit the preview update.
-      -- requestJpegThumbnail returns a cached thumbnail — too short a delay
-      -- means we re-render with stale pixel data. 500ms is enough for LrC
-      -- to update the preview after a slider drag stops.
-      LrTasks.sleep(0.5)
-      if av ~= _adjustVersion then return end  -- stale, exit immediately
-      ImagePipeline.resetChangeDetection()  -- Force hash re-check so poll loop doesn't skip
-      ImagePipeline.refresh(props)
-    end)
+    if not _adjustTaskRunning then
+      _adjustTaskRunning = true
+      LrTasks.startAsyncTask(function()
+        -- Wait for the develop module to commit the preview update.
+        -- requestJpegThumbnail returns a cached thumbnail — too short a delay
+        -- means we re-render with stale pixel data. 500ms is enough for LrC
+        -- to update the preview after a slider drag stops.
+        local lastVersion = 0
+        while lastVersion ~= _adjustVersion do
+          lastVersion = _adjustVersion
+          LrTasks.sleep(0.5)
+        end
+        _adjustTaskRunning = false
+        ImagePipeline.resetChangeDetection()  -- Force hash re-check so poll loop doesn't skip
+        ImagePipeline.refresh(props)
+      end)
+    end
   end)
 
   local picSize = _savedSize
