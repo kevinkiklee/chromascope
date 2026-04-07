@@ -56,7 +56,11 @@ function resize(): void {
   draw();
 }
 
-const resizeObserver = new ResizeObserver(resize);
+let resizeRafId = 0;
+const resizeObserver = new ResizeObserver(() => {
+  cancelAnimationFrame(resizeRafId);
+  resizeRafId = requestAnimationFrame(resize);
+});
 resizeObserver.observe(container);
 window.addEventListener("beforeunload", () => resizeObserver.disconnect());
 

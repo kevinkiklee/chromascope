@@ -1,5 +1,5 @@
-import { describe, it, expect, vi } from "vitest";
-import { scopeToCanvas, renderGraticule } from "../src/graticule.js";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { scopeToCanvas, renderGraticule, renderGraticuleToContext } from "../src/graticule.js";
 import { SKIN_TONE_ANGLE } from "../src/overlays/skin-tone-line.js";
 
 // --- scopeToCanvas ---
@@ -80,13 +80,19 @@ function createMockCtx() {
     moveTo: vi.fn(),
     lineTo: vi.fn(),
     fillText: vi.fn(),
+    drawImage: vi.fn(),
   } as unknown as CanvasRenderingContext2D;
 }
 
+/**
+ * renderGraticule now caches to an OffscreenCanvas and blits via drawImage.
+ * Detailed drawing assertions use renderGraticuleToContext directly.
+ * renderGraticule tests verify the public contract: drawImage is called.
+ */
 describe("renderGraticule", () => {
   it("clears and fills background", () => {
     const ctx = createMockCtx();
-    renderGraticule(ctx, 300);
+    renderGraticuleToContext(ctx, 300);
     expect(ctx.clearRect).toHaveBeenCalledWith(0, 0, 300, 300);
     expect(ctx.fillRect).toHaveBeenCalledWith(0, 0, 300, 300);
   });
@@ -94,7 +100,7 @@ describe("renderGraticule", () => {
   it("draws 4 concentric circles (25%, 50%, 75%, 100%)", () => {
     const ctx = createMockCtx();
     const size = 400;
-    renderGraticule(ctx, size);
+    renderGraticuleToContext(ctx, size);
     const maxR = size * 0.45;
     const arcCalls = (ctx.arc as ReturnType<typeof vi.fn>).mock.calls;
     // Collect all arc radii drawn at canvas center
@@ -113,7 +119,7 @@ describe("renderGraticule", () => {
 
   it("draws 6 hue labels (R, Y, G, C, B, M)", () => {
     const ctx = createMockCtx();
-    renderGraticule(ctx, 500);
+    renderGraticuleToContext(ctx, 500);
     const textCalls = (ctx.fillText as ReturnType<typeof vi.fn>).mock.calls;
     const labels = textCalls.map((c: string[]) => c[0]);
     expect(labels).toContain("R");
@@ -126,8 +132,8 @@ describe("renderGraticule", () => {
 
   it("draws crosshair lines through center", () => {
     const ctx = createMockCtx();
-    const size = 300;
-    renderGraticule(ctx, size);
+    const size = 600;
+    renderGraticuleToContext(ctx, size);
     const moveCalls = (ctx.moveTo as ReturnType<typeof vi.fn>).mock.calls;
     const cx = size / 2;
     const cy = size / 2;
@@ -140,7 +146,7 @@ describe("renderGraticule", () => {
 
   it("draws a center dot", () => {
     const ctx = createMockCtx();
-    renderGraticule(ctx, 200);
+    renderGraticuleToContext(ctx, 200);
     const arcCalls = (ctx.arc as ReturnType<typeof vi.fn>).mock.calls;
     // Center dot: arc at (cx, cy) with small radius (2px)
     const centerDot = arcCalls.find(
@@ -151,8 +157,29 @@ describe("renderGraticule", () => {
 
   it("scales font size with canvas size", () => {
     const ctx = createMockCtx();
-    renderGraticule(ctx, 800);
+    renderGraticuleToContext(ctx, 800);
     const fontSize = Math.round(800 * 0.04);
     expect(ctx.font).toContain(`${fontSize}px`);
+  });
+
+  it("blits to the real context via drawImage", () => {
+    const ctx = createMockCtx();
+    renderGraticule(ctx, 700);
+    expect(ctx.drawImage).toHaveBeenCalledTimes(1);
+    const [source, x, y] = (ctx.drawImage as ReturnType<typeof vi.fn>).mock.calls[0];
+    expect(source).toBeInstanceOf(OffscreenCanvas);
+    expect(x).toBe(0);
+    expect(y).toBe(0);
+  });
+
+  it("uses the offscreen cache on repeated calls with the same size", () => {
+    const ctx1 = createMockCtx();
+    const ctx2 = createMockCtx();
+    renderGraticule(ctx1, 900);
+    renderGraticule(ctx2, 900);
+    // Both calls should blit via drawImage using the same cached OffscreenCanvas
+    const source1 = (ctx1.drawImage as ReturnType<typeof vi.fn>).mock.calls[0][0];
+    const source2 = (ctx2.drawImage as ReturnType<typeof vi.fn>).mock.calls[0][0];
+    expect(source1).toBe(source2);
   });
 });

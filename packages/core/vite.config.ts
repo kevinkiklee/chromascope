@@ -10,5 +10,6 @@ export default defineConfig({
   plugins: [viteSingleFile()],
   test: {
     include: ["../test/**/*.test.ts"],
+    setupFiles: ["../test/setup.ts"],
   },
 });
