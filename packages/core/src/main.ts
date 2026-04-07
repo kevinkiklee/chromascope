@@ -13,6 +13,9 @@ if (!canvas || !container || !controlsEl) {
   throw new Error("Chromascope: missing required DOM elements");
 }
 
+canvas.setAttribute("role", "img");
+canvas.setAttribute("aria-label", "Vectorscope visualization showing color distribution");
+
 const ctx = canvas.getContext("2d");
 if (!ctx) {
   throw new Error("Chromascope: failed to get 2d canvas context");

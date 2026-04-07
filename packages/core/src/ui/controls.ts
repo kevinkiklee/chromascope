@@ -20,13 +20,13 @@ const DENSITY_MODES: Array<{ id: DensityModeId; label: string }> = [
   { id: "bloom", label: "Bloom" },
 ];
 
-const HARMONY_SCHEMES: Array<{ id: HarmonySchemeId | "none"; label: string }> = [
-  { id: "none", label: "Off" },
-  { id: "complementary", label: "Cmp" },
-  { id: "splitComplementary", label: "Spl" },
-  { id: "triadic", label: "Tri" },
-  { id: "tetradic", label: "Tet" },
-  { id: "analogous", label: "Ana" },
+const HARMONY_SCHEMES: Array<{ id: HarmonySchemeId | "none"; label: string; title: string }> = [
+  { id: "none", label: "Off", title: "No harmony overlay" },
+  { id: "complementary", label: "Cmp", title: "Complementary" },
+  { id: "splitComplementary", label: "Spl", title: "Split Complementary" },
+  { id: "triadic", label: "Tri", title: "Triadic" },
+  { id: "tetradic", label: "Tet", title: "Tetradic" },
+  { id: "analogous", label: "Ana", title: "Analogous" },
 ];
 
 export function createControls(
@@ -48,6 +48,9 @@ export function createControls(
       const btn = document.createElement("button");
       btn.className = `vs-btn${item.id === activeId ? " active" : ""}`;
       btn.textContent = item.label;
+      if ("title" in item && (item as any).title) {
+        btn.setAttribute("title", (item as any).title);
+      }
       btn.setAttribute("data-vs-id", item.id);
       btn.addEventListener("click", () => {
         onChange(item.id);
@@ -78,6 +81,10 @@ export function createControls(
     row.appendChild(lbl);
 
     const input = document.createElement("input");
+    const inputId = `vs-${label.toLowerCase().replace(/\s+/g, "-")}`;
+    input.id = inputId;
+    lbl.setAttribute("for", inputId);
+    input.setAttribute("aria-label", label);
     input.type = "range";
     input.min = String(min);
     input.max = String(max);
