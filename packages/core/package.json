@@ -8,12 +8,13 @@
     "dev": "vite",
     "build": "vite build",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "build:lib": "vite build --config vite.config.lib.ts"
   },
   "devDependencies": {
-    "typescript": "^5",
-    "vite": "^6",
-    "vitest": "^3",
-    "vite-plugin-singlefile": "^2"
+    "typescript": "~5.7",
+    "vite": "~6.0",
+    "vitest": "~3.0",
+    "vite-plugin-singlefile": "~2.0"
   }
 }
