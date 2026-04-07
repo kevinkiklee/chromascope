@@ -89,6 +89,10 @@ fn main() -> anyhow::Result<()> {
 }
 
 fn cmd_decode(args: DecodeArgs) -> anyhow::Result<()> {
+    if args.width == 0 || args.height == 0 {
+        return Err(anyhow::anyhow!("Width and height must be greater than zero"));
+    }
+
     let img = image::open(&args.input)
         .map_err(|e| anyhow::anyhow!("Failed to open {:?}: {}", args.input, e))?;
 
@@ -103,10 +107,49 @@ fn cmd_decode(args: DecodeArgs) -> anyhow::Result<()> {
 }
 
 fn cmd_render(args: RenderArgs) -> anyhow::Result<()> {
+    if args.width == 0 || args.height == 0 {
+        return Err(anyhow::anyhow!("Width and height must be greater than zero"));
+    }
+    if args.size == 0 {
+        return Err(anyhow::anyhow!("Output size must be greater than zero"));
+    }
+
+    const VALID_DENSITIES: &[&str] = &["scatter", "heatmap", "bloom"];
+    if !VALID_DENSITIES.contains(&args.density.as_str()) {
+        return Err(anyhow::anyhow!(
+            "Unknown density mode '{}'. Valid: {}",
+            args.density, VALID_DENSITIES.join(", ")
+        ));
+    }
+
+    const VALID_COLOR_SPACES: &[&str] = &["hsl", "ycbcr", "cieluv"];
+    if !VALID_COLOR_SPACES.contains(&args.color_space.as_str()) {
+        return Err(anyhow::anyhow!(
+            "Unknown color space '{}'. Valid: {}",
+            args.color_space, VALID_COLOR_SPACES.join(", ")
+        ));
+    }
+
+    if let Some(ref s) = args.scheme {
+        const VALID_SCHEMES: &[&str] = &[
+            "complementary", "splitComplementary", "triadic", "tetradic", "analogous",
+        ];
+        if !VALID_SCHEMES.contains(&s.as_str()) {
+            return Err(anyhow::anyhow!(
+                "Unknown harmony scheme '{}'. Valid: {}",
+                s, VALID_SCHEMES.join(", ")
+            ));
+        }
+    }
+
     let raw = fs::read(&args.input)
         .map_err(|e| anyhow::anyhow!("Failed to read {:?}: {}", args.input, e))?;
 
-    let expected = (args.width * args.height * 3) as usize;
+    let expected = (args.width as u64)
+        .checked_mul(args.height as u64)
+        .and_then(|x| x.checked_mul(3))
+        .and_then(|x| usize::try_from(x).ok())
+        .ok_or_else(|| anyhow::anyhow!("Image dimensions too large: {}x{}", args.width, args.height))?;
     if raw.len() != expected {
         return Err(anyhow::anyhow!(
             "Input has {} bytes, expected {} ({}x{}x3)",
