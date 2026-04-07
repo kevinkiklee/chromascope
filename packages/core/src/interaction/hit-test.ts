@@ -1,6 +1,6 @@
 // packages/core/src/interaction/hit-test.ts
 
-const TWO_PI = 2 * Math.PI;
+import { RADIUS_FACTOR, TWO_PI } from "../constants.js";
 
 export interface PolarCoord {
   angle: number;
@@ -10,7 +10,7 @@ export interface PolarCoord {
 export function canvasToPolar(px: number, py: number, size: number): PolarCoord {
   const cx = size / 2;
   const cy = size / 2;
-  const maxR = size * 0.45;
+  const maxR = size * RADIUS_FACTOR;
 
   const dx = px - cx;
   const dy = -(py - cy);

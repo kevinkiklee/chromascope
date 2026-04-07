@@ -1,20 +1,7 @@
 // packages/core/src/overlays/harmony-renderer.ts
 
 import type { HarmonyZone } from "../types.js";
-
-const ZONE_COLORS = [
-  "rgba(255, 200, 50, 0.15)",
-  "rgba(50, 200, 255, 0.15)",
-  "rgba(255, 100, 200, 0.15)",
-  "rgba(100, 255, 150, 0.15)",
-];
-
-const ZONE_BORDER_COLORS = [
-  "rgba(255, 200, 50, 0.6)",
-  "rgba(50, 200, 255, 0.6)",
-  "rgba(255, 100, 200, 0.6)",
-  "rgba(100, 255, 150, 0.6)",
-];
+import { RADIUS_FACTOR, ZONE_FILL_COLORS, ZONE_BORDER_COLORS } from "../constants.js";
 
 export function renderHarmonyOverlay(
   ctx: CanvasRenderingContext2D,
@@ -25,7 +12,7 @@ export function renderHarmonyOverlay(
 
   const cx = size / 2;
   const cy = size / 2;
-  const maxR = size * 0.45;
+  const maxR = size * RADIUS_FACTOR;
 
   ctx.save();
 
@@ -36,7 +23,7 @@ export function renderHarmonyOverlay(
     const startAngle = -(zone.centerAngle + zone.halfWidth);
     const endAngle = -(zone.centerAngle - zone.halfWidth);
 
-    ctx.fillStyle = ZONE_COLORS[i % ZONE_COLORS.length];
+    ctx.fillStyle = ZONE_FILL_COLORS[i % ZONE_FILL_COLORS.length];
     ctx.beginPath();
     ctx.moveTo(cx, cy);
     ctx.arc(cx, cy, maxR, startAngle, endAngle);

@@ -1,24 +1,8 @@
 // packages/core/src/overlays/harmony-zones.ts
 
 import type { HarmonyConfig, HarmonySchemeId, HarmonyZone } from "../types.js";
-
-/** Base half-width for a single zone (before zoneWidth multiplier), in radians */
-const BASE_HALF_WIDTH = Math.PI / 12; // 15°
-
-const TWO_PI = 2 * Math.PI;
-
-/** Normalize angle to [0, 2π) */
-function normalizeAngle(a: number): number {
-  return ((a % TWO_PI) + TWO_PI) % TWO_PI;
-}
-
-/** Signed shortest angular distance from a to b, in [-π, π] */
-function angularDistance(a: number, b: number): number {
-  let d = normalizeAngle(b) - normalizeAngle(a);
-  if (d > Math.PI) d -= TWO_PI;
-  if (d < -Math.PI) d += TWO_PI;
-  return d;
-}
+import { HARMONY_BASE_HALF_WIDTH } from "../constants.js";
+import { normalizeAngle, angularDistance } from "../math-utils.js";
 
 function schemeBaseAngles(scheme: HarmonySchemeId): number[] {
   switch (scheme) {
@@ -39,7 +23,7 @@ export function getHarmonyZones(config: HarmonyConfig): HarmonyZone[] {
   if (config.scheme === null) return [];
 
   const baseAngles = schemeBaseAngles(config.scheme);
-  const halfWidth = BASE_HALF_WIDTH * config.zoneWidth;
+  const halfWidth = HARMONY_BASE_HALF_WIDTH * config.zoneWidth;
 
   return baseAngles.map((angle, i) => ({
     centerAngle: normalizeAngle(angle + config.rotation),

@@ -1,3 +1,5 @@
+import { RADIUS_FACTOR } from "./constants.js";
+
 const HUE_LABELS: Array<{ label: string; angleDeg: number; color: string }> = [
   { label: "R", angleDeg: 0, color: "#ff4444" },
   { label: "Y", angleDeg: 60, color: "#ffff44" },
@@ -10,7 +12,7 @@ const HUE_LABELS: Array<{ label: string; angleDeg: number; color: string }> = [
 export function renderGraticule(ctx: CanvasRenderingContext2D, size: number): void {
   const cx = size / 2;
   const cy = size / 2;
-  const maxR = size * 0.45;
+  const maxR = size * RADIUS_FACTOR;
 
   ctx.clearRect(0, 0, size, size);
 
@@ -87,7 +89,7 @@ export function renderGraticule(ctx: CanvasRenderingContext2D, size: number): vo
 export function scopeToCanvas(x: number, y: number, size: number): { px: number; py: number } {
   const cx = size / 2;
   const cy = size / 2;
-  const maxR = size * 0.45;
+  const maxR = size * RADIUS_FACTOR;
   return {
     px: cx + x * maxR,
     py: cy - y * maxR,
