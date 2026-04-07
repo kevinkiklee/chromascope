@@ -119,7 +119,13 @@ This triggers the [release workflow](.github/workflows/release.yml), which:
 
 The [download page](https://chromascope.dev/download) links to the latest GitHub Release, so new downloads are available immediately after the workflow completes.
 
-### Version bumping
+### Version Bumping
+
+Run the version bump script to update all files atomically:
+
+```bash
+./scripts/bump-version.sh 1.2.0
+```
 
 Version numbers are currently set in several places. Update all of them before tagging:
 
