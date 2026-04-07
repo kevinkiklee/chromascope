@@ -16,7 +16,7 @@ jobs:
         with:
           node-version: 20
           cache: npm
-      - run: npm install --no-package-lock
+      - run: npm ci
       - run: npx turbo build --filter=@chromascope/core
       - run: npx turbo test --filter=@chromascope/core
 
@@ -31,3 +31,4 @@ jobs:
           workspaces: packages/processor
       - run: cargo build --release --manifest-path packages/processor/Cargo.toml
       - run: cargo test --release --manifest-path packages/processor/Cargo.toml
+      - run: cargo clippy --all-targets --manifest-path packages/processor/Cargo.toml -- -D warnings
