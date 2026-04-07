@@ -95,10 +95,9 @@ info "Assembling Lightroom plugin..."
 
 LR_DIR="plugins/lightroom/chromascope.lrdevplugin"
 
-# Copy core build into Lightroom plugin
-mkdir -p "$LR_DIR/core"
-cp packages/core/build/index.html "$LR_DIR/core/index.html"
-ok "Copied core build → $LR_DIR/core/index.html"
+# Core HTML is not used by the Lightroom plugin (it has no WebView).
+# mkdir -p "$LR_DIR/core"
+# cp packages/core/build/index.html "$LR_DIR/core/index.html"
 
 # Copy processor binaries for all available platforms
 PROC_DIR="packages/processor/target"

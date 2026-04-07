@@ -60,13 +60,10 @@ cp "$PS_DIR/core/scope-bundle.js" "$PS_DEST/core/"
 mkdir -p "$MACOS_STAGE/chromascope.lrdevplugin/bin/macos-arm64"
 mkdir -p "$MACOS_STAGE/chromascope.lrdevplugin/bin/macos-x64"
 
-# Copy all Lua + core files
+# Copy all Lua files
 for f in "$LR_DIR"/*.lua; do
   cp "$f" "$MACOS_STAGE/chromascope.lrdevplugin/"
 done
-if [ -d "$LR_DIR/core" ]; then
-  cp -r "$LR_DIR/core" "$MACOS_STAGE/chromascope.lrdevplugin/core"
-fi
 
 # Copy macOS binaries
 if [ -f "$LR_DIR/bin/macos-arm64/processor" ]; then
@@ -104,9 +101,6 @@ mkdir -p "$WIN_STAGE/chromascope.lrdevplugin/bin/win-x64"
 for f in "$LR_DIR"/*.lua; do
   cp "$f" "$WIN_STAGE/chromascope.lrdevplugin/"
 done
-if [ -d "$LR_DIR/core" ]; then
-  cp -r "$LR_DIR/core" "$WIN_STAGE/chromascope.lrdevplugin/core"
-fi
 
 if [ -f "$LR_DIR/bin/win-x64/processor.exe" ]; then
   cp "$LR_DIR/bin/win-x64/processor.exe" "$WIN_STAGE/chromascope.lrdevplugin/bin/win-x64/processor.exe"
