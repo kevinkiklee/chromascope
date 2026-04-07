@@ -47,6 +47,17 @@ local function binary()
   return _binary
 end
 
+local _binaryVerified = false
+local function verifyBinary()
+  if _binaryVerified then return true end
+  local bin = binary()
+  if not LrFileUtils.exists(bin) then
+    return false, "Processor binary not found at: " .. tostring(bin)
+  end
+  _binaryVerified = true
+  return true
+end
+
 local VALID_SCHEMES = {
   complementary = true, splitComplementary = true,
   triadic = true, tetradic = true, analogous = true,
@@ -222,7 +233,14 @@ local function exportThumbnail(photo, outPath)
   end)
   -- Cooperative wait: LrTasks.sleep yields the coroutine, letting LrC process
   -- the thumbnail request. Without this, the callback would never fire.
-  while not done do LrTasks.sleep(0.05) end
+  local waited = 0
+  while not done do
+    LrTasks.sleep(0.05)
+    waited = waited + 0.05
+    if waited > 10 then
+      return false, "Thumbnail request timed out (10s)"
+    end
+  end
   return ok, errMsg
 end
 
@@ -234,6 +252,13 @@ function ImagePipeline.refresh(props)
     return
   end
   _busy = true
+
+  local binOk, binErr = verifyBinary()
+  if not binOk then
+    props.status = binErr or "Binary missing"
+    _busy = false
+    return
+  end
 
   local catalog = LrApplication.activeCatalog()
   local photo   = catalog:getTargetPhoto()
@@ -313,7 +338,12 @@ function ImagePipeline.refreshOverlayFast(props)
     '"%s" render --input "%s" --output "%s" --width 128 --height 128 --size 128',
     bin, rgbPath, outPath
   ), props)
-  LrTasks.execute(renderCmd)
+  local exitCode = LrTasks.execute(renderCmd)
+  if exitCode ~= 0 then
+    props.status = string.format("Overlay render failed (%s)", tostring(exitCode))
+    _busy = false
+    return
+  end
 
   props.imagePath = outPath
   _busy = false
@@ -344,7 +374,12 @@ function ImagePipeline.refreshOverlayFull(props)
     '"%s" render --input "%s" --output "%s" --width 128 --height 128 --size %d',
     bin, rgbPath, outPath, fullSize
   ), props)
-  LrTasks.execute(renderCmd)
+  local exitCode = LrTasks.execute(renderCmd)
+  if exitCode ~= 0 then
+    props.status = string.format("Overlay render failed (%s)", tostring(exitCode))
+    _busy = false
+    return
+  end
 
   props.imagePath = outPath
 
