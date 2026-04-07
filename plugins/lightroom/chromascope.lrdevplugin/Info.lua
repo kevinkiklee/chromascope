@@ -1,7 +1,7 @@
 -- plugins/lightroom/chromascope.lrdevplugin/Info.lua  (Chromascope)
 return {
   LrSdkVersion       = 15.0,
-  LrSdkMinimumVersion = 15.0,
+  LrSdkMinimumVersion = 11.0,
 
   LrToolkitIdentifier = "com.chromascope.lightroom",
   LrPluginName        = LOC "$$$/Chromascope/PluginName=Chromascope",
