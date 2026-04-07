@@ -6,7 +6,7 @@ How to set up, run, and test Chromascope locally.
 
 | Tool | Version | Check |
 |------|---------|-------|
-| Node.js | 20+ | `node -v` |
+| Node.js | 18+ | `node -v` |
 | npm | 10+ | `npm -v` |
 | Rust toolchain | stable | `rustc --version` |
 | Cargo | stable | `cargo --version` |
