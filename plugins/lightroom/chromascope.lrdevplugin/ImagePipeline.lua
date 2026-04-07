@@ -47,11 +47,21 @@ local function binary()
   return _binary
 end
 
+local VALID_SCHEMES = {
+  complementary = true, splitComplementary = true,
+  triadic = true, tetradic = true, analogous = true,
+}
+local VALID_COLORS = {
+  red = true, orange = true, yellow = true,
+  green = true, cyan = true, blue = true,
+}
+local VALID_DENSITY = { scatter = true, bloom = true, heatmap = true }
+
 local function appendOverlayFlags(cmd, props)
   local scheme = props.scheme
-  if scheme and scheme ~= "none" then
+  if scheme and scheme ~= "none" and VALID_SCHEMES[scheme] then
     cmd = cmd .. string.format(
-      ' --scheme %s --rotation %d',
+      ' --scheme "%s" --rotation %d',
       scheme, math.floor((props.rotation or 0) + 0.5) % 360
     )
   end
@@ -59,12 +69,12 @@ local function appendOverlayFlags(cmd, props)
     cmd = cmd .. ' --hide-skin-tone'
   end
   local overlayColor = props.overlayColor
-  if overlayColor and overlayColor ~= "" then
-    cmd = cmd .. string.format(' --overlay-color %s', overlayColor)
+  if overlayColor and overlayColor ~= "" and VALID_COLORS[overlayColor] then
+    cmd = cmd .. string.format(' --overlay-color "%s"', overlayColor)
   end
   local density = props.density
-  if density and density ~= "" and density ~= "scatter" then
-    cmd = cmd .. string.format(' --density %s', density)
+  if density and density ~= "" and density ~= "scatter" and VALID_DENSITY[density] then
+    cmd = cmd .. string.format(' --density "%s"', density)
   end
   return cmd
 end
