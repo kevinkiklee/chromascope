@@ -37,6 +37,7 @@ plugins/photoshop/core/test.html
 
 # Static site build output
 web/out/
+web/css/tailwind.css
 
 # Test fixtures (generated at runtime)
 packages/processor/tests/fixtures/
