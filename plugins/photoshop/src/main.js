@@ -67,6 +67,12 @@ function hsvToRgb(h, s, v) {
 var cachedGraticuleBuf = null;
 var cachedGraticuleSize = 0;
 
+// Pooled bloom buffers — reused across renders to reduce GC pressure.
+// Only reallocated when scopeSize changes.
+var _bloomBufN = 0;
+var _bloomR = null, _bloomG = null, _bloomB = null;
+var _bloomTmpR = null, _bloomTmpG = null, _bloomTmpB = null;
+
 function renderGraticule(size) {
   if (cachedGraticuleBuf && cachedGraticuleSize === size) return cachedGraticuleBuf;
 
@@ -229,10 +235,11 @@ function renderToBuffer(size, pixels) {
       if (!_mapOk) continue;
       if (_mapPx >= 0 && _mapPx < size && _mapPy >= 0 && _mapPy < size) {
         var idx = (_mapPy * size + _mapPx) * 4;
+        // Brightened pixel: c*0.9+30 as integer (230/256≈0.9, 7650=30*255)
         var pr = (data[off] * 230 + 7650) >> 8;
         var pg = (data[off+1] * 230 + 7650) >> 8;
         var pb = (data[off+2] * 230 + 7650) >> 8;
-        // Alpha blend at 0.9: new = old * 0.1 + pixel * 0.9
+        // Blend at α=0.9: old*(26/256) + new*(230/256) + 0.5 rounding
         buf[idx]   = Math.min(255, (buf[idx]   * 26 + pr * 230 + 128) >> 8);
         buf[idx+1] = Math.min(255, (buf[idx+1] * 26 + pg * 230 + 128) >> 8);
         buf[idx+2] = Math.min(255, (buf[idx+2] * 26 + pb * 230 + 128) >> 8);
@@ -274,9 +281,19 @@ function renderToBuffer(size, pixels) {
     // New approach: O(pixels + size² × 3 passes) ≈ 300K ops total.
     var alpha = Math.min(0.5, Math.max(0.03, 300 / total));
     var n = size * size;
-    var bloomR = new Float32Array(n);
-    var bloomG = new Float32Array(n);
-    var bloomB = new Float32Array(n);
+
+    // Reuse pooled buffers when size hasn't changed; zero-fill for fresh render
+    if (_bloomBufN !== n) {
+      _bloomR = new Float32Array(n); _bloomG = new Float32Array(n); _bloomB = new Float32Array(n);
+      _bloomTmpR = new Float32Array(n); _bloomTmpG = new Float32Array(n); _bloomTmpB = new Float32Array(n);
+      _bloomBufN = n;
+    } else {
+      _bloomR.fill(0); _bloomG.fill(0); _bloomB.fill(0);
+      _bloomTmpR.fill(0); _bloomTmpG.fill(0); _bloomTmpB.fill(0);
+    }
+    var bloomR = _bloomR;
+    var bloomG = _bloomG;
+    var bloomB = _bloomB;
 
     // Step 1: accumulate colored energy at each pixel location (single pass over input)
     for (var pi = 0; pi < total; pi++) {
@@ -294,9 +311,9 @@ function renderToBuffer(size, pixels) {
     // Step 2: box blur (3 passes for smooth gaussian-like falloff).
     // Each pass is O(size²) — separable horizontal then vertical.
     var blurRadius = Math.max(2, Math.round(size / 60));
-    var tmpR = new Float32Array(n);
-    var tmpG = new Float32Array(n);
-    var tmpB = new Float32Array(n);
+    var tmpR = _bloomTmpR;
+    var tmpG = _bloomTmpG;
+    var tmpB = _bloomTmpB;
 
     for (var pass = 0; pass < 3; pass++) {
       var srcR = pass === 0 ? bloomR : (pass % 2 === 1 ? tmpR : bloomR);
@@ -597,6 +614,13 @@ async function init() {
             settingsDirty = false;
             window.__chromascope.onSettingsChanged();
           }
+        }).catch(function(err) {
+          console.error("Chromascope settings render error:", err);
+          settingsRendering = false;
+          if (settingsDirty) {
+            settingsDirty = false;
+            window.__chromascope.onSettingsChanged();
+          }
         });
       }, 150); // Reduced from 300ms for snappier response
     };
@@ -664,6 +688,10 @@ entrypoints.setup({
       },
       hide() {
         if (events) events.stopListening();
+        lastPixels = null;
+        cachedBaseBuf = null;
+        cachedGraticuleBuf = null;
+        isRefreshing = false;
       },
     },
   },

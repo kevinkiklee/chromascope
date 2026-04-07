@@ -42,7 +42,7 @@ async function getDocumentPixels() {
     } finally {
       result.imageData.dispose();
     }
-  }, { commandName: "Chromascope: Read Pixels", interactive: true });
+  }, { commandName: "Chromascope: Read Pixels", interactive: false });
 }
 
 module.exports = { getDocumentPixels };
