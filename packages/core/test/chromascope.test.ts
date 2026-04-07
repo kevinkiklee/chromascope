@@ -176,6 +176,46 @@ describe("Chromascope pixel processing", () => {
   });
 });
 
+// --- setPixels validation ---
+
+describe("Chromascope.setPixels validation", () => {
+  it("throws on data length mismatch", () => {
+    const scope = new Chromascope();
+    expect(() =>
+      scope.setPixels({
+        data: new Uint8Array(10),
+        width: 2,
+        height: 2,
+        colorProfile: "sRGB",
+      })
+    ).toThrow("data length");
+  });
+
+  it("throws on zero width", () => {
+    const scope = new Chromascope();
+    expect(() =>
+      scope.setPixels({
+        data: new Uint8Array(0),
+        width: 0,
+        height: 1,
+        colorProfile: "sRGB",
+      })
+    ).toThrow("width and height must be greater than zero");
+  });
+
+  it("accepts valid pixel data", () => {
+    const scope = new Chromascope();
+    expect(() =>
+      scope.setPixels({
+        data: new Uint8Array(12),
+        width: 2,
+        height: 2,
+        colorProfile: "sRGB",
+      })
+    ).not.toThrow();
+  });
+});
+
 // --- Rendering ---
 
 describe("Chromascope rendering", () => {

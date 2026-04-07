@@ -59,6 +59,15 @@ export class Chromascope {
   }
 
   setPixels(pixelData: PixelData): void {
+    if (pixelData.width <= 0 || pixelData.height <= 0) {
+      throw new Error("setPixels: width and height must be greater than zero");
+    }
+    const expectedLength = pixelData.width * pixelData.height * 3;
+    if (pixelData.data.length < expectedLength) {
+      throw new Error(
+        `setPixels: data length ${pixelData.data.length} is less than expected ${expectedLength} (${pixelData.width}x${pixelData.height}x3)`
+      );
+    }
     this.pixels = pixelData;
     this.remapPoints();
   }

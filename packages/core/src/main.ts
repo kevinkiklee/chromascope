@@ -4,10 +4,19 @@ import { createControls } from "./ui/controls.js";
 import { attachScopeInteraction } from "./interaction/scope-interaction.js";
 import type { PixelData, ChromascopeSettings } from "./types.js";
 
-const canvas = document.getElementById("scope-canvas") as HTMLCanvasElement;
-const container = document.getElementById("scope-canvas-container") as HTMLElement;
-const controlsEl = document.getElementById("controls-container") as HTMLElement;
-const ctx = canvas.getContext("2d")!;
+const canvas = document.getElementById("scope-canvas") as HTMLCanvasElement | null;
+const container = document.getElementById("scope-canvas-container") as HTMLElement | null;
+const controlsEl = document.getElementById("controls-container") as HTMLElement | null;
+
+if (!canvas || !container || !controlsEl) {
+  console.warn("Chromascope: required DOM elements not found (scope-canvas, scope-canvas-container, controls-container)");
+  throw new Error("Chromascope: missing required DOM elements");
+}
+
+const ctx = canvas.getContext("2d");
+if (!ctx) {
+  throw new Error("Chromascope: failed to get 2d canvas context");
+}
 
 const scope = new Chromascope();
 
@@ -49,6 +58,7 @@ function resize(): void {
 
 const resizeObserver = new ResizeObserver(resize);
 resizeObserver.observe(container);
+window.addEventListener("beforeunload", () => resizeObserver.disconnect());
 
 function draw(): void {
   const size = canvas.width;
@@ -81,6 +91,7 @@ onHostMessage((msg) => {
       break;
     }
     case "highlight": {
+      // Intentionally unhandled — reserved for future pixel-region highlighting
       break;
     }
   }

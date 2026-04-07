@@ -45,16 +45,33 @@ export type ScopeMessage = EditMessage | HighlightFromScopeMessage;
 
 // --- Helpers ---
 
-export function sendToHost(message: ScopeMessage): void {
-  window.parent.postMessage(message, "*");
+// Configurable target origin for postMessage security.
+// Host plugins should call setTargetOrigin() before communication begins.
+let _targetOrigin = "*";
+
+export function setTargetOrigin(origin: string): void {
+  _targetOrigin = origin;
 }
+
+export function sendToHost(message: ScopeMessage): void {
+  window.parent.postMessage(message, _targetOrigin);
+}
+
+const VALID_HOST_TYPES: ReadonlySet<string> = new Set(["pixels", "highlight", "settings"]);
 
 export function onHostMessage(handler: (msg: HostMessage) => void): () => void {
   const listener = (event: MessageEvent) => {
     const data = event.data;
-    if (data && typeof data.type === "string") {
-      handler(data as HostMessage);
+    if (!data || typeof data.type !== "string" || !VALID_HOST_TYPES.has(data.type)) {
+      return;
     }
+    if (data.type === "pixels") {
+      if (!Array.isArray(data.data) || typeof data.width !== "number" || typeof data.height !== "number") {
+        console.warn("Chromascope: invalid pixels message — missing data, width, or height");
+        return;
+      }
+    }
+    handler(data as HostMessage);
   };
   window.addEventListener("message", listener);
   return () => window.removeEventListener("message", listener);
