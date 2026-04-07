@@ -11,7 +11,7 @@ permissions:
 jobs:
   build-macos:
     name: Build (macOS)
-    runs-on: macos-latest
+    runs-on: macos-14
     steps:
       - uses: actions/checkout@v4
 
@@ -28,7 +28,7 @@ jobs:
         with:
           workspaces: packages/processor
 
-      - run: npm install --no-package-lock
+      - run: npm ci
       - run: npm run build:plugins
 
       - uses: actions/upload-artifact@v4
@@ -40,7 +40,7 @@ jobs:
 
   build-windows:
     name: Build (Windows)
-    runs-on: windows-latest
+    runs-on: windows-2022
     steps:
       - uses: actions/checkout@v4
 
@@ -55,7 +55,7 @@ jobs:
         with:
           workspaces: packages/processor
 
-      - run: npm install --no-package-lock
+      - run: npm ci
       - run: npx turbo run build --filter=@chromascope/core
       - run: npx turbo run build --filter=@chromascope/photoshop
 
@@ -93,6 +93,13 @@ jobs:
         with:
           name: plugins-windows
           path: artifacts/windows
+
+      - name: Validate artifacts
+        run: |
+          test -d artifacts/macos/plugins/photoshop || { echo "::error::Missing macOS Photoshop plugin"; exit 1; }
+          test -d artifacts/macos/plugins/lightroom/chromascope.lrdevplugin || { echo "::error::Missing macOS Lightroom plugin"; exit 1; }
+          test -d artifacts/windows/plugins/photoshop || { echo "::error::Missing Windows Photoshop plugin"; exit 1; }
+          test -d artifacts/windows/plugins/lightroom/chromascope.lrdevplugin || { echo "::error::Missing Windows Lightroom plugin"; exit 1; }
 
       - name: Package Photoshop ZIP
         run: |
