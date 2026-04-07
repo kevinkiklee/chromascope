@@ -10,6 +10,7 @@ import { createColorSpaceMapper } from "./color-spaces/index.js";
 import { createDensityRenderer } from "./renderers/index.js";
 import { renderGraticule } from "./graticule.js";
 import { getHarmonyZones, renderHarmonyOverlay, renderSkinToneLine } from "./overlays/index.js";
+import { mapPixels } from "./pixel-mapper.js";
 
 const DEFAULT_SETTINGS: ChromascopeSettings = {
   colorSpace: "ycbcr",
@@ -31,7 +32,6 @@ export class Chromascope {
   private mapper: ColorSpaceMapper;
   private renderer: DensityRenderer;
   private pixels: PixelData | null = null;
-  private graticuleCacheSize = 0;
 
   constructor(settings?: Partial<ChromascopeSettings>) {
     this.settings = { ...DEFAULT_SETTINGS, ...settings };
@@ -75,7 +75,6 @@ export class Chromascope {
   /** Render order matters: graticule (background) → harmony zones → skin tone line → pixel data (foreground) */
   render(ctx: CanvasRenderingContext2D, size: number): void {
     renderGraticule(ctx, size);
-    this.graticuleCacheSize = size;
 
     if (this.harmonyZones.length > 0) {
       renderHarmonyOverlay(ctx, this.harmonyZones, size);
@@ -93,17 +92,6 @@ export class Chromascope {
       this.mappedPoints = [];
       return;
     }
-
-    const { data, width, height } = this.pixels;
-    const totalPixels = width * height;
-    // Pre-allocate array for performance — avoids repeated push/resize
-    const points: MappedPoint[] = new Array(totalPixels);
-
-    for (let i = 0; i < totalPixels; i++) {
-      const offset = i * 3;
-      points[i] = this.mapper.mapPixel(data[offset], data[offset + 1], data[offset + 2]);
-    }
-
-    this.mappedPoints = points;
+    this.mappedPoints = mapPixels(this.pixels, this.mapper);
   }
 }
