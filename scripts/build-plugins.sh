@@ -34,6 +34,9 @@ if [ ! -f packages/core/build/index.html ]; then
 fi
 ok "Core library built"
 
+info "Building core library bundle..."
+npx turbo run build:lib --filter=@chromascope/core
+
 # ─── 2. Build Rust processor binaries (all platforms) ───────────────────
 
 info "Building Rust processor binaries..."

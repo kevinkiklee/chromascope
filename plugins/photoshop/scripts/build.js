@@ -1,263 +1,76 @@
 const fs = require("fs");
 const path = require("path");
 
-const coreSource = path.resolve(__dirname, "../../../packages/core/build/index.html");
-const coreDest = path.resolve(__dirname, "../core/index.html");
+const coreBundleSrc = path.resolve(__dirname, "../../../packages/core/build-lib/chromascope-core.iife.js");
 const bundleDest = path.resolve(__dirname, "../core/scope-bundle.js");
+const coreHtmlSrc = path.resolve(__dirname, "../../../packages/core/build/index.html");
+const coreHtmlDest = path.resolve(__dirname, "../core/index.html");
 
-if (!fs.existsSync(coreSource)) {
-  console.error("Core build not found! Run 'turbo run build --filter=@chromascope/core' first.");
+// Validate inputs exist
+if (!fs.existsSync(coreBundleSrc)) {
+  console.error("Core library bundle not found. Run 'npm run build:lib' in packages/core first.");
+  console.error("Expected:", coreBundleSrc);
+  process.exit(1);
+}
+if (!fs.existsSync(coreHtmlSrc)) {
+  console.error("Core HTML not found. Run 'npm run build' in packages/core first.");
+  console.error("Expected:", coreHtmlSrc);
   process.exit(1);
 }
 
-// Copy full core HTML (for reference)
-fs.mkdirSync(path.dirname(coreDest), { recursive: true });
-fs.copyFileSync(coreSource, coreDest);
-console.log("Copied core build → plugins/photoshop/core/index.html");
+fs.mkdirSync(path.dirname(bundleDest), { recursive: true });
+fs.copyFileSync(coreHtmlSrc, coreHtmlDest);
 
-// Extract inlined JS and CSS from the single-file HTML for direct embedding
-const html = fs.readFileSync(coreSource, "utf8");
+let coreBundle = fs.readFileSync(coreBundleSrc, "utf-8");
 
-const scriptMatch = html.match(/<script type="module"[^>]*>([\s\S]*?)<\/script>/);
-const styleMatches = [...html.matchAll(/<style[^>]*>([\s\S]*?)<\/style>/g)];
-
-if (!scriptMatch) {
-  console.error("Could not extract JS from core build!");
-  process.exit(1);
-}
-
-let jsCode = scriptMatch[1];
-
-// Remove Vite modulepreload polyfill (uses MutationObserver, not available in UXP)
-jsCode = jsCode.replace(
-  /\(function\(\)\{const\s+\w+=document\.createElement\("link"\)[\s\S]*?\}\)\(\);/,
-  "/* vite polyfill removed */"
-);
-
-// Boost scatter plot alpha and dot size for UXP (no additive blending)
-// Original alpha: Math.max(.02, Math.min(.5, 500/t.length))
-jsCode = jsCode.replace(
-  /Math\.max\(\.02,Math\.min\(\.5,500\/t\.length\)\)/,
-  'Math.max(.4,Math.min(1,5000/t.length))'
-);
-// Original dot size: Math.max(1, Math.round(o/200))
-jsCode = jsCode.replace(
-  /Math\.max\(1,Math\.round\(o\/200\)\)/,
-  'Math.max(2,Math.round(o/100))'
-);
-
-// Find the minified variable names for scope instance, controls, and draw function
-// Pattern: X=new CLASS,Y=FUNC(  where X=scope, Y=controls
-const varMatch = jsCode.match(/([A-Za-z]+)=new [A-Za-z]+,([A-Za-z]+)=[A-Za-z]+\(/);
-if (!varMatch) {
-  console.error("Could not find scope/controls variable names in minified code!");
-  process.exit(1);
-}
-const scopeVar = varMatch[1];
-const ctrlVar = varMatch[2];
-
-// Find the draw function: function X(){...scope.render...}
-const drawMatch = jsCode.match(/function ([A-Za-z]+)\(\)\{const \w+=\w+\.width;/);
-const drawFn = drawMatch ? drawMatch[1] : "L";
-
-console.log(`  Detected minified vars: scope=${scopeVar}, controls=${ctrlVar}, draw=${drawFn}`);
-
-// Replace the message-based API with a direct window API.
-jsCode = jsCode.replace(
-  /[A-Za-z]+\(e=>\{switch[\s\S]*?\}\}\);/,
-  `
-window.__chromascope = {
-  setPixels: function(pixelData) {
-    ${scopeVar}.setPixels(pixelData);
-    ${drawFn}();
-  },
-  updateSettings: function(partial) {
-    ${scopeVar}.updateSettings(partial);
-    ${ctrlVar}.update(${scopeVar}.settings);
-    ${drawFn}();
-  },
-  getSettings: function() { return ${scopeVar}.settings; },
-  draw: function() { ${drawFn}(); },
-  onSettingsChanged: null
-};
-// Patch scope.updateSettings to notify main.js on setting changes
-var _origUpdateSettings = ${scopeVar}.updateSettings.bind(${scopeVar});
-${scopeVar}.updateSettings = function(partial) {
-  _origUpdateSettings(partial);
-  if (window.__chromascope && typeof window.__chromascope.onSettingsChanged === 'function') {
-    window.__chromascope.onSettingsChanged(${scopeVar}.settings);
-  }
-};
-// Replace render entirely -- UXP canvas doesn't support drawing after initial render pass
-${scopeVar}.render = function(ctx, size) {
-  // Clear and draw background
-  ctx.clearRect(0, 0, size, size);
-  ctx.fillStyle = '#111111';
-  ctx.fillRect(0, 0, size, size);
-
-  var half = size / 2;
-  var radius = size * 0.45;
-
-  // Draw graticule rings
-  ctx.strokeStyle = '#333333';
-  ctx.lineWidth = 1;
-  var rings = [0.25, 0.5, 0.75, 1.0];
-  for (var ri = 0; ri < rings.length; ri++) {
-    ctx.beginPath();
-    ctx.arc(half, half, radius * rings[ri], 0, Math.PI * 2);
-    ctx.stroke();
-  }
-
-  // Draw crosshair
-  ctx.strokeStyle = '#2a2a2a';
-  ctx.beginPath();
-  ctx.moveTo(half - radius, half);
-  ctx.lineTo(half + radius, half);
-  ctx.moveTo(half, half - radius);
-  ctx.lineTo(half, half + radius);
-  ctx.stroke();
-
-  // Draw color targets
-  var targets = [
-    {label:'R', deg:0,   color:'#ff4444'},
-    {label:'Y', deg:60,  color:'#ffff44'},
-    {label:'G', deg:120, color:'#44ff44'},
-    {label:'C', deg:180, color:'#44ffff'},
-    {label:'B', deg:240, color:'#4444ff'},
-    {label:'M', deg:300, color:'#ff44ff'}
-  ];
-  for (var ti = 0; ti < targets.length; ti++) {
-    var t = targets[ti];
-    var a = t.deg * Math.PI / 180;
-    var tx = Math.cos(a), ty = -Math.sin(a);
-    ctx.fillStyle = t.color;
-    ctx.beginPath();
-    ctx.arc(half + tx * radius, half + ty * radius, size * 0.012, 0, Math.PI * 2);
-    ctx.fill();
-  }
-
-  // Draw center dot
-  ctx.fillStyle = '#555555';
-  ctx.beginPath();
-  ctx.arc(half, half, 2, 0, Math.PI * 2);
-  ctx.fill();
-
-  // Draw scatter points
-  var points = this.mappedPoints;
-  if (points.length > 0) {
-    function toHex(n) { var h = n.toString(16); return h.length < 2 ? '0' + h : h; }
-    for (var i = 0; i < points.length; i++) {
-      var p = points[i];
-      var px = half + p.x * radius;
-      var py = half - p.y * radius;
-      ctx.fillStyle = '#' + toHex(p.r) + toHex(p.g) + toHex(p.b);
-      ctx.fillRect(Math.round(px), Math.round(py), 1, 1);
-    }
-    console.log("[render] drew", points.length, "points on", size, "canvas");
-  }
-};
-
-console.log("[scope-bundle] Chromascope core loaded");
-`
-);
-
-// Skip injecting core CSS entirely — index.html provides all Photoshop-native styles
-let cssCode = "";
-
-const bundle = `// Chromascope core bundle
+// UXP canvas polyfills
+const polyfills = `
+// === UXP Canvas Polyfills ===
 (function() {
-  // Patch globalCompositeOperation -- UXP may not support "lighter"
-  var _origCompSet;
   try {
-    var _desc = Object.getOwnPropertyDescriptor(CanvasRenderingContext2D.prototype, 'globalCompositeOperation');
-    if (_desc && _desc.set) {
-      _origCompSet = _desc.set;
-      Object.defineProperty(CanvasRenderingContext2D.prototype, 'globalCompositeOperation', {
-        get: _desc.get,
-        set: function(v) {
-          try { _origCompSet.call(this, v); }
-          catch(e) { _origCompSet.call(this, 'source-over'); }
-        },
-        configurable: true
-      });
+    var proto = CanvasRenderingContext2D.prototype;
+    if (!proto._stateStack) {
+      var _origSave = proto.save, _origRestore = proto.restore;
+      proto.save = function() { if (!this._stateStack) this._stateStack = []; this._stateStack.push({ gco: this.globalCompositeOperation, ga: this.globalAlpha, ld: this._lineDash || [] }); _origSave.call(this); };
+      proto.restore = function() { _origRestore.call(this); if (this._stateStack && this._stateStack.length) { var s = this._stateStack.pop(); this.globalCompositeOperation = s.gco; this.globalAlpha = s.ga; this._lineDash = s.ld; } };
     }
-  } catch(e) {}
-
-  // Polyfill window.parent.postMessage (core tries to send messages to host via this)
-  if (!window.parent || !window.parent.postMessage) {
-    window.parent = window;
-  }
-
-  // Polyfill canvas methods not available in UXP
-  var proto = CanvasRenderingContext2D.prototype;
-
-  // save/restore: implement as manual state stack
-  if (!proto.save) {
-    proto._stateStack = [];
-    proto.save = function() {
-      this._stateStack = this._stateStack || [];
-      this._stateStack.push({
-        globalAlpha: this.globalAlpha,
-        globalCompositeOperation: this.globalCompositeOperation,
-        strokeStyle: this.strokeStyle,
-        fillStyle: this.fillStyle,
-        lineWidth: this.lineWidth
-      });
-    };
-    proto.restore = function() {
-      this._stateStack = this._stateStack || [];
-      if (this._stateStack.length > 0) {
-        var s = this._stateStack.pop();
-        this.globalAlpha = s.globalAlpha;
-        this.globalCompositeOperation = s.globalCompositeOperation;
-        this.strokeStyle = s.strokeStyle;
-        this.fillStyle = s.fillStyle;
-        this.lineWidth = s.lineWidth;
-      }
-    };
-  }
-  if (!proto.setLineDash) proto.setLineDash = function() {};
-  if (!proto.createImageData) {
-    proto.createImageData = function(w, h) {
-      return { width: w, height: h, data: new Uint8ClampedArray(w * h * 4) };
-    };
-  }
-  if (!proto.putImageData) {
-    proto.putImageData = function(imageData, dx, dy) {
-      // Fallback: draw pixel-by-pixel using fillRect
-      var d = imageData.data, w = imageData.width, h = imageData.height;
-      for (var y = 0; y < h; y++) {
-        for (var x = 0; x < w; x++) {
-          var i = (y * w + x) * 4;
-          if (d[i+3] > 0) {
-            this.fillStyle = "rgb(" + d[i] + "," + d[i+1] + "," + d[i+2] + ")";
-            this.fillRect(dx + x, dy + y, 1, 1);
-          }
-        }
-      }
-    };
-  }
-  if (!proto.fillText) proto.fillText = function() {};
-  if (!proto.measureText) proto.measureText = function() { return { width: 0 }; };
-  if (!proto.createRadialGradient) {
-    proto.createRadialGradient = function() {
-      return { addColorStop: function() {} };
-    };
-  }
-  try {
-    var desc = Object.getOwnPropertyDescriptor(proto, 'font');
-    if (!desc || !desc.set) {
-      Object.defineProperty(proto, 'font', { set: function() {}, get: function() { return ''; }, configurable: true });
+    if (!proto.setLineDash) {
+      proto.setLineDash = function(d) { this._lineDash = d; };
+      proto.getLineDash = function() { return this._lineDash || []; };
     }
-  } catch(e) {}
-
-  var style = document.createElement("style");
-  style.textContent = ${JSON.stringify(cssCode)};
-  document.head.appendChild(style);
-  ${jsCode}
+    if (!proto.createImageData) {
+      proto.createImageData = function(w, h) { return { width: w, height: h, data: new Uint8ClampedArray(w * h * 4) }; };
+    }
+    if (!proto.putImageData) {
+      proto.putImageData = function(id, dx, dy) {
+        var c = document.createElement("canvas"); c.width = id.width; c.height = id.height;
+        var tc = c.getContext("2d"); var td = tc.createImageData(id.width, id.height);
+        td.data.set(id.data); tc.putImageData(td, 0, 0);
+        this.drawImage(c, dx, dy);
+      };
+    }
+    if (!proto.fillText) { proto.fillText = function() {}; }
+    if (!proto.measureText) { proto.measureText = function(t) { return { width: (t||"").length * 6 }; }; }
+    if (!Object.getOwnPropertyDescriptor(proto, "font")) {
+      Object.defineProperty(proto, "font", { get: function() { return this._font || "10px sans-serif"; }, set: function(v) { this._font = v; }, configurable: true });
+    }
+    try {
+      var desc = Object.getOwnPropertyDescriptor(proto, "globalCompositeOperation");
+      if (desc && desc.set) {
+        var origSet = desc.set;
+        Object.defineProperty(proto, "globalCompositeOperation", {
+          get: desc.get,
+          set: function(v) { try { origSet.call(this, v); } catch(e) { origSet.call(this, "source-over"); } },
+          configurable: true
+        });
+      }
+    } catch(e) {}
+  } catch(e) { console.warn("UXP polyfill setup failed:", e); }
 })();
 `;
 
+const bundle = polyfills + "\n" + coreBundle + "\n";
 fs.writeFileSync(bundleDest, bundle);
-console.log("Extracted scope bundle → plugins/photoshop/core/scope-bundle.js");
+console.log("Assembled scope bundle →", bundleDest);
+console.log("Copied core HTML →", coreHtmlDest);
 console.log("Photoshop plugin build complete.");
