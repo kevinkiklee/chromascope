@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+STAGED_TS=$(git diff --cached --name-only --diff-filter=d | grep -E '\.(ts|js)$' | grep -v node_modules || true)
+if [ -n "$STAGED_TS" ]; then
+  echo "Running ESLint on staged files..."
+  npx eslint $STAGED_TS --max-warnings 0
+fi
+
+STAGED_RS=$(git diff --cached --name-only --diff-filter=d | grep '\.rs$' || true)
+if [ -n "$STAGED_RS" ]; then
+  echo "Running cargo clippy..."
+  cargo clippy --manifest-path packages/processor/Cargo.toml --all-targets -- -D warnings
+fi
