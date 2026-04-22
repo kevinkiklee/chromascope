@@ -96,15 +96,15 @@ jobs:
 
       - name: Validate artifacts
         run: |
-          test -d artifacts/macos/plugins/photoshop || { echo "::error::Missing macOS Photoshop plugin"; exit 1; }
-          test -d artifacts/macos/plugins/lightroom/chromascope.lrdevplugin || { echo "::error::Missing macOS Lightroom plugin"; exit 1; }
-          test -d artifacts/windows/plugins/photoshop || { echo "::error::Missing Windows Photoshop plugin"; exit 1; }
-          test -d artifacts/windows/plugins/lightroom/chromascope.lrdevplugin || { echo "::error::Missing Windows Lightroom plugin"; exit 1; }
+          test -d artifacts/macos/photoshop || { echo "::error::Missing macOS Photoshop plugin"; exit 1; }
+          test -d artifacts/macos/lightroom/chromascope.lrdevplugin || { echo "::error::Missing macOS Lightroom plugin"; exit 1; }
+          test -d artifacts/windows/photoshop || { echo "::error::Missing Windows Photoshop plugin"; exit 1; }
+          test -d artifacts/windows/lightroom/chromascope.lrdevplugin || { echo "::error::Missing Windows Lightroom plugin"; exit 1; }
 
       - name: Package Photoshop ZIP
         run: |
           mkdir -p dist stage
-          cp -r artifacts/macos/plugins/photoshop stage/Chromascope-Photoshop
+          cp -r artifacts/macos/photoshop stage/Chromascope-Photoshop
           (cd stage && zip -r ../dist/Chromascope-Photoshop.zip Chromascope-Photoshop/)
 
       - name: Package Lightroom macOS ZIP
@@ -112,7 +112,7 @@ jobs:
           mkdir -p stage/chromascope.lrdevplugin/bin/macos-arm64
           mkdir -p stage/chromascope.lrdevplugin/bin/macos-x64
 
-          LR="artifacts/macos/plugins/lightroom/chromascope.lrdevplugin"
+          LR="artifacts/macos/lightroom/chromascope.lrdevplugin"
           cp "$LR"/*.lua "$LR"/README.txt stage/chromascope.lrdevplugin/
           [ -d "$LR/core" ] && cp -r "$LR/core" stage/chromascope.lrdevplugin/core
           [ -f "$LR/bin/macos-arm64/processor" ] && cp "$LR/bin/macos-arm64/processor" stage/chromascope.lrdevplugin/bin/macos-arm64/
@@ -125,7 +125,7 @@ jobs:
         run: |
           mkdir -p stage/chromascope.lrdevplugin/bin/win-x64
 
-          LR="artifacts/windows/plugins/lightroom/chromascope.lrdevplugin"
+          LR="artifacts/windows/lightroom/chromascope.lrdevplugin"
           cp "$LR"/*.lua "$LR"/README.txt stage/chromascope.lrdevplugin/
           [ -d "$LR/core" ] && cp -r "$LR/core" stage/chromascope.lrdevplugin/core
           [ -f "$LR/bin/win-x64/processor.exe" ] && cp "$LR/bin/win-x64/processor.exe" stage/chromascope.lrdevplugin/bin/win-x64/
