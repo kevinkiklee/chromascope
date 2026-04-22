@@ -68,6 +68,12 @@ local VALID_COLORS = {
 }
 local VALID_DENSITY = { scatter = true, bloom = true, heatmap = true }
 
+local HASH_SKIP = {
+  ToolkitIdentifier = true,
+  ProcessVersion = true,
+  CameraProfileDigest = true,
+}
+
 local function appendOverlayFlags(cmd, props)
   local scheme = props.scheme
   if scheme and scheme ~= "none" and VALID_SCHEMES[scheme] then
@@ -101,55 +107,51 @@ end
 -- Track develop settings to avoid unnecessary requestJpegThumbnail calls.
 -- getDevelopSettings() is cheap (reads stored numbers), requestJpegThumbnail is expensive (allocates JPEG).
 local _lastSettingsHash = nil
-local _lastPhotoId = nil
 
 local function hashSettings(photo)
-  -- Simple additive hash of key develop sliders to detect changes.
-  -- Uses addition with positional weighting (not multiplication) to avoid
-  -- Lua number overflow — Lua 5.1 uses doubles, and large multiplications
-  -- can lose precision or wrap unpredictably.
   local id = photo.localIdentifier or 0
   local settings = photo:getDevelopSettings()
-  if not settings then return tostring(id) end
+  if not settings then return id end
 
-  -- Sum key slider values with position weighting to avoid collisions
-  local sum = id
-  local vals = {
-    -- Basic
-    settings.Exposure2012, settings.Contrast2012,
-    settings.Highlights2012, settings.Shadows2012,
-    settings.Whites2012, settings.Blacks2012,
-    settings.Clarity2012, settings.Vibrance, settings.Saturation,
-    settings.Temperature, settings.Tint,
-    -- HSL Hue
-    settings.HueAdjustmentRed, settings.HueAdjustmentOrange,
-    settings.HueAdjustmentYellow, settings.HueAdjustmentGreen,
-    settings.HueAdjustmentAqua, settings.HueAdjustmentBlue,
-    settings.HueAdjustmentPurple, settings.HueAdjustmentMagenta,
-    -- HSL Saturation
-    settings.SaturationAdjustmentRed, settings.SaturationAdjustmentOrange,
-    settings.SaturationAdjustmentYellow, settings.SaturationAdjustmentGreen,
-    settings.SaturationAdjustmentAqua, settings.SaturationAdjustmentBlue,
-    settings.SaturationAdjustmentPurple, settings.SaturationAdjustmentMagenta,
-    -- HSL Luminance
-    settings.LuminanceAdjustmentRed, settings.LuminanceAdjustmentOrange,
-    settings.LuminanceAdjustmentYellow, settings.LuminanceAdjustmentGreen,
-    settings.LuminanceAdjustmentAqua, settings.LuminanceAdjustmentBlue,
-    settings.LuminanceAdjustmentPurple, settings.LuminanceAdjustmentMagenta,
-    -- Color Grading
-    settings.SplitToningHighlightHue, settings.SplitToningHighlightSaturation,
-    settings.SplitToningShadowHue, settings.SplitToningShadowSaturation,
-    settings.ColorGradeMidtoneHue, settings.ColorGradeMidtoneSat,
-    settings.ColorGradeGlobalHue, settings.ColorGradeGlobalSat,
-    -- Tone Curve
-    settings.ParametricShadows, settings.ParametricDarks,
-    settings.ParametricLights, settings.ParametricHighlights,
-  }
-  for i, v in ipairs(vals) do
-    sum = sum + (v or 0) * i
+  local MOD  = 2147483647
+  local hash = 5381 + (id % MOD)
+
+  local function mixStr(s)
+    for i = 1, #s do
+      hash = (hash * 33 + string.byte(s, i)) % MOD
+    end
+    hash = (hash * 33) % MOD
   end
+
+  local function mixNum(n)
+    mixStr(string.format("%.5g", n))
+  end
+
+  local function walk(t, depth)
+    if depth > 8 then return end
+    local keys = {}
+    for k in pairs(t) do
+      local kt = type(k)
+      if kt ~= "table" and kt ~= "userdata" and not HASH_SKIP[k] then
+        keys[#keys + 1] = k
+      end
+    end
+    table.sort(keys, function(a, b) return tostring(a) < tostring(b) end)
+    for _, k in ipairs(keys) do
+      mixStr(tostring(k))
+      local v  = t[k]
+      local tv = type(v)
+      if     tv == "table"   then mixStr("{"); walk(v, depth + 1); mixStr("}")
+      elseif tv == "number"  then mixNum(v)
+      elseif tv == "string"  then mixStr(v)
+      elseif tv == "boolean" then mixStr(v and "t" or "f")
+      end
+    end
+  end
+
+  walk(settings, 0)
   settings = nil
-  return tostring(sum)
+  return hash
 end
 
 -- Check if develop settings changed since last render.
@@ -165,11 +167,6 @@ function ImagePipeline.settingsChanged()
     return true
   end
   return false
-end
-
--- Force the next settingsChanged() call to return true.
-function ImagePipeline.resetChangeDetection()
-  _lastSettingsHash = nil
 end
 
 -- Clean up stale temp files from previous sessions
@@ -309,6 +306,8 @@ function ImagePipeline.refresh(props)
   -- Set f:picture to the new path — different from previous, so LrC releases old cache
   props.imagePath = outPath
   props.status = "Updated"
+
+  _lastSettingsHash = hashSettings(photo)
 
   _busy = false
 

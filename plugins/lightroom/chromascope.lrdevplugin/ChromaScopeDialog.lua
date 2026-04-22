@@ -119,7 +119,7 @@ function ChromascopeDialog.show(context)
   end)
 
   -- Initial render + smart poll loop.
-  -- Every 1s, checks if develop settings changed (cheap: reads slider values).
+  -- Every 500ms, checks if develop settings changed (cheap: reads slider values).
   -- Only calls full refresh (with requestJpegThumbnail) when settings actually changed.
   -- Also re-renders overlay each cycle to pick up scheme/rotation changes.
   LrTasks.startAsyncTask(function()
@@ -131,16 +131,18 @@ function ChromascopeDialog.show(context)
     while not stopRefresh do
       LrTasks.sleep(0.5)
       if not stopRefresh then
-        if ImagePipeline.settingsChanged() then
-          ImagePipeline.refresh(props)
-        else
-          -- Only re-render overlay if overlay settings changed
-          local oh = tostring(props.scheme) .. tostring(props.rotation) ..
-            tostring(props.skinTone) .. tostring(props.overlayColor) ..
-            tostring(props.density) .. tostring(props.colorSpace)
-          if oh ~= lastOverlayHash then
-            lastOverlayHash = oh
-            ImagePipeline.refreshOverlayFull(props)
+        if not ImagePipeline.isBusy() then
+          if ImagePipeline.settingsChanged() then
+            ImagePipeline.refresh(props)
+          else
+            -- Only re-render overlay if overlay settings changed
+            local oh = tostring(props.scheme) .. tostring(props.rotation) ..
+              tostring(props.skinTone) .. tostring(props.overlayColor) ..
+              tostring(props.density) .. tostring(props.colorSpace)
+            if oh ~= lastOverlayHash then
+              lastOverlayHash = oh
+              ImagePipeline.refreshOverlayFull(props)
+            end
           end
         end
       end
@@ -167,7 +169,6 @@ function ChromascopeDialog.show(context)
           LrTasks.sleep(0.5)
         end
         _adjustTaskRunning = false
-        ImagePipeline.resetChangeDetection()  -- Force hash re-check so poll loop doesn't skip
         ImagePipeline.refresh(props)
       end)
     end
