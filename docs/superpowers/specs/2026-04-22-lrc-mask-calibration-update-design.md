@@ -124,7 +124,9 @@ Update `ImagePipeline.refresh(props)` so that, after a successful render, it sto
 _lastSettingsHash = hashSettings(photo)
 ```
 
-The `photo` local is already in scope at this point, so no extra lookup is needed. This removes the need for `resetChangeDetection()` in the observer callback — delete that call from `ChromascopeDialog.lua` (see below). The function itself can stay for dialog-reopen scenarios but is no longer called on every adjustment.
+The `photo` local is already in scope at this point, so no extra lookup is needed. Place this line before `_busy = false` so the hash is current when any waiting `_pendingRefresh` runs.
+
+With this in place, `resetChangeDetection()` has no remaining callers. Delete both the call site in `ChromascopeDialog.lua` (see below) and the function itself from `ImagePipeline.lua`.
 
 ### `ChromascopeDialog.lua`
 
