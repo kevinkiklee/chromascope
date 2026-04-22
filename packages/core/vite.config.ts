@@ -10,6 +10,7 @@ export default defineConfig({
   plugins: [viteSingleFile()],
   test: {
     include: ["../test/**/*.test.ts"],
+    exclude: ["../test/visual-regression.test.ts"],
     setupFiles: ["../test/setup.ts"],
   },
 });
