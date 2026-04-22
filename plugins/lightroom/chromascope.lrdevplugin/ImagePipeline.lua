@@ -19,6 +19,7 @@ local _framePaths = {
   LrPathUtils.child(_tempDir, "chromascope_scope_1.jpg"),
 }
 local _frameIndex = 1
+local _debugDumped = false
 local function nextScopePath()
   _frameIndex = (_frameIndex % 2) + 1
   return _framePaths[_frameIndex]
@@ -266,6 +267,33 @@ function ImagePipeline.refresh(props)
     props.status = "No photo selected"
     _busy = false
     return
+  end
+
+  -- DEBUG: one-shot dump of getDevelopSettings keys (remove before merge)
+  if not _debugDumped then
+    _debugDumped = true
+    local debugSettings = photo:getDevelopSettings()
+    if debugSettings then
+      local logPath = LrPathUtils.child(
+        LrPathUtils.getStandardFilePath("home"),
+        "chromascope-debug-keys.txt"
+      )
+      local df = io.open(logPath, "w")
+      if df then
+        local function dumpKeys(t, prefix, depth)
+          if depth > 3 then return end
+          for k, v in pairs(t) do
+            df:write(prefix .. tostring(k) .. " (" .. type(v) .. ")\n")
+            if type(v) == "table" then
+              dumpKeys(v, prefix .. "  ", depth + 1)
+            end
+          end
+        end
+        dumpKeys(debugSettings, "", 0)
+        df:close()
+      end
+      debugSettings = nil
+    end
   end
 
   local tmpThumb = LrPathUtils.child(_tempDir, "chromascope_thumb.jpg")
