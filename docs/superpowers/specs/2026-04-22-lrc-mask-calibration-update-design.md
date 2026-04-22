@@ -5,12 +5,14 @@
 
 ## Problem
 
-The vectorscope only updates when the user adjusts sliders in panels currently hashed by `ImagePipeline.hashSettings()` — Basic, HSL, Color Grading, Parametric Tone Curve. Changes made in the **Masking** module or the **Calibration** panel do not trigger a refresh. The scope stays frozen until the user touches a hashed slider, at which point it catches up to the combined state.
+The vectorscope only updates when the user adjusts sliders in panels explicitly listed in `ImagePipeline.hashSettings()`. The current allowlist covers Basic, HSL, Color Grading, and Parametric Tone Curve. All other panels are missing — notably **Masking**, **Calibration**, **Detail** (Sharpening/NR), **Lens Corrections**, **Transform**, **Effects**, and **Point Curve**. Changes in any of these do not trigger a refresh. The scope stays frozen until the user touches an allowlisted slider, at which point it catches up to the combined state.
 
-Two detection mechanisms exist today, and both are blind to mask and calibration changes:
+The user-reported symptoms are Masking and Calibration, but the root cause affects every panel not in the hash.
+
+Two detection mechanisms exist today, and both are blind to un-hashed changes:
 
 1. **`LrDevelopController.addAdjustmentChangeObserver`** — empirically does not fire for mask or calibration adjustments in our plugin.
-2. **Poll loop (500ms) → `hashSettings()`** — only hashes a fixed allowlist of fields. Calibration (`CameraCalibration*`) is absent; masks (`MaskGroupBasedCorrections` or equivalent) are absent.
+2. **Poll loop (500ms) → `hashSettings()`** — only hashes a fixed allowlist of fields. Calibration (`CameraCalibration*`), masks (`MaskGroupBasedCorrections` or equivalent), Detail, Lens Corrections, Transform, Effects, and Point Curve fields are all absent.
 
 ## Goals
 
@@ -33,9 +35,9 @@ Two small follow-on cleanups remove a double-refresh footgun and a redundant has
 
 ### Why a rolling hash and not string concat
 
-Building a `table.concat`-style fingerprint allocates a transient ~5–50KB string on every poll tick (every 500ms). Over a 2-hour session that's ~14,400 short-lived allocations. Lua 5.1's incremental GC handles this, but it's wasteful and measurable. The rolling hash walks the table and mixes bytes into a single integer — zero transient strings, one number of state.
+Building a `table.concat`-style fingerprint allocates a transient ~5–50KB string on every poll tick (every 500ms). Over a 2-hour session that's ~14,400 short-lived allocations of substantial size. Lua 5.1's incremental GC handles this, but it's wasteful and measurable. The rolling hash still allocates small transient strings — `string.format("%.5g", n)` per numeric field and `tostring(k)` per numeric key — but each is ~5–10 bytes and short-lived. For ~200 fields, that's ~400 small allocations per tick (~2KB total) vs one ~50KB allocation. Significantly less GC pressure over multi-hour sessions.
 
-djb2 is not cryptographic. Its only job here is change detection, and the failure mode of a hash collision is "one missed refresh, caught 500ms later on the next real change." Acceptable.
+djb2 is not cryptographic. Its only job here is change detection. The failure mode of a hash collision is one missed refresh — the scope stays stale until the user makes a *different* change that produces a distinct hash. There is no automatic 500ms recovery; if the user makes exactly one change and stops, and that change collides, the scope stays stale. In practice this is astronomically unlikely: djb2 over distinct multi-field inputs produces collisions at roughly 1-in-2^31 probability. Acceptable.
 
 ### Float quantization
 
@@ -56,7 +58,7 @@ Recursion is capped at depth 8. `MaskGroupBasedCorrections` nests ~3 levels (cor
 
 ### Table keys
 
-Tables with table-typed keys are not expected in `getDevelopSettings()`. If one appears, we skip it (rather than hashing `tostring(key)`, which would yield an unstable memory-address string).
+Tables and userdata with non-primitive keys are not expected in `getDevelopSettings()`. If one appears, we skip it — `tostring()` on a table or userdata yields an unstable memory-address string that would change every call, causing infinite refresh loops.
 
 ## Detailed Changes
 
@@ -94,7 +96,8 @@ local function hashSettings(photo)
     if depth > 8 then return end
     local keys = {}
     for k in pairs(t) do
-      if type(k) ~= "table" and not HASH_SKIP[k] then
+      local kt = type(k)
+      if kt ~= "table" and kt ~= "userdata" and not HASH_SKIP[k] then
         keys[#keys + 1] = k
       end
     end
@@ -128,6 +131,8 @@ The `photo` local is already in scope at this point, so no extra lookup is neede
 
 With this in place, `resetChangeDetection()` has no remaining callers. Delete both the call site in `ChromascopeDialog.lua` (see below) and the function itself from `ImagePipeline.lua`.
 
+Also delete `_lastPhotoId` (line 104) — it is declared but never read or written. Dead code unrelated to this change, but it's in the same block and trivial to clean up.
+
 ### `ChromascopeDialog.lua`
 
 **Observer callback:** remove the `ImagePipeline.resetChangeDetection()` line. The refresh itself now updates the hash. Without this change, the 500ms poll that follows an observer-triggered refresh sees `_lastSettingsHash == nil` and issues a redundant second refresh.
@@ -144,7 +149,7 @@ if not ImagePipeline.isBusy() then
 end
 ```
 
-This avoids hashing while a refresh is already in-flight. Trivial but removes a useless ~5KB-walk from any tick that overlaps a render.
+This avoids a full table traversal while a refresh is already in-flight.
 
 ## Verification Before Implementation
 
@@ -160,7 +165,7 @@ The approach assumes `photo:getDevelopSettings()` actually contains mask data. I
 
 **If masks are present** → proceed with the spec as written.
 
-**If masks are absent** → do not merge this approach for masks. Fall back plan: use `photo:getRawMetadata("editCount")` or `lastEditTime` as a coarse change detector that covers anything LrC considers an edit, including masks. Calibration fix still stands via the hash. Write a follow-up spec for the mask fallback.
+**If masks are absent** → do not merge this approach for masks. Fall back plan: use `photo:getRawMetadata("lastEditTime")` as a coarse change detector that covers anything LrC considers an edit, including masks. Note: both the key name and its behavior need verification against the SDK — `lastEditTime` is a timestamp, so two edits within the same second could collide, and `editCount` may not exist as a key at all. Calibration fix still stands via the hash. Write a follow-up spec for the mask fallback.
 
 ## Testing Plan
 
