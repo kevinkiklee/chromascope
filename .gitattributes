@@ -1,0 +1,2 @@
+packages/processor/tests/baselines/*.png filter=lfs diff=lfs merge=lfs -text
+packages/core/test/baselines/*.png filter=lfs diff=lfs merge=lfs -text

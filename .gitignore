@@ -47,3 +47,6 @@ packages/processor/tests/fixtures/
 
 # Superpowers
 .superpowers/
+
+# Test results
+test-results/
