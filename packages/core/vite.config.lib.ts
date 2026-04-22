@@ -10,7 +10,7 @@ export default defineConfig({
     },
     outDir: "build-lib",
     emptyOutDir: true,
-    minify: "esbuild",
+    minify: true,
     rollupOptions: {
       output: {
         extend: true,
