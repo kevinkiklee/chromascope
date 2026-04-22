@@ -1,0 +1,39 @@
+# Pairwise covering array for Chromascope visual regression testing
+# Covers all pairs of: color_space(3) × density(3) × scheme(6) × skin_tone(2) × rotation(3)
+# Rotation is ignored when scheme=none
+# color_space	density	scheme	skin_tone	rotation
+hsl	scatter	none	on	0
+ycbcr	heatmap	complementary	off	120
+cieluv	bloom	splitComplementary	on	240
+hsl	heatmap	triadic	off	0
+ycbcr	bloom	tetradic	on	120
+cieluv	scatter	analogous	off	240
+hsl	bloom	complementary	on	0
+ycbcr	scatter	splitComplementary	off	120
+cieluv	heatmap	triadic	on	240
+hsl	scatter	tetradic	off	240
+ycbcr	heatmap	analogous	on	0
+cieluv	bloom	none	off	0
+hsl	heatmap	splitComplementary	on	120
+ycbcr	bloom	triadic	off	240
+cieluv	scatter	complementary	on	0
+hsl	bloom	analogous	off	120
+ycbcr	scatter	none	on	0
+cieluv	heatmap	tetradic	off	240
+hsl	scatter	analogous	on	240
+ycbcr	heatmap	none	off	0
+cieluv	bloom	complementary	on	120
+hsl	heatmap	tetradic	on	240
+ycbcr	bloom	none	off	0
+cieluv	scatter	splitComplementary	off	120
+hsl	bloom	triadic	off	0
+ycbcr	scatter	tetradic	on	240
+cieluv	heatmap	analogous	off	0
+hsl	scatter	complementary	off	120
+ycbcr	heatmap	splitComplementary	on	240
+cieluv	bloom	triadic	off	0
+hsl	heatmap	none	on	0
+ycbcr	bloom	analogous	off	120
+cieluv	scatter	tetradic	on	240
+hsl	bloom	none	off	0
+ycbcr	scatter	analogous	off	0
