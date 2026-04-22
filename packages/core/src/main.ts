@@ -105,3 +105,25 @@ onHostMessage((msg) => {
 });
 
 resize();
+
+if (new URLSearchParams(window.location.search).has("test")) {
+  (window as any).__chromascopeTest = {
+    instance: scope,
+    canvas: canvas,
+    injectPixels(rgbaData: number[], width: number, height: number) {
+      const rgb = new Uint8Array(width * height * 3);
+      for (let i = 0; i < width * height; i++) {
+        rgb[i * 3] = rgbaData[i * 4];
+        rgb[i * 3 + 1] = rgbaData[i * 4 + 1];
+        rgb[i * 3 + 2] = rgbaData[i * 4 + 2];
+      }
+      scope.setPixels({ data: rgb, width, height });
+      draw();
+    },
+    updateSettings(partial: Record<string, any>) {
+      scope.updateSettings(partial);
+      controls.update(scope.settings);
+      draw();
+    },
+  };
+}
