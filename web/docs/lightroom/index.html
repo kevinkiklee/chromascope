@@ -263,12 +263,12 @@ npm run build:plugins</pre>
 
               <div class="space-y-3">
                 <div class="card-glass rounded-lg p-4">
-                  <h3 class="text-sm font-medium text-zinc-200 mb-1">Develop slider changes</h3>
-                  <p class="text-zinc-500 text-sm">Chromascope monitors the Develop module sliders (Exposure, Contrast, Highlights, Shadows, Whites, Blacks, Clarity, Vibrance, Saturation, and all HSL channels). When any value changes, the vectorscope re-renders with a 300ms debounce &mdash; so dragging a slider smoothly triggers a single update after you pause, not hundreds of overlapping renders.</p>
+                  <h3 class="text-sm font-medium text-zinc-200 mb-1">Develop settings polling</h3>
+                  <p class="text-zinc-500 text-sm">Every 500ms, Chromascope fingerprints the full develop settings table &mdash; covering every panel: Basic, HSL, Color Grading, Tone Curve, Masking, Calibration, Detail, Lens Corrections, Transform, Effects, and more. If anything changed, the vectorscope re-renders. This catches all types of adjustments, including mask edits and calibration changes.</p>
                 </div>
                 <div class="card-glass rounded-lg p-4">
-                  <h3 class="text-sm font-medium text-zinc-200 mb-1">Polling fallback</h3>
-                  <p class="text-zinc-500 text-sm">A lightweight poll every 500ms checks for changes that the slider observer might miss (e.g., switching photos, undo/redo). This poll only reads slider values &mdash; it does not trigger a render unless something actually changed.</p>
+                  <h3 class="text-sm font-medium text-zinc-200 mb-1">Slider observer</h3>
+                  <p class="text-zinc-500 text-sm">For global slider changes (e.g., Exposure, Contrast), Lightroom&rsquo;s built-in observer provides faster feedback with a 500ms debounce &mdash; so dragging a slider smoothly triggers a single update after you pause, not hundreds of overlapping renders.</p>
                 </div>
               </div>
 

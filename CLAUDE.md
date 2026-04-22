@@ -64,7 +64,7 @@ cargo test
   - `processor decode` — JPEG/TIFF → raw RGB bytes (128x128)
   - `processor render` — RGB → vectorscope JPEG with configurable density mode, harmony overlay, skin tone line
 - `ImagePipeline.lua` orchestrates: export thumbnail → decode → render → display via `f:picture`.
-- Updates via `LrDevelopController.addAdjustmentChangeObserver` + 1s poll fallback.
+- Change detection: 500ms poll hashes full `getDevelopSettings()` table with a recursive djb2 fingerprint. Detects changes in any develop panel (Basic, HSL, Masking, Calibration, Detail, Lens Corrections, Transform, Effects, Point Curve, etc.). `LrDevelopController.addAdjustmentChangeObserver` provides faster response for global slider changes where it fires.
 - Busy-guard with coalescing prevents overlapping renders (max 1 queued).
 - Platform binaries at `bin/macos-arm64/`, `bin/macos-x64/`, `bin/win-x64/`.
 

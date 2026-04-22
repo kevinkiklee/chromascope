@@ -84,7 +84,7 @@ LrC plugin
   4. f:picture             -->  display in dialog
 ```
 
-The scope updates automatically via `LrDevelopController.addAdjustmentChangeObserver`. A busy-guard with coalescing prevents overlapping renders, and frame alternation between two output files forces Lightroom to release cached images (preventing memory leaks).
+The scope updates automatically by polling `getDevelopSettings()` every 500ms and hashing the full table with a recursive djb2 fingerprint. This detects changes in any develop panel — Basic, HSL, Masking, Calibration, Detail, Lens Corrections, Transform, Effects, and more. A busy-guard with coalescing prevents overlapping renders, and frame alternation between two output files forces Lightroom to release cached images (preventing memory leaks).
 
 ### Processor binary
 
