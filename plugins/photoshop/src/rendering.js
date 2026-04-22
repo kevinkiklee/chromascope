@@ -68,6 +68,20 @@ var _bloomBufN = 0;
 var _bloomR = null, _bloomG = null, _bloomB = null;
 var _bloomTmpR = null, _bloomTmpG = null, _bloomTmpB = null;
 
+// Pooled render/overlay/heatmap buffers. Each render would otherwise allocate
+// ~360KB (size²×4 bytes) copies of the graticule and base buffers; at drag-time
+// frame rates that's megabytes/sec of short-lived allocations.
+// _renderBuf uses a 2-entry ring so callers that hold onto two successive
+// results (cachedBaseBuf across a density switch, or back-to-back comparisons)
+// see distinct buffers.
+var _renderBufRing = [null, null];
+var _renderBufRingIdx = 0;
+var _renderBufN = 0;
+var _overlayBuf = null;
+var _overlayBufN = 0;
+var _heatmapDensity = null;
+var _heatmapDensityN = 0;
+
 function renderGraticule(size) {
   if (cachedGraticuleBuf && cachedGraticuleSize === size) return cachedGraticuleBuf;
 
@@ -76,11 +90,9 @@ function renderGraticule(size) {
   // Match Rust: radius = center * 0.82
   var radius = half * 0.82;
 
-  // Background: match Rust BG = Rgb([9, 9, 11])
-  for (var i = 0; i < size * size; i++) {
-    var idx = i * 4;
-    buf[idx] = 9; buf[idx+1] = 9; buf[idx+2] = 11; buf[idx+3] = 255;
-  }
+  // Background: match Rust BG = Rgb([9, 9, 11]).
+  // Pack R=0x09 G=0x09 B=0x0B A=0xFF into one little-endian u32 and fill.
+  new Uint32Array(buf.buffer).fill(0xFF0B0909);
 
   function setPixel(x, y, r, g, b) {
     x = Math.round(x); y = Math.round(y);
@@ -186,7 +198,15 @@ function renderGraticule(size) {
 //   showSkinTone — boolean, whether to draw skin tone indicator line
 function renderToBuffer(size, pixels, densityMode, showSkinTone) {
   var graticule = renderGraticule(size);
-  var buf = new Uint8Array(graticule); // copy
+  var n4 = graticule.length;
+  if (_renderBufN !== n4) {
+    _renderBufRing[0] = new Uint8Array(n4);
+    _renderBufRing[1] = new Uint8Array(n4);
+    _renderBufN = n4;
+  }
+  var buf = _renderBufRing[_renderBufRingIdx];
+  _renderBufRingIdx = (_renderBufRingIdx + 1) & 1;
+  buf.set(graticule);
   var half = size / 2;
   var radius = half * 0.82; // match Rust renderer
 
@@ -244,7 +264,14 @@ function renderToBuffer(size, pixels, densityMode, showSkinTone) {
       }
     }
   } else if (densityMode === "heatmap") {
-    var density = new Uint32Array(size * size);
+    var nPixels = size * size;
+    if (_heatmapDensityN !== nPixels) {
+      _heatmapDensity = new Uint32Array(nPixels);
+      _heatmapDensityN = nPixels;
+    } else {
+      _heatmapDensity.fill(0);
+    }
+    var density = _heatmapDensity;
     var maxDensity = 0;
     for (var pi = 0; pi < total; pi++) {
       var off = pi * 3;
@@ -440,7 +467,13 @@ function ensureOverlayLut(size) {
 function applyHarmonyOverlay(baseBuf, size, harmonySettings) {
   if (!harmonySettings || !harmonySettings.scheme) return baseBuf;
 
-  var buf = new Uint8Array(baseBuf);
+  var n4 = baseBuf.length;
+  if (_overlayBufN !== n4) {
+    _overlayBuf = new Uint8Array(n4);
+    _overlayBufN = n4;
+  }
+  _overlayBuf.set(baseBuf);
+  var buf = _overlayBuf;
   var radius = (size / 2) * 0.82; // match Rust renderer
   var scheme = harmonySettings.scheme;
   var rot = harmonySettings.rotation || 0;
@@ -493,10 +526,17 @@ function applyHarmonyOverlay(baseBuf, size, harmonySettings) {
   return buf;
 }
 
-// Invalidate cached graticule (e.g., when panel hides)
+// Invalidate cached graticule and release pooled buffers (e.g., when panel hides).
 function invalidateGraticuleCache() {
   cachedGraticuleBuf = null;
   cachedGraticuleSize = 0;
+  _renderBufRing[0] = null; _renderBufRing[1] = null;
+  _renderBufRingIdx = 0; _renderBufN = 0;
+  _overlayBuf = null; _overlayBufN = 0;
+  _heatmapDensity = null; _heatmapDensityN = 0;
+  _bloomBufN = 0;
+  _bloomR = null; _bloomG = null; _bloomB = null;
+  _bloomTmpR = null; _bloomTmpG = null; _bloomTmpB = null;
 }
 
 module.exports = {

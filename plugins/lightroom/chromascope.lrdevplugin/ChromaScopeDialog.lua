@@ -79,26 +79,21 @@ function ChromascopeDialog.show(context)
   props:addObserver("skinTone", function() onOverlayChange() end)
   props:addObserver("overlayColor", function() onOverlayChange() end)
 
-  -- Density mode change: full re-render
+  -- Density mode change: full re-render. These are discrete click events
+  -- (not sliders), so no debounce is needed. Previously this shared the
+  -- overlay `_settleVersion` counter — an overlay tweak between density
+  -- change and the async task would bump the version and silently drop
+  -- the density refresh. Instead, rely on ImagePipeline's own _busy /
+  -- _pendingRefresh coalescing to dedupe.
   props:addObserver("density", function()
     _savedDensity = props.density
-    _settleVersion = _settleVersion + 1
-    local sv = _settleVersion
-    LrTasks.startAsyncTask(function()
-      if sv ~= _settleVersion then return end
-      ImagePipeline.refresh(props)
-    end)
+    LrTasks.startAsyncTask(function() ImagePipeline.refresh(props) end)
   end)
 
-  -- Color space change: full re-render (different mapping algorithm)
+  -- Color space change: full re-render (different mapping algorithm).
   props:addObserver("colorSpace", function()
     _savedColorSpace = props.colorSpace
-    _settleVersion = _settleVersion + 1
-    local sv = _settleVersion
-    LrTasks.startAsyncTask(function()
-      if sv ~= _settleVersion then return end
-      ImagePipeline.refresh(props)
-    end)
+    LrTasks.startAsyncTask(function() ImagePipeline.refresh(props) end)
   end)
 
   -- Size change: save all state and reopen
@@ -132,8 +127,9 @@ function ChromascopeDialog.show(context)
       LrTasks.sleep(0.5)
       if not stopRefresh then
         if not ImagePipeline.isBusy() then
-          if ImagePipeline.settingsChanged() then
-            ImagePipeline.refresh(props)
+          local changed, newHash = ImagePipeline.settingsChanged()
+          if changed then
+            ImagePipeline.refresh(props, newHash)
           else
             -- Only re-render overlay if overlay settings changed
             local oh = tostring(props.scheme) .. tostring(props.rotation) ..

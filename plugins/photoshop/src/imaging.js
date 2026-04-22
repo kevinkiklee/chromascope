@@ -1,4 +1,4 @@
-const { app, imaging, core } = require("photoshop");
+const { app, imaging } = require("photoshop");
 
 async function getDocumentPixels() {
   const doc = app.activeDocument;
@@ -8,41 +8,42 @@ async function getDocumentPixels() {
   // 256 was 4× more pixels to plot with no visible improvement.
   const targetSize = 128;
 
-  return await core.executeAsModal(async (context) => {
-    const result = await imaging.getPixels({
-      documentID: doc.id,
-      targetSize: { width: targetSize, height: targetSize },
-      colorSpace: "RGB",
-      componentSize: 8,
-      applyAlpha: true,
-    });
+  // getPixels is a read-only op; UXP allows it without executeAsModal.
+  // Wrapping in executeAsModal forces serialization with other modal ops
+  // and adds per-call overhead.
+  const result = await imaging.getPixels({
+    documentID: doc.id,
+    targetSize: { width: targetSize, height: targetSize },
+    colorSpace: "RGB",
+    componentSize: 8,
+    applyAlpha: true,
+  });
 
-    try {
-      const imageData = result.imageData;
-      const rawData = await imageData.getData();
-      const w = imageData.width;
-      const h = imageData.height;
-      const hasAlpha = imageData.hasAlpha;
-      const profile = imageData.colorProfile || "sRGB";
+  try {
+    const imageData = result.imageData;
+    const rawData = await imageData.getData();
+    const w = imageData.width;
+    const h = imageData.height;
+    const hasAlpha = imageData.hasAlpha;
+    const profile = imageData.colorProfile || "sRGB";
 
-      let rgb;
-      if (hasAlpha) {
-        const totalPixels = w * h;
-        rgb = new Uint8Array(totalPixels * 3);
-        for (let i = 0; i < totalPixels; i++) {
-          rgb[i * 3] = rawData[i * 4];
-          rgb[i * 3 + 1] = rawData[i * 4 + 1];
-          rgb[i * 3 + 2] = rawData[i * 4 + 2];
-        }
-      } else {
-        rgb = new Uint8Array(rawData);
+    let rgb;
+    if (hasAlpha) {
+      const totalPixels = w * h;
+      rgb = new Uint8Array(totalPixels * 3);
+      for (let i = 0; i < totalPixels; i++) {
+        rgb[i * 3] = rawData[i * 4];
+        rgb[i * 3 + 1] = rawData[i * 4 + 1];
+        rgb[i * 3 + 2] = rawData[i * 4 + 2];
       }
-
-      return { data: rgb, width: w, height: h, colorProfile: profile };
-    } finally {
-      result.imageData.dispose();
+    } else {
+      rgb = rawData;
     }
-  }, { commandName: "Chromascope: Read Pixels", interactive: false });
+
+    return { data: rgb, width: w, height: h, colorProfile: profile };
+  } finally {
+    result.imageData.dispose();
+  }
 }
 
 module.exports = { getDocumentPixels };
