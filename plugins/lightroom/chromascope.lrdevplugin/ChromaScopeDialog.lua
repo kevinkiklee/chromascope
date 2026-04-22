@@ -131,16 +131,18 @@ function ChromascopeDialog.show(context)
     while not stopRefresh do
       LrTasks.sleep(0.5)
       if not stopRefresh then
-        if ImagePipeline.settingsChanged() then
-          ImagePipeline.refresh(props)
-        else
-          -- Only re-render overlay if overlay settings changed
-          local oh = tostring(props.scheme) .. tostring(props.rotation) ..
-            tostring(props.skinTone) .. tostring(props.overlayColor) ..
-            tostring(props.density) .. tostring(props.colorSpace)
-          if oh ~= lastOverlayHash then
-            lastOverlayHash = oh
-            ImagePipeline.refreshOverlayFull(props)
+        if not ImagePipeline.isBusy() then
+          if ImagePipeline.settingsChanged() then
+            ImagePipeline.refresh(props)
+          else
+            -- Only re-render overlay if overlay settings changed
+            local oh = tostring(props.scheme) .. tostring(props.rotation) ..
+              tostring(props.skinTone) .. tostring(props.overlayColor) ..
+              tostring(props.density) .. tostring(props.colorSpace)
+            if oh ~= lastOverlayHash then
+              lastOverlayHash = oh
+              ImagePipeline.refreshOverlayFull(props)
+            end
           end
         end
       end
@@ -167,7 +169,6 @@ function ChromascopeDialog.show(context)
           LrTasks.sleep(0.5)
         end
         _adjustTaskRunning = false
-        ImagePipeline.resetChangeDetection()  -- Force hash re-check so poll loop doesn't skip
         ImagePipeline.refresh(props)
       end)
     end

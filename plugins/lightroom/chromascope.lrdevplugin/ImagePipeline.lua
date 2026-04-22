@@ -170,11 +170,6 @@ function ImagePipeline.settingsChanged()
   return false
 end
 
--- Force the next settingsChanged() call to return true.
-function ImagePipeline.resetChangeDetection()
-  _lastSettingsHash = nil
-end
-
 -- Clean up stale temp files from previous sessions
 function ImagePipeline.cleanup()
   local staleFiles = {
