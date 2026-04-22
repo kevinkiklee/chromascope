@@ -1,6 +1,7 @@
 const { entrypoints } = require("uxp");
 const { imaging, core } = require("photoshop");
 const { renderGraticule, renderToBuffer, applyHarmonyOverlay, invalidateGraticuleCache } = require("./src/rendering.js");
+var testHarness = require("./src/test-harness.js");
 
 let getDocumentPixels, events, handleEditCommand;
 let isRefreshing = false;
@@ -130,7 +131,22 @@ async function init() {
     }
   }
 
-  await new Promise(function(resolve) { setTimeout(resolve, 300); });
+  // Test harness: activated by setting window.__chromascopeTestMode = true before init
+  if (window.__chromascopeTestMode) {
+    testHarness.activate(
+      renderScope,
+      function () { return window.__chromascope ? window.__chromascope.getSettings() : null; },
+      function (s) { if (window.__chromascope) window.__chromascope.updateSettings(s); },
+      function () { return cachedBaseBuf; }
+    );
+    console.log("[test-harness] activated");
+  }
+
+  // Wait two frames so layout has settled before measuring container width.
+  // rAF-based yields are faster than the old 300ms fixed delay (~32ms at 60Hz).
+  await new Promise(function(resolve) {
+    requestAnimationFrame(function() { requestAnimationFrame(resolve); });
+  });
   var container = document.getElementById("scope-canvas-container");
   if (container) {
     var w = container.clientWidth || container.offsetWidth;
