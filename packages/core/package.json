@@ -12,9 +12,9 @@
     "build:lib": "vite build --config vite.config.lib.ts"
   },
   "devDependencies": {
-    "typescript": "~5.7",
-    "vite": "~6.0",
-    "vitest": "~3.0",
-    "vite-plugin-singlefile": "~2.0"
+    "typescript": "~6.0",
+    "vite": "~8.0",
+    "vitest": "~4.1",
+    "vite-plugin-singlefile": "~2.3"
   }
 }
