@@ -4,6 +4,7 @@ local LrApplication   = import "LrApplication"
 local LrTasks         = import "LrTasks"
 local LrFileUtils     = import "LrFileUtils"
 local LrPathUtils     = import "LrPathUtils"
+local utils           = require("utils")
 
 ImagePipeline = {}
 
@@ -20,7 +21,7 @@ local _framePaths = {
 }
 local _frameIndex = 1
 local function nextScopePath()
-  _frameIndex = (_frameIndex % 2) + 1
+  _frameIndex = utils.nextFrameIndex(_frameIndex)
   return _framePaths[_frameIndex]
 end
 
@@ -68,12 +69,6 @@ local VALID_COLORS = {
 }
 local VALID_DENSITY = { scatter = true, bloom = true, heatmap = true }
 
-local HASH_SKIP = {
-  ToolkitIdentifier = true,
-  ProcessVersion = true,
-  CameraProfileDigest = true,
-}
-
 local function appendOverlayFlags(cmd, props)
   local scheme = props.scheme
   if scheme and scheme ~= "none" and VALID_SCHEMES[scheme] then
@@ -112,61 +107,24 @@ local function hashSettings(photo)
   local id = photo.localIdentifier or 0
   local settings = photo:getDevelopSettings()
   if not settings then return id end
-
-  local MOD  = 2147483647
-  local hash = 5381 + (id % MOD)
-
-  local function mixStr(s)
-    for i = 1, #s do
-      hash = (hash * 33 + string.byte(s, i)) % MOD
-    end
-    hash = (hash * 33) % MOD
-  end
-
-  local function mixNum(n)
-    mixStr(string.format("%.5g", n))
-  end
-
-  local function walk(t, depth)
-    if depth > 8 then return end
-    local keys = {}
-    for k in pairs(t) do
-      local kt = type(k)
-      if kt ~= "table" and kt ~= "userdata" and not HASH_SKIP[k] then
-        keys[#keys + 1] = k
-      end
-    end
-    table.sort(keys, function(a, b) return tostring(a) < tostring(b) end)
-    for _, k in ipairs(keys) do
-      mixStr(tostring(k))
-      local v  = t[k]
-      local tv = type(v)
-      if     tv == "table"   then mixStr("{"); walk(v, depth + 1); mixStr("}")
-      elseif tv == "number"  then mixNum(v)
-      elseif tv == "string"  then mixStr(v)
-      elseif tv == "boolean" then mixStr(v and "t" or "f")
-      end
-    end
-  end
-
-  walk(settings, 0)
-  settings = nil
-  return hash
+  return utils.hashTable(settings, 5381 + id)
 end
 
 -- Check if develop settings changed since last render.
--- Returns true if a full refresh is needed.
+-- Returns (changed, hash). Does NOT mutate _lastSettingsHash — that's done by
+-- refresh() at the start of a render so next poll compares against the state
+-- we actually rendered. Caller can pass the returned hash back into refresh()
+-- to avoid recomputing it.
 function ImagePipeline.settingsChanged()
   local catalog = LrApplication.activeCatalog()
   local photo = catalog:getTargetPhoto()
-  if not photo then return false end
+  if not photo then return false, nil end
 
   local hash = hashSettings(photo)
   if hash ~= _lastSettingsHash then
-    _lastSettingsHash = hash
-    return true
+    return true, hash
   end
-  return false
+  return false, nil
 end
 
 -- Clean up stale temp files from previous sessions
@@ -243,7 +201,9 @@ end
 
 -- Full render. Writes to the next frame path (alternating between two files)
 -- so f:picture sees a genuinely new path and releases the old image from cache.
-function ImagePipeline.refresh(props)
+-- `precomputedHash` (optional) is the hash already computed by settingsChanged()
+-- in the poll path; pass it through to avoid re-walking the settings table.
+function ImagePipeline.refresh(props, precomputedHash)
   if _busy then
     _pendingRefresh = true
     return
@@ -264,6 +224,13 @@ function ImagePipeline.refresh(props)
     _busy = false
     return
   end
+
+  -- Snapshot settings at the start of the render. Any change the user makes
+  -- mid-render will produce a different hash on the next poll and correctly
+  -- trigger a follow-up refresh. The old code hashed at the END of render,
+  -- which silently dropped mid-render edits for panels the adjust observer
+  -- doesn't cover (HSL, masks, etc.).
+  _lastSettingsHash = precomputedHash or hashSettings(photo)
 
   local tmpThumb = LrPathUtils.child(_tempDir, "chromascope_thumb.jpg")
   local rgbPath  = LrPathUtils.child(_tempDir, "chromascope_pixels.rgb")
@@ -306,8 +273,6 @@ function ImagePipeline.refresh(props)
   -- Set f:picture to the new path — different from previous, so LrC releases old cache
   props.imagePath = outPath
   props.status = "Updated"
-
-  _lastSettingsHash = hashSettings(photo)
 
   _busy = false
 
