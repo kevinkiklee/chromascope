@@ -27,6 +27,13 @@
     "test": "turbo run test",
     "lint": "turbo run lint",
     "build:plugins": "bash scripts/build-plugins.sh",
-    "package:release": "bash scripts/package-release.sh"
+    "package:release": "bash scripts/package-release.sh",
+    "test:release": "bash scripts/test-release.sh",
+    "test:visual": "cargo test --release --manifest-path packages/processor/Cargo.toml --test visual_regression -- --nocapture && cd packages/core && npx playwright test --config playwright.config.ts",
+    "test:visual:rust": "cargo test --release --manifest-path packages/processor/Cargo.toml --test visual_regression -- --nocapture",
+    "test:visual:core": "cd packages/core && npx playwright test --config playwright.config.ts",
+    "test:smoke": "bash tests/e2e/lightroom/smoke.sh; lua tests/e2e/lightroom/lua/test_utils.lua; node tests/e2e/photoshop/smoke.mjs",
+    "test:update-baselines": "UPDATE_BASELINES=1 cargo test --release --manifest-path packages/processor/Cargo.toml --test visual_regression -- --nocapture && cd packages/core && UPDATE_BASELINES=1 npx playwright test --config playwright.config.ts",
+    "test:report": "node scripts/visual-report.js"
   }
 }
