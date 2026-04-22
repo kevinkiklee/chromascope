@@ -77,6 +77,10 @@ pub struct RenderArgs {
     /// Color space (hsl, ycbcr, cieluv)
     #[arg(long, default_value = "hsl")]
     color_space: String,
+
+    /// Output image format (jpeg, png)
+    #[arg(long, default_value = "jpeg")]
+    output_format: String,
 }
 
 fn main() -> anyhow::Result<()> {
@@ -165,8 +169,11 @@ fn cmd_render(args: RenderArgs) -> anyhow::Result<()> {
 
     let scope = render::render_vectorscope(&raw, args.width, args.height, args.size, harmony.as_ref(), !args.hide_skin_tone, &args.density, &args.color_space);
 
-    scope.save(&args.output)
-        .map_err(|e| anyhow::anyhow!("Failed to save {:?}: {}", args.output, e))?;
+    match args.output_format.as_str() {
+        "png" => scope.save_with_format(&args.output, image::ImageFormat::Png),
+        _ => scope.save_with_format(&args.output, image::ImageFormat::Jpeg),
+    }
+    .map_err(|e| anyhow::anyhow!("Failed to save {:?}: {}", args.output, e))?;
 
     Ok(())
 }

@@ -12,7 +12,7 @@ path = "src/main.rs"
 
 [dependencies]
 clap = { version = "4", features = ["derive"] }
-image = { version = "0.25", default-features = false, features = ["jpeg", "tiff"] }
+image = { version = "0.25", default-features = false, features = ["jpeg", "tiff", "png"] }
 anyhow = "1"
 
 [profile.release]
