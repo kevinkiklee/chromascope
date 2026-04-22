@@ -97,6 +97,39 @@ async function init() {
 
   console.log("[main] scopeSize:", scopeSize);
 
+  // Initialize core controls UI and settings bridge.
+  // scope-bundle.js exposes ChromascopeCore (IIFE) with createControls.
+  if (typeof ChromascopeCore !== 'undefined') {
+    var _coreSettings = {
+      colorSpace: "hsl",
+      densityMode: "scatter",
+      logScale: false,
+      harmony: { scheme: null, rotation: 0, zoneWidth: 1.0, pullStrengths: [] }
+    };
+
+    var _coreControlsEl = document.getElementById("controls-container");
+    if (_coreControlsEl) {
+      var _controlsApi = ChromascopeCore.createControls(_coreControlsEl, _coreSettings, {
+        onSettingsChange: function(partial) {
+          Object.assign(_coreSettings, partial);
+          if (window.__chromascope && window.__chromascope.onSettingsChanged) {
+            window.__chromascope.onSettingsChanged();
+          }
+        }
+      });
+
+      window.__chromascope = {
+        getSettings: function() { return _coreSettings; },
+        updateSettings: function(partial) {
+          Object.assign(_coreSettings, partial);
+          _controlsApi.update(_coreSettings);
+          if (this.onSettingsChanged) this.onSettingsChanged();
+        },
+        onSettingsChanged: null
+      };
+    }
+  }
+
   await new Promise(function(resolve) { setTimeout(resolve, 300); });
   var container = document.getElementById("scope-canvas-container");
   if (container) {

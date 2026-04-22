@@ -18,9 +18,11 @@
       overflow: hidden;
     }
 
-    /* Scope image fills remaining height after controls */
+    /* Scope image — square, width-filling, no vertical flex growth */
     #scope-canvas-container {
-      flex: 1;
+      flex: none;
+      width: 100%;
+      aspect-ratio: 1;
       min-height: 0;
       background: #111;
       overflow: hidden;
