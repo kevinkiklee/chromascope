@@ -119,7 +119,7 @@ function ChromascopeDialog.show(context)
   end)
 
   -- Initial render + smart poll loop.
-  -- Every 1s, checks if develop settings changed (cheap: reads slider values).
+  -- Every 500ms, checks if develop settings changed (cheap: reads slider values).
   -- Only calls full refresh (with requestJpegThumbnail) when settings actually changed.
   -- Also re-renders overlay each cycle to pick up scheme/rotation changes.
   LrTasks.startAsyncTask(function()
