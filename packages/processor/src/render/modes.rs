@@ -1,16 +1,33 @@
-use image::{Rgb, RgbImage};
+use image::RgbImage;
 
 use super::ScopePoint;
-use super::draw::blend_pixel;
+
+// α=0.9 blend, byte-identical to blend_pixel(.., 0.9). Uses the same
+// `((old as f64) * 0.1 + (new as f64) * 0.9).round()` math but inlined so
+// scatter can write straight into the raw buffer instead of paying per-pixel
+// bounds-checked get_pixel/put_pixel calls.
+#[inline(always)]
+fn blend_alpha09(old: u8, new: u8) -> u8 {
+    ((old as f64) * 0.1 + (new as f64) * 0.9).round() as u8
+}
 
 /// Scatter: each point is a single bright pixel with high alpha.
 pub(super) fn render_scatter(img: &mut RgbImage, points: &[ScopePoint], size: u32) {
+    let s = size as usize;
+    let raw = img.as_mut();
     for p in points {
-        let x = p.px.max(0.0) as u32;
-        let y = p.py.max(0.0) as u32;
-        if x < size && y < size {
-            blend_pixel(img, x, y, Rgb([p.r, p.g, p.b]), 0.9);
-        }
+        // px/py are computed via center + nx*radius, so they're always > 0 for
+        // in-bounds points; guard against the edge case where rounding/garbage
+        // produces a NaN or negative anyway.
+        if !(p.px >= 0.0 && p.py >= 0.0) { continue; }
+        let x = p.px as u32;
+        let y = p.py as u32;
+        if x >= size || y >= size { continue; }
+
+        let idx = (y as usize * s + x as usize) * 3;
+        raw[idx]     = blend_alpha09(raw[idx], p.r);
+        raw[idx + 1] = blend_alpha09(raw[idx + 1], p.g);
+        raw[idx + 2] = blend_alpha09(raw[idx + 2], p.b);
     }
 }
 
@@ -28,7 +45,7 @@ pub(super) fn render_bloom(img: &mut RgbImage, points: &[ScopePoint], size: u32)
     let mut buf_b = vec![0.0f32; s * s];
 
     let glow_r_sq = glow_radius * glow_radius;
-    let inv_glow_r = 1.0 / glow_radius;
+    let inv_glow_r = (1.0 / glow_radius) as f32;
 
     for p in points {
         let cx = p.px;
@@ -46,17 +63,24 @@ pub(super) fn render_bloom(img: &mut RgbImage, points: &[ScopePoint], size: u32)
             let dy = iy as f64 - cy;
             let dy_sq = dy * dy;
             let row_off = iy as usize * s;
+            // Hoist the slice-window once per row so the inner loop is over a
+            // single contiguous &mut [f32] — kills row-multiplication and lets
+            // the optimiser skip per-iteration bounds checks on each accumulator.
+            let row_r = &mut buf_r[row_off..row_off + s];
+            let row_g = &mut buf_g[row_off..row_off + s];
+            let row_b = &mut buf_b[row_off..row_off + s];
             for ix in x_min..=x_max {
                 let dx = ix as f64 - cx;
                 let dist_sq = dx * dx + dy_sq;
-                // Compare squared distances first to avoid sqrt for out-of-circle pixels.
                 if dist_sq > glow_r_sq { continue; }
 
-                let falloff = (1.0 - dist_sq.sqrt() * inv_glow_r) as f32;
-                let idx = row_off + ix as usize;
-                buf_r[idx] += pr * falloff;
-                buf_g[idx] += pg * falloff;
-                buf_b[idx] += pb * falloff;
+                // Use f32 sqrt (faster than f64) — output is f32 anyway and
+                // glow_radius is small, so precision loss is well below RMSE.
+                let falloff = 1.0 - (dist_sq as f32).sqrt() * inv_glow_r;
+                let xi = ix as usize;
+                row_r[xi] += pr * falloff;
+                row_g[xi] += pg * falloff;
+                row_b[xi] += pb * falloff;
             }
         }
     }
@@ -118,23 +142,34 @@ pub(super) fn render_heatmap(img: &mut RgbImage, points: &[ScopePoint], size: u3
         (255.0, 60.0, 0.0),    // red
         (255.0, 255.0, 255.0), // white
     ];
+    let last_seg = ramp.len() - 2;
+    let seg_count = (ramp.len() - 1) as f64;
 
+    let raw = img.as_mut();
     for y in 0..size {
+        let row_off = y as usize * s;
         for x in 0..size {
-            let idx = y as usize * s + x as usize;
+            let idx = row_off + x as usize;
             let d = density[idx];
             if d == 0 { continue; }
 
             let t = (d as f64 + 1.0).ln() / log_max;
-            let pos = t * (ramp.len() - 1) as f64;
-            let lo = (pos as usize).min(ramp.len() - 2);
+            let pos = t * seg_count;
+            let lo = (pos as usize).min(last_seg);
             let frac = pos - lo as f64;
 
-            let r = (ramp[lo].0 + (ramp[lo + 1].0 - ramp[lo].0) * frac) as u8;
-            let g = (ramp[lo].1 + (ramp[lo + 1].1 - ramp[lo].1) * frac) as u8;
-            let b = (ramp[lo].2 + (ramp[lo + 1].2 - ramp[lo].2) * frac) as u8;
+            let lo_c = ramp[lo];
+            let hi_c = ramp[lo + 1];
+            let r = (lo_c.0 + (hi_c.0 - lo_c.0) * frac) as u8;
+            let g = (lo_c.1 + (hi_c.1 - lo_c.1) * frac) as u8;
+            let b = (lo_c.2 + (hi_c.2 - lo_c.2) * frac) as u8;
 
-            blend_pixel(img, x, y, Rgb([r, g, b]), 0.9);
+            // Direct write skips two get_pixel/put_pixel bounds checks per cell
+            // (size² cells per render). Output is byte-identical to blend_pixel(.., 0.9).
+            let raw_idx = idx * 3;
+            raw[raw_idx]     = blend_alpha09(raw[raw_idx], r);
+            raw[raw_idx + 1] = blend_alpha09(raw[raw_idx + 1], g);
+            raw[raw_idx + 2] = blend_alpha09(raw[raw_idx + 2], b);
         }
     }
 }

@@ -18,45 +18,66 @@ local function _keyLess(a, b)
   return tostring(a) < tostring(b)
 end
 
+-- Hot-path constants and locals for hashTable. Lifting `string.byte`,
+-- `string.sub`, `math.floor`, etc. into upvalues avoids a global table lookup
+-- on every byte/number mixed; this runs ~50–200 keys per poll, every 500ms.
+local _byte  = string.byte
+local _floor = math.floor
+local _type  = type
+local _tostring = tostring
+local _pairs = pairs
+local _sort  = table.sort
+local HASH_MOD = 2147483647
+
 function M.hashTable(settings, seed)
   if not settings then return seed end
 
-  local MOD  = 2147483647
-  local hash = seed % MOD
+  local hash = seed % HASH_MOD
 
-  local function mixStr(s)
-    for i = 1, #s do
-      hash = (hash * 33 + string.byte(s, i)) % MOD
-    end
-    hash = (hash * 33) % MOD
-  end
-
-  local function mixNum(n)
-    local scaled = math.floor(n * 100000 + 0.5)
-    hash = (hash * 33 + (scaled % MOD)) % MOD
-    hash = (hash * 33) % MOD
-  end
-
+  -- mixStr / mixNum are inlined into walk to avoid creating two closures
+  -- per call (which would be re-created on every hashTable invocation).
   local function walk(t, depth)
     if depth > 8 then return end
     local keys, ki = {}, 0
-    for k in pairs(t) do
-      local kt = type(k)
+    for k in _pairs(t) do
+      local kt = _type(k)
       if kt ~= "table" and kt ~= "userdata" and not HASH_SKIP[k] then
         ki = ki + 1
         keys[ki] = k
       end
     end
-    table.sort(keys, _keyLess)
+    _sort(keys, _keyLess)
     for i = 1, ki do
       local k = keys[i]
-      mixStr(tostring(k))
+      -- mixStr(tostring(k))
+      local sk = _tostring(k)
+      for j = 1, #sk do
+        hash = (hash * 33 + _byte(sk, j)) % HASH_MOD
+      end
+      hash = (hash * 33) % HASH_MOD
+
       local v  = t[k]
-      local tv = type(v)
-      if     tv == "table"   then mixStr("{"); walk(v, depth + 1); mixStr("}")
-      elseif tv == "number"  then mixNum(v)
-      elseif tv == "string"  then mixStr(v)
-      elseif tv == "boolean" then mixStr(v and "t" or "f")
+      local tv = _type(v)
+      if tv == "table" then
+        -- mixStr("{")
+        hash = (hash * 33 + 123) % HASH_MOD -- 123 = byte('{')
+        hash = (hash * 33) % HASH_MOD
+        walk(v, depth + 1)
+        -- mixStr("}")
+        hash = (hash * 33 + 125) % HASH_MOD -- 125 = byte('}')
+        hash = (hash * 33) % HASH_MOD
+      elseif tv == "number" then
+        local scaled = _floor(v * 100000 + 0.5)
+        hash = (hash * 33 + (scaled % HASH_MOD)) % HASH_MOD
+        hash = (hash * 33) % HASH_MOD
+      elseif tv == "string" then
+        for j = 1, #v do
+          hash = (hash * 33 + _byte(v, j)) % HASH_MOD
+        end
+        hash = (hash * 33) % HASH_MOD
+      elseif tv == "boolean" then
+        hash = (hash * 33 + (v and 116 or 102)) % HASH_MOD -- 't' / 'f'
+        hash = (hash * 33) % HASH_MOD
       end
     end
   end

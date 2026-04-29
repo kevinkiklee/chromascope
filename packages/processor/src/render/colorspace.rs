@@ -81,23 +81,26 @@ fn map_hsl(r: f64, g: f64, b: f64) -> (f64, f64) {
 
 /// Map RGB pixels to vectorscope coordinates using the specified color space.
 pub(super) fn map_pixels(rgb_data: &[u8], width: u32, height: u32, center: f64, radius: f64, color_space: &str) -> Vec<ScopePoint> {
+    // Resolve the dispatch ONCE so the per-pixel loop pays no string-match cost.
+    let map_fn: fn(f64, f64, f64) -> (f64, f64) = match color_space {
+        "ycbcr" => map_ycbcr,
+        "cieluv" => map_cieluv,
+        _ => map_hsl,
+    };
+
     let total = (width * height) as usize;
     let mut points = Vec::with_capacity(total);
 
-    for i in 0..total {
-        let off = i * 3;
-        let r = rgb_data[off] as f64;
-        let g = rgb_data[off + 1] as f64;
-        let b = rgb_data[off + 2] as f64;
+    // Iterate by chunks to let the bounds-check elider see fixed RGB triplets.
+    for chunk in rgb_data.chunks_exact(3).take(total) {
+        let r = chunk[0] as f64;
+        let g = chunk[1] as f64;
+        let b = chunk[2] as f64;
 
-        let (nx, ny) = match color_space {
-            "ycbcr" => map_ycbcr(r, g, b),
-            "cieluv" => map_cieluv(r, g, b),
-            _ => map_hsl(r, g, b),
-        };
+        let (nx, ny) = map_fn(r, g, b);
 
-        let dist = (nx * nx + ny * ny).sqrt();
-        if dist > 1.0 {
+        // Squared compare avoids a sqrt for every out-of-circle pixel.
+        if nx * nx + ny * ny > 1.0 {
             continue;
         }
 

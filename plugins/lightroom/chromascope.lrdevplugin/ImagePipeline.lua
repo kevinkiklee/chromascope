@@ -171,7 +171,11 @@ local function exportThumbnail(photo, outPath)
   -- requestJpegThumbnail fires the callback multiple times as higher-quality
   -- thumbnails become available. We only want the first one — subsequent calls
   -- after done=true would write to a closed file and retain jpegData strings.
-  photo:requestJpegThumbnail(256, 256, function(jpegData, reason)
+  --
+  -- The returned request object MUST be held in a local variable for the full
+  -- lifetime of the operation. If discarded, Lua's GC may collect it before
+  -- the callback fires, causing the request to be silently dropped.
+  local request = photo:requestJpegThumbnail(256, 256, function(jpegData, reason)
     if done then return end
     if not jpegData then
       errMsg = reason or "no data"
@@ -193,9 +197,15 @@ local function exportThumbnail(photo, outPath)
     LrTasks.sleep(0.05)
     waited = waited + 0.05
     if waited > 10 then
+      -- Touch `request` so the closure still has a reachable reference at the
+      -- timeout point — defensive against a clever GC that might collect it
+      -- after the last syntactic use.
+      request = nil
       return false, "Thumbnail request timed out (10s)"
     end
   end
+  -- Drop the request reference now that the callback has fired and we're done.
+  request = nil
   return ok, errMsg
 end
 

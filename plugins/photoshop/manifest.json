@@ -29,9 +29,6 @@
     { "width": 48, "height": 48, "path": "icons/plugin-icon.png", "scale": [1, 2], "theme": ["all"] }
   ],
   "requiredPermissions": {
-    "network": { "domains": [] },
-    "webview": { "allow": "yes", "allowLocalRendering": "yes", "enableMessageBridge": "localAndRemote" },
-    "clipboard": "readAndWrite",
-    "localFileSystem": "request"
+    "network": { "domains": [] }
   }
 }

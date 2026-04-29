@@ -1,33 +1,12 @@
 import type { DensityRenderer, MappedPoint } from "../types.js";
 import { RADIUS_FACTOR } from "../constants.js";
 
-/** Cold-to-hot color ramp: black → blue → cyan → green → yellow → red → white */
-const HEATMAP_COLORS: Array<[number, number, number]> = [
-  [0, 0, 0],       // 0%
-  [0, 0, 128],     // ~17%
-  [0, 128, 255],   // ~33%
-  [0, 255, 128],   // ~50%
-  [255, 255, 0],   // ~67%
-  [255, 64, 0],    // ~83%
-  [255, 255, 255], // 100%
-];
-
-function heatColor(t: number): [number, number, number] {
-  const clamped = Math.max(0, Math.min(1, t));
-  const scaled = clamped * (HEATMAP_COLORS.length - 1);
-  const idx = Math.floor(scaled);
-  const frac = scaled - idx;
-
-  if (idx >= HEATMAP_COLORS.length - 1) return HEATMAP_COLORS[HEATMAP_COLORS.length - 1];
-
-  const a = HEATMAP_COLORS[idx];
-  const b = HEATMAP_COLORS[idx + 1];
-  return [
-    Math.round(a[0] + (b[0] - a[0]) * frac),
-    Math.round(a[1] + (b[1] - a[1]) * frac),
-    Math.round(a[2] + (b[2] - a[2]) * frac),
-  ];
-}
+/** Cold-to-hot color ramp: black → blue → cyan → green → yellow → red → white.
+ * Stored as flat typed arrays so the hot inline lookup avoids tuple allocations. */
+const HEATMAP_R = new Uint8Array([0, 0,   0,   0,   255, 255, 255]);
+const HEATMAP_G = new Uint8Array([0, 0,   128, 255, 255, 64,  255]);
+const HEATMAP_B = new Uint8Array([0, 128, 255, 128, 0,   0,   255]);
+const HEATMAP_LAST = HEATMAP_R.length - 1;
 
 /**
  * Heatmap renderer.
@@ -64,19 +43,36 @@ export class HeatmapRenderer implements DensityRenderer {
     const pixels = imageData.data;
 
     if (maxCount > 0) {
-      for (let i = 0; i < grid.length; i++) {
-        if (grid[i] > 0) {
-          // Log scale compresses the range so low-density areas are visible
-          // alongside high-density clusters (linear scale would crush them to black)
-          const t = Math.log1p(grid[i]) / Math.log1p(maxCount);
-          const [r, g, b] = heatColor(t);
-          const pi = i * 4;
-          pixels[pi] = r;
-          pixels[pi + 1] = g;
-          pixels[pi + 2] = b;
-          pixels[pi + 3] = 255;
+      // Log scale compresses the range so low-density areas are visible
+      // alongside high-density clusters (linear scale would crush them to black).
+      // Hoist 1/log1p(maxCount) and ramp-segment count out of the per-cell loop.
+      const invLogMax = 1 / Math.log1p(maxCount);
+      const segCount = HEATMAP_LAST;
+      const len = grid.length;
+      for (let i = 0; i < len; i++) {
+        const v = grid[i];
+        if (v === 0) continue; // leave transparent (alpha = 0) so graticule shows through
+
+        let t = Math.log1p(v) * invLogMax;
+        if (t < 0) t = 0;
+        else if (t > 1) t = 1;
+
+        const scaled = t * segCount;
+        const idx = scaled | 0;
+        const pi = i * 4;
+        if (idx >= segCount) {
+          pixels[pi]     = HEATMAP_R[segCount];
+          pixels[pi + 1] = HEATMAP_G[segCount];
+          pixels[pi + 2] = HEATMAP_B[segCount];
+        } else {
+          const frac = scaled - idx;
+          const next = idx + 1;
+          const ar = HEATMAP_R[idx], ag = HEATMAP_G[idx], ab = HEATMAP_B[idx];
+          pixels[pi]     = (ar + (HEATMAP_R[next] - ar) * frac + 0.5) | 0;
+          pixels[pi + 1] = (ag + (HEATMAP_G[next] - ag) * frac + 0.5) | 0;
+          pixels[pi + 2] = (ab + (HEATMAP_B[next] - ab) * frac + 0.5) | 0;
         }
-        // Else: leave transparent (alpha = 0) so graticule shows through
+        pixels[pi + 3] = 255;
       }
     }
 

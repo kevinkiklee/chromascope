@@ -74,10 +74,20 @@
   margin-bottom: 4px;
 }
 
+/* The label now wraps the input (UXP doesn't honor `<label for=>`),
+ * so the label itself is the flex row that holds both the visible
+ * text span and the input. */
 .vs-slider-row label {
-  flex: 0 0 80px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
   color: #999;
   font-size: 11px;
+}
+
+.vs-slider-row label > span:first-child {
+  flex: 0 0 80px;
 }
 
 .vs-slider-row input[type="range"] {

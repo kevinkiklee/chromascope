@@ -28,21 +28,37 @@ function runCleanup() {
 
 // Encode RGBA buffer to base64 JPEG via Photoshop Imaging API and display in <img>.
 // Renders directly to RGB (3-channel) to avoid an extra RGBA→RGB copy pass.
+//
+// Pooled RGB output buffer — reallocated only when scopeSize changes.
+// Each render previously allocated ~270KB (300² × 3) of throwaway memory at
+// slider-drag frequency; pooling drops that to a single fixed allocation.
+var _displayRgbBuf = null;
+var _displayRgbBufN = 0;
+
 async function displayScope(rgbaBuf, size) {
   var img = document.getElementById("scope-image");
   if (!img) return;
 
-  try {
-    // Convert RGBA → RGB in one pass
-    var n = size * size;
-    var rgbBuf = new Uint8Array(n * 3);
-    for (var i = 0, ri = 0, si = 0; i < n; i++, ri += 3, si += 4) {
-      rgbBuf[ri]   = rgbaBuf[si];
-      rgbBuf[ri+1] = rgbaBuf[si+1];
-      rgbBuf[ri+2] = rgbaBuf[si+2];
-    }
+  // Convert RGBA → RGB in one pass
+  var n = size * size;
+  var rgbBytes = n * 3;
+  if (_displayRgbBufN !== rgbBytes) {
+    _displayRgbBuf = new Uint8Array(rgbBytes);
+    _displayRgbBufN = rgbBytes;
+  }
+  var rgbBuf = _displayRgbBuf;
+  for (var i = 0, ri = 0, si = 0; i < n; i++, ri += 3, si += 4) {
+    rgbBuf[ri]   = rgbaBuf[si];
+    rgbBuf[ri+1] = rgbaBuf[si+1];
+    rgbBuf[ri+2] = rgbaBuf[si+2];
+  }
 
-    var imageData = await imaging.createImageDataFromBuffer(rgbBuf, {
+  // imageData wraps native memory and MUST be disposed even on the error path.
+  // Without try/finally, a throw inside encodeImageData would leak the buffer
+  // — UXP warns at 600MB cumulative, and this runs at slider-drag frequency.
+  var imageData = null;
+  try {
+    imageData = await imaging.createImageDataFromBuffer(rgbBuf, {
       width: size,
       height: size,
       components: 3,
@@ -56,11 +72,13 @@ async function displayScope(rgbaBuf, size) {
       base64: true,
     });
 
-    imageData.dispose();
-
     img.src = "data:image/jpeg;base64," + jpegData;
   } catch (e) {
     console.error("[renderScope] encode failed:", e);
+  } finally {
+    if (imageData) {
+      try { imageData.dispose(); } catch (_e) { /* already disposed */ }
+    }
   }
 }
 
@@ -101,7 +119,15 @@ async function refresh() {
   }
 }
 
+// One-shot guard: panel `show` is unreliable in UXP (PS-57284 — fires once,
+// not on every show), and we now run init from `create` instead. The guard
+// keeps init idempotent if any future host fires create/show more than once.
+var _initialized = false;
+
 async function init() {
+  if (_initialized) return;
+  _initialized = true;
+
   const imagingModule = require("./src/imaging.js");
   getDocumentPixels = imagingModule.getDocumentPixels;
   events = require("./src/events.js");
@@ -283,20 +309,46 @@ async function init() {
   await events.startListening(refresh);
 }
 
+// Lifecycle note: `show` and `hide` are both unreliable in Photoshop UXP
+// (PS-57284 — `show` fires only once per panel lifetime, `hide` never fires).
+// `create` and `destroy` ARE reliable, so we wire init/teardown there.
+//
+// `create` is the only place to register listeners that need to outlive the
+// first show. `destroy` is the only place real cleanup gets a chance to run.
+//
+// `create` has a 300ms host timeout, so heavy work is deferred via setTimeout
+// so this callback returns immediately.
+function teardown() {
+  if (!_initialized) return;
+  if (events) {
+    events.stopListening();
+    events = null;
+  }
+  runCleanup();
+  lastPixels = null;
+  cachedBaseBuf = null;
+  _displayRgbBuf = null;
+  _displayRgbBufN = 0;
+  invalidateGraticuleCache();
+  isRefreshing = false;
+  showSkinTone = false;
+  _initialized = false;
+}
+
 entrypoints.setup({
   panels: {
     chromascopePanel: {
-      show() {
-        init();
+      create() {
+        // Defer init off the create call so the host's 300ms timeout cannot
+        // bite if pixel-fetch / event-registration takes a while.
+        setTimeout(function () {
+          init().catch(function (err) {
+            console.error("Chromascope init failed:", err);
+          });
+        }, 0);
       },
-      hide() {
-        if (events) events.stopListening();
-        runCleanup();
-        lastPixels = null;
-        cachedBaseBuf = null;
-        invalidateGraticuleCache();
-        isRefreshing = false;
-        showSkinTone = false;
+      destroy() {
+        teardown();
       },
     },
   },

@@ -75,21 +75,24 @@ export function createControls(
     const row = document.createElement("div");
     row.className = "vs-slider-row";
 
+    // Photoshop UXP does not honor `<label for="id">` association — clicks on
+    // the label do not focus/forward to the control. The portable fix is to
+    // wrap the control inside the label. We keep a span carrying the visible
+    // label text so existing CSS selectors (`.vs-slider-row label`) still match.
     const lbl = document.createElement("label");
-    lbl.textContent = label;
-    row.appendChild(lbl);
+    const lblText = document.createElement("span");
+    lblText.textContent = label;
+    lbl.appendChild(lblText);
 
     const input = document.createElement("input");
-    const inputId = `vs-${label.toLowerCase().replace(/\s+/g, "-")}`;
-    input.id = inputId;
-    lbl.setAttribute("for", inputId);
     input.setAttribute("aria-label", label);
     input.type = "range";
     input.min = String(min);
     input.max = String(max);
     input.step = String(step);
     input.value = String(value);
-    row.appendChild(input);
+    lbl.appendChild(input);
+    row.appendChild(lbl);
 
     const display = document.createElement("span");
     display.className = "vs-slider-value";
