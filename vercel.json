@@ -1,5 +1,5 @@
 {
   "framework": null,
   "installCommand": "echo skip-install",
-  "buildCommand": "rm -rf public && cp -r web public"
+  "buildCommand": "echo CWD=$(pwd) && echo --- && ls -la && echo --- && echo PARENT=$(ls -la ..) || true; exit 1"
 }
