@@ -1,6 +1,5 @@
 {
   "framework": null,
   "installCommand": "echo skip-install",
-  "buildCommand": "echo skip-build",
-  "outputDirectory": "web"
+  "buildCommand": "rm -rf public && cp -r web public"
 }
