@@ -11,8 +11,8 @@ jobs:
     name: Core (TypeScript)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
         with:
           node-version: 20
           cache: npm
@@ -24,7 +24,7 @@ jobs:
     name: Processor (Rust)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
         with:
@@ -37,7 +37,7 @@ jobs:
     name: Visual Regression (Rust)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           lfs: true
       - uses: dtolnay/rust-toolchain@stable
@@ -48,7 +48,7 @@ jobs:
       - run: cargo test --release --manifest-path packages/processor/Cargo.toml --test visual_regression -- --nocapture
       - name: Upload diff artifacts on failure
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: visual-regression-diffs
           path: |

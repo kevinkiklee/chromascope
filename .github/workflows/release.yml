@@ -13,9 +13,9 @@ jobs:
     name: Build (macOS)
     runs-on: macos-14
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version: 20
           cache: npm
@@ -31,7 +31,7 @@ jobs:
       - run: npm ci
       - run: npm run build:plugins
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: plugins-macos
           path: |
@@ -42,9 +42,9 @@ jobs:
     name: Build (Windows)
     runs-on: windows-2022
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version: 20
           cache: npm
@@ -70,7 +70,7 @@ jobs:
           cp packages/core/build/index.html "$LR_DIR/core/index.html"
           cp packages/processor/target/release/processor.exe "$LR_DIR/bin/win-x64/processor.exe"
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: plugins-windows
           path: |
@@ -82,7 +82,7 @@ jobs:
     needs: [build-macos, build-windows]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - uses: actions/download-artifact@v8
         with:
