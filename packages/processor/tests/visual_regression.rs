@@ -60,11 +60,12 @@ impl TestConfig {
     }
 
     fn to_args(&self) -> Vec<String> {
-        let mut args = Vec::new();
-        args.push("--color-space".to_string());
-        args.push(self.color_space.clone());
-        args.push("--density".to_string());
-        args.push(self.density.clone());
+        let mut args = vec![
+            "--color-space".to_string(),
+            self.color_space.clone(),
+            "--density".to_string(),
+            self.density.clone(),
+        ];
         if self.scheme != "none" {
             args.push("--scheme".to_string());
             args.push(self.scheme.clone());
