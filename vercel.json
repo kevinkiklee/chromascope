@@ -1,5 +1,6 @@
 {
   "framework": null,
-  "buildCommand": "",
+  "installCommand": "npm install",
+  "buildCommand": "npx @tailwindcss/cli -i web/css/input.css -o web/css/tailwind.css --minify",
   "outputDirectory": "web"
 }
