@@ -117,7 +117,7 @@ Lua plugin for Lightroom Classic. Uses the processor binary to read pixel data.
 - `Info.lua` -- Plugin metadata and menu registration
 - `ShowChromascope.lua` -- Main dialog launcher
 - `ChromascopeDialog.lua` -- Floating dialog with vectorscope, controls (density, harmony, rotation, size)
-- `ImagePipeline.lua` -- Thumbnail export, processor binary invocation, change detection (recursive djb2 hash of full develop settings), frame alternation
+- `ImagePipeline.lua` -- Thumbnail export, single-shot `processor pipeline` invocation (decode+render combined), change detection (recursive djb2 hash of full develop settings), frame alternation, overlay-only re-renders from cached RGB
 - `License.lua` -- License display
 
 **Note**: The `.lrdevplugin` extension tells Lightroom this is a development plugin (reloads on each launch). Rename to `.lrplugin` for distribution.

@@ -79,23 +79,29 @@ Lightroom's Lua SDK can't embed WebViews or access pixel data directly. Instead,
 ```
 LrC plugin
   1. requestJpegThumbnail  -->  JPEG from catalog
-  2. processor decode      -->  raw RGB bytes
-  3. processor render      -->  vectorscope JPEG
-  4. f:picture             -->  display in dialog
+  2. processor pipeline    -->  decode + render in one shot → vectorscope JPEG
+  3. f:picture             -->  display in dialog
 ```
 
-The scope updates automatically by polling `getDevelopSettings()` every 500ms and hashing the full table with a recursive djb2 fingerprint. This detects changes in any develop panel — Basic, HSL, Masking, Calibration, Detail, Lens Corrections, Transform, Effects, and more. A busy-guard with coalescing prevents overlapping renders, and frame alternation between two output files forces Lightroom to release cached images (preventing memory leaks).
+Two change-detection paths keep the scope in sync:
+- **Poll loop (150ms)** — hashes the full `getDevelopSettings()` table with a recursive djb2 fingerprint. Detects changes in any develop panel (Basic, HSL, Masking, Calibration, Detail, Lens Corrections, Transform, Effects, and more).
+- **Adjustment observer** — throttled renders during slider drag (~200ms cadence) with a correction render after settle, giving ~2-3 fps live feedback.
+
+A busy-guard with coalescing prevents overlapping renders, and frame alternation between two output files forces Lightroom to release cached images (preventing memory leaks).
 
 ### Processor binary
 
-The `processor` CLI has two subcommands:
+The `processor` CLI has three subcommands:
 
 | Command | Purpose |
 |---------|---------|
+| `processor pipeline` | Decode JPEG/TIFF + render vectorscope in one shot (primary command) |
 | `processor decode` | Decode JPEG/TIFF to raw RGB, resized to target dimensions |
 | `processor render` | Render a vectorscope JPEG from raw RGB data |
 
-Render options: `--density` (scatter, bloom), `--scheme` (complementary, triadic, etc.), `--rotation`, `--overlay-color`, `--hide-skin-tone`.
+`pipeline` combines decode and render into a single process, saving ~50-100ms of spawn overhead vs. running them separately. `--save-rgb` writes the decoded pixels for overlay-only re-renders.
+
+Render options: `--density` (scatter, bloom), `--scheme` (complementary, triadic, etc.), `--rotation`, `--overlay-color`, `--hide-skin-tone`, `--color-space` (hsl, ycbcr, cieluv).
 
 ## Project structure
 

@@ -61,10 +61,13 @@ cargo test
 
 - Lua SDK. Cannot embed WebViews or read pixels directly.
 - The Rust `processor` binary does the heavy lifting:
-  - `processor decode` — JPEG/TIFF → raw RGB bytes (128x128)
-  - `processor render` — RGB → vectorscope JPEG with configurable density mode, harmony overlay, skin tone line
-- `ImagePipeline.lua` orchestrates: export thumbnail → decode → render → display via `f:picture`.
-- Change detection: 500ms poll hashes full `getDevelopSettings()` table with a recursive djb2 fingerprint. Detects changes in any develop panel (Basic, HSL, Masking, Calibration, Detail, Lens Corrections, Transform, Effects, Point Curve, etc.). `LrDevelopController.addAdjustmentChangeObserver` provides faster response for global slider changes where it fires.
+  - `processor pipeline` — JPEG/TIFF → vectorscope JPEG in a single process (decode + render combined, saves ~50-100ms vs two spawns). `--save-rgb` writes intermediate RGB for overlay-only re-renders.
+  - `processor decode` — JPEG/TIFF → raw RGB bytes (128x128). Used standalone only for testing.
+  - `processor render` — RGB → vectorscope JPEG with configurable density mode, harmony overlay, skin tone line. Used for overlay-only re-renders from cached RGB.
+- `ImagePipeline.lua` orchestrates: export thumbnail → pipeline (decode+render in one shot) → display via `f:picture`.
+- Change detection (two paths):
+  - **Poll loop (150ms)** — hashes full `getDevelopSettings()` table with a recursive djb2 fingerprint. Detects changes in any develop panel (Basic, HSL, Masking, Calibration, Detail, Lens Corrections, Transform, Effects, Point Curve, etc.). Fallback for changes the observer doesn't fire on.
+  - **`LrDevelopController.addAdjustmentChangeObserver`** — throttled renders during slider drag (~200ms cadence, ~2-3 fps), plus a correction render 300ms after the slider settles to ensure the thumbnail is fresh.
 - Busy-guard with coalescing prevents overlapping renders (max 1 queued).
 - Platform binaries at `bin/macos-arm64/`, `bin/macos-x64/`, `bin/win-x64/`.
 
@@ -74,7 +77,7 @@ The plugin runs for hours in a long-lived process. These rules are non-negotiabl
 
 1. **Frame alternation is mandatory.** `f:picture` must receive a *different* file path each update. Writing to the same path causes Lightroom to cache every version internally without releasing (root cause of a 40GB leak). Use `nextScopePath()` to alternate `scope_0.jpg` / `scope_1.jpg`.
 2. **Guard `requestJpegThumbnail` callbacks.** After `done = true`, subsequent callbacks must return immediately. Nil out `jpegData` after writing.
-3. **Debounce async tasks.** Use `_settleVersion` / `_adjustVersion` pattern. Without debouncing, slider drags create hundreds of coroutines.
+3. **Throttle async tasks.** Use the `_adjustVersion` / `_adjustTaskRunning` pattern: one task at a time, observer ticks just bump a counter, the task loops until the counter stabilizes. Overlay changes use a similar `_settleVersion` / `_fastVersion` guard. Without throttling, slider drags create hundreds of coroutines.
 4. **No unbounded module-level state.** Only fixed-size vars: busy flag, frame index, pending flag, settings hash.
 5. **Clean up temp files on dialog open.** `ImagePipeline.cleanup()` handles this.
 6. **`collectgarbage` is unavailable.** LrC sandbox blocks it.

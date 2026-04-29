@@ -194,8 +194,8 @@ local function exportThumbnail(photo, outPath)
   -- the thumbnail request. Without this, the callback would never fire.
   local waited = 0
   while not done do
-    LrTasks.sleep(0.05)
-    waited = waited + 0.05
+    LrTasks.sleep(0.02)
+    waited = waited + 0.02
     if waited > 10 then
       -- Touch `request` so the closure still has a reachable reference at the
       -- timeout point — defensive against a clever GC that might collect it
@@ -253,29 +253,19 @@ function ImagePipeline.refresh(props, precomputedHash)
     return
   end
 
-  local exitCode = LrTasks.execute(string.format(
-    '"%s" decode --input "%s" --output "%s" --width 128 --height 128',
-    bin, tmpThumb, rgbPath
-  ))
-  LrFileUtils.delete(tmpThumb)
-  if exitCode ~= 0 then
-    props.status = string.format("Decode failed (%s)", tostring(exitCode))
-    _busy = false
-    return
-  end
-
-  -- Render with optional harmony overlay to the NEXT frame path
+  -- Single process: decode JPEG + render vectorscope in one shot.
+  -- Saves one process spawn (~50-100ms) and intermediate file I/O.
+  -- --save-rgb keeps decoded pixels for overlay-only re-renders.
   local outPath = nextScopePath()
   local fullSize = tonumber(props.scopeSize) or 500
-  local renderCmd = appendOverlayFlags(string.format(
-    '"%s" render --input "%s" --output "%s" --width 128 --height 128 --size %d',
-    bin, rgbPath, outPath, fullSize
+  local pipelineCmd = appendOverlayFlags(string.format(
+    '"%s" pipeline --input "%s" --output "%s" --width 128 --height 128 --size %d --save-rgb "%s"',
+    bin, tmpThumb, outPath, fullSize, rgbPath
   ), props)
-  exitCode = LrTasks.execute(renderCmd)
-  -- Keep rgbPath on disk — refreshOverlayFast/Full re-use it to skip the
-  -- expensive decode step when only the overlay settings changed.
+  local exitCode = LrTasks.execute(pipelineCmd)
+  LrFileUtils.delete(tmpThumb)
   if exitCode ~= 0 then
-    props.status = string.format("Render failed (%s)", tostring(exitCode))
+    props.status = string.format("Pipeline failed (%s)", tostring(exitCode))
     _busy = false
     return
   end

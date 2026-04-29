@@ -113,25 +113,21 @@ function ChromascopeDialog.show(context)
     end
   end)
 
-  -- Initial render + smart poll loop.
-  -- Every 500ms, checks if develop settings changed (cheap: reads slider values).
-  -- Only calls full refresh (with requestJpegThumbnail) when settings actually changed.
-  -- Also re-renders overlay each cycle to pick up scheme/rotation changes.
+  -- Initial render + poll loop for non-observer changes (HSL, masks, etc.).
+  -- Every 150ms, checks if develop settings changed (cheap: reads slider values).
   LrTasks.startAsyncTask(function()
     ImagePipeline.cleanup()
     ImagePipeline.ensurePlaceholder(props)
     ImagePipeline.refresh(props)
-    -- Track overlay state to avoid re-rendering when nothing changed
     local lastOverlayHash = ""
     while not stopRefresh do
-      LrTasks.sleep(0.5)
+      LrTasks.sleep(0.15)
       if not stopRefresh then
         if not ImagePipeline.isBusy() then
           local changed, newHash = ImagePipeline.settingsChanged()
           if changed then
             ImagePipeline.refresh(props, newHash)
           else
-            -- Only re-render overlay if overlay settings changed
             local oh = tostring(props.scheme) .. tostring(props.rotation) ..
               tostring(props.skinTone) .. tostring(props.overlayColor) ..
               tostring(props.density) .. tostring(props.colorSpace)
@@ -145,9 +141,11 @@ function ChromascopeDialog.show(context)
     end
   end)
 
-  -- Develop slider changes: debounced full pipeline.
-  -- Without debounce, dragging a slider fires hundreds of startAsyncTask per second,
-  -- accumulating Lua coroutines and causing unbounded memory growth.
+  -- Develop slider changes: throttled renders during drag + correction after settle.
+  -- Only ONE task runs at a time — observer ticks just bump _adjustVersion.
+  -- During drag: renders every ~200ms with the latest available thumbnail.
+  -- After settle: a correction render 300ms later ensures the thumbnail is fresh
+  -- (LrC needs ~300-500ms to commit the preview after a slider stops).
   local _adjustVersion = 0
   local _adjustTaskRunning = false
   LrDevelopController.addAdjustmentChangeObserver(context, props, function()
@@ -155,17 +153,21 @@ function ChromascopeDialog.show(context)
     if not _adjustTaskRunning then
       _adjustTaskRunning = true
       LrTasks.startAsyncTask(function()
-        -- Wait for the develop module to commit the preview update.
-        -- requestJpegThumbnail returns a cached thumbnail — too short a delay
-        -- means we re-render with stale pixel data. 500ms is enough for LrC
-        -- to update the preview after a slider drag stops.
         local lastVersion = 0
-        while lastVersion ~= _adjustVersion do
+        while true do
           lastVersion = _adjustVersion
-          LrTasks.sleep(0.5)
+          LrTasks.sleep(0.2)
+          ImagePipeline.refresh(props)
+          if _adjustVersion == lastVersion then
+            -- Slider settled — correction render with definitely-fresh thumbnail
+            LrTasks.sleep(0.3)
+            if _adjustVersion == lastVersion then
+              ImagePipeline.refresh(props)
+            end
+            break
+          end
         end
         _adjustTaskRunning = false
-        ImagePipeline.refresh(props)
       end)
     end
   end)
