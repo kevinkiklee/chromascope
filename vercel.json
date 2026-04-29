@@ -1,5 +1,6 @@
 {
   "framework": null,
   "installCommand": "echo skip-install",
-  "buildCommand": "echo CWD=$(pwd) && echo --- && ls -la && echo --- && echo PARENT=$(ls -la ..) || true; exit 1"
+  "buildCommand": "echo skip-build",
+  "outputDirectory": "."
 }
