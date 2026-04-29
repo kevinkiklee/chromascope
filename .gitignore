@@ -35,9 +35,12 @@ plugins/lightroom/chromascope.lrdevplugin/core/
 plugins/photoshop/core/scope-bundle.js
 plugins/photoshop/core/test.html
 
-# Static site build output
+# Static site build output.
+# tailwind.css is intentionally NOT ignored — it's a deterministic build artifact
+# committed to the repo so the marketing site can ship as pure static files
+# without a Vercel/CI Tailwind build step. Rebuild locally with:
+#   npx @tailwindcss/cli -i web/css/input.css -o web/css/tailwind.css --minify
 web/out/
-web/css/tailwind.css
 
 # Test fixtures (generated at runtime)
 packages/processor/tests/fixtures/
