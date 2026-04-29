@@ -9,8 +9,7 @@ export function mapPixels(pixels: PixelData, mapper: ColorSpaceMapper): MappedPo
   const totalPixels = width * height;
   const points: MappedPoint[] = new Array(totalPixels);
 
-  for (let i = 0; i < totalPixels; i++) {
-    const offset = i * 3;
+  for (let i = 0, offset = 0; i < totalPixels; i++, offset += 3) {
     points[i] = mapper.mapPixel(data[offset], data[offset + 1], data[offset + 2]);
   }
 

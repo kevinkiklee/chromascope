@@ -64,20 +64,70 @@ describe("onHostMessage", () => {
     expect(removeSpy).toHaveBeenCalledWith("message", expect.any(Function));
   });
 
-  it("calls handler for messages with a type string", () => {
+  it("calls handler for valid pixel messages", () => {
     const handler = vi.fn();
+    onHostMessage(handler);
+
+    const listener = addSpy.mock.calls[0][1];
+    const validData = [255, 0, 0]; // 1x1 pixel = 3 bytes
+    listener({ data: { type: "pixels", data: validData, width: 1, height: 1, colorProfile: "sRGB" } });
+
+    expect(handler).toHaveBeenCalledWith({
+      type: "pixels",
+      data: validData,
+      width: 1,
+      height: 1,
+      colorProfile: "sRGB",
+    });
+  });
+
+  it("rejects pixel messages with insufficient data", () => {
+    const handler = vi.fn();
+    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
     onHostMessage(handler);
 
     const listener = addSpy.mock.calls[0][1];
     listener({ data: { type: "pixels", data: [], width: 1, height: 1, colorProfile: "sRGB" } });
 
-    expect(handler).toHaveBeenCalledWith({
-      type: "pixels",
-      data: [],
-      width: 1,
-      height: 1,
-      colorProfile: "sRGB",
-    });
+    expect(handler).not.toHaveBeenCalled();
+    warnSpy.mockRestore();
+  });
+
+  it("rejects pixel messages with non-positive dimensions", () => {
+    const handler = vi.fn();
+    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+    onHostMessage(handler);
+
+    const listener = addSpy.mock.calls[0][1];
+    listener({ data: { type: "pixels", data: [0, 0, 0], width: 0, height: 1, colorProfile: "sRGB" } });
+    listener({ data: { type: "pixels", data: [0, 0, 0], width: -1, height: 1, colorProfile: "sRGB" } });
+
+    expect(handler).not.toHaveBeenCalled();
+    warnSpy.mockRestore();
+  });
+
+  it("rejects settings messages with unknown colorSpace", () => {
+    const handler = vi.fn();
+    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+    onHostMessage(handler);
+
+    const listener = addSpy.mock.calls[0][1];
+    listener({ data: { type: "settings", colorSpace: "bogus" } });
+
+    expect(handler).not.toHaveBeenCalled();
+    warnSpy.mockRestore();
+  });
+
+  it("rejects settings messages with unknown densityMode", () => {
+    const handler = vi.fn();
+    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+    onHostMessage(handler);
+
+    const listener = addSpy.mock.calls[0][1];
+    listener({ data: { type: "settings", densityMode: "bogus" } });
+
+    expect(handler).not.toHaveBeenCalled();
+    warnSpy.mockRestore();
   });
 
   it("ignores messages without a type string", () => {

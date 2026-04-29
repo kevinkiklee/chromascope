@@ -102,11 +102,15 @@ LR_DIR="plugins/lightroom/chromascope.lrdevplugin"
 # Copy processor binaries for all available platforms
 PROC_DIR="packages/processor/target"
 
+# Native build output: $PROC_DIR/release/processor — produced by `cargo build --release`
+# above on whichever host arch we're on. Cross-compiled outputs live under
+# $PROC_DIR/<target-triple>/release/.
+NATIVE_BIN="$PROC_DIR/release/processor"
+
 # macOS arm64 (native build on arm64 host)
-MACOS_ARM64_BIN="$PROC_DIR/release/processor"
-if [ "$OS" = "Darwin" ] && [ "$ARCH" = "arm64" ] && [ -f "$MACOS_ARM64_BIN" ]; then
+if [ "$OS" = "Darwin" ] && [ "$ARCH" = "arm64" ] && [ -f "$NATIVE_BIN" ]; then
   mkdir -p "$LR_DIR/bin/macos-arm64"
-  cp "$MACOS_ARM64_BIN" "$LR_DIR/bin/macos-arm64/processor"
+  cp "$NATIVE_BIN" "$LR_DIR/bin/macos-arm64/processor"
   chmod +x "$LR_DIR/bin/macos-arm64/processor"
   ok "Copied processor → $LR_DIR/bin/macos-arm64/processor"
 fi
@@ -121,9 +125,9 @@ if [ "$OS" = "Darwin" ] && [ "$ARCH" = "x86_64" ] && [ -f "$MACOS_ARM64_CROSS" ]
 fi
 
 # macOS x64 (native build on x64 host)
-if [ "$OS" = "Darwin" ] && [ "$ARCH" = "x86_64" ] && [ -f "$MACOS_ARM64_BIN" ]; then
+if [ "$OS" = "Darwin" ] && [ "$ARCH" = "x86_64" ] && [ -f "$NATIVE_BIN" ]; then
   mkdir -p "$LR_DIR/bin/macos-x64"
-  cp "$MACOS_ARM64_BIN" "$LR_DIR/bin/macos-x64/processor"
+  cp "$NATIVE_BIN" "$LR_DIR/bin/macos-x64/processor"
   chmod +x "$LR_DIR/bin/macos-x64/processor"
   ok "Copied processor → $LR_DIR/bin/macos-x64/processor"
 fi

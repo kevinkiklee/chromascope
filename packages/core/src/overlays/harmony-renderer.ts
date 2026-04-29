@@ -16,21 +16,26 @@ export function renderHarmonyOverlay(
 
   ctx.save();
 
+  const fillCount = ZONE_FILL_COLORS.length;
+  const borderCount = ZONE_BORDER_COLORS.length;
+
   for (let i = 0; i < zones.length; i++) {
     const zone = zones[i];
     // Negate angles because canvas arcs go clockwise (positive = CW)
-    // but our scope angles go counter-clockwise (positive = CCW, math convention)
+    // but our scope angles go counter-clockwise (positive = CCW, math convention).
     const startAngle = -(zone.centerAngle + zone.halfWidth);
     const endAngle = -(zone.centerAngle - zone.halfWidth);
+    const centerCanvas = -zone.centerAngle;
+    const borderColor = ZONE_BORDER_COLORS[i % borderCount];
 
-    ctx.fillStyle = ZONE_FILL_COLORS[i % ZONE_FILL_COLORS.length];
+    ctx.fillStyle = ZONE_FILL_COLORS[i % fillCount];
     ctx.beginPath();
     ctx.moveTo(cx, cy);
     ctx.arc(cx, cy, maxR, startAngle, endAngle);
     ctx.closePath();
     ctx.fill();
 
-    ctx.strokeStyle = ZONE_BORDER_COLORS[i % ZONE_BORDER_COLORS.length];
+    ctx.strokeStyle = borderColor;
     ctx.lineWidth = 1.5;
     ctx.beginPath();
     ctx.moveTo(cx, cy);
@@ -41,13 +46,14 @@ export function renderHarmonyOverlay(
     ctx.lineTo(cx + Math.cos(endAngle) * maxR, cy + Math.sin(endAngle) * maxR);
     ctx.stroke();
 
-    const centerCanvas = -(zone.centerAngle);
-    ctx.strokeStyle = ZONE_BORDER_COLORS[i % ZONE_BORDER_COLORS.length];
     ctx.setLineDash([4, 4]);
     ctx.lineWidth = 1;
     ctx.beginPath();
     ctx.moveTo(cx, cy);
-    ctx.lineTo(cx + Math.cos(centerCanvas) * maxR * 0.9, cy + Math.sin(centerCanvas) * maxR * 0.9);
+    ctx.lineTo(
+      cx + Math.cos(centerCanvas) * maxR * 0.9,
+      cy + Math.sin(centerCanvas) * maxR * 0.9,
+    );
     ctx.stroke();
     ctx.setLineDash([]);
   }

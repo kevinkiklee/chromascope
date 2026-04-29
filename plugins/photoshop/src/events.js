@@ -16,11 +16,12 @@ const TRACKED_EVENTS = [
 function debouncedRefresh() {
   if (debounceTimer) clearTimeout(debounceTimer);
   debounceTimer = setTimeout(() => {
+    debounceTimer = null;
     if (refreshCallback) refreshCallback();
   }, DEBOUNCE_MS);
 }
 
-function handleEvent(eventName, descriptor) {
+function handleEvent(_eventName, _descriptor) {
   debouncedRefresh();
 }
 
@@ -30,12 +31,15 @@ async function startListening(onRefresh) {
 }
 
 async function stopListening() {
-  if (debounceTimer) clearTimeout(debounceTimer);
+  if (debounceTimer) {
+    clearTimeout(debounceTimer);
+    debounceTimer = null;
+  }
   refreshCallback = null;
 
   try {
     await action.removeNotificationListener(TRACKED_EVENTS, handleEvent);
-  } catch (e) {
+  } catch (_e) {
     // Ignore errors during cleanup
   }
 }

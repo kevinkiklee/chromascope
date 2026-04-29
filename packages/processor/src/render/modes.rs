@@ -27,6 +27,9 @@ pub(super) fn render_bloom(img: &mut RgbImage, points: &[ScopePoint], size: u32)
     let mut buf_g = vec![0.0f32; s * s];
     let mut buf_b = vec![0.0f32; s * s];
 
+    let glow_r_sq = glow_radius * glow_radius;
+    let inv_glow_r = 1.0 / glow_radius;
+
     for p in points {
         let cx = p.px;
         let cy = p.py;
@@ -40,14 +43,17 @@ pub(super) fn render_bloom(img: &mut RgbImage, points: &[ScopePoint], size: u32)
         let y_max = ((cy + glow_radius) as i32).min(size as i32 - 1);
 
         for iy in y_min..=y_max {
+            let dy = iy as f64 - cy;
+            let dy_sq = dy * dy;
+            let row_off = iy as usize * s;
             for ix in x_min..=x_max {
                 let dx = ix as f64 - cx;
-                let dy = iy as f64 - cy;
-                let dist = (dx * dx + dy * dy).sqrt();
-                if dist > glow_radius { continue; }
+                let dist_sq = dx * dx + dy_sq;
+                // Compare squared distances first to avoid sqrt for out-of-circle pixels.
+                if dist_sq > glow_r_sq { continue; }
 
-                let falloff = (1.0 - dist / glow_radius) as f32;
-                let idx = iy as usize * s + ix as usize;
+                let falloff = (1.0 - dist_sq.sqrt() * inv_glow_r) as f32;
+                let idx = row_off + ix as usize;
                 buf_r[idx] += pr * falloff;
                 buf_g[idx] += pg * falloff;
                 buf_b[idx] += pb * falloff;
@@ -55,20 +61,26 @@ pub(super) fn render_bloom(img: &mut RgbImage, points: &[ScopePoint], size: u32)
         }
     }
 
-    // Composite buffer onto image additively
-    for y in 0..size {
-        for x in 0..size {
-            let idx = y as usize * s + x as usize;
+    // Composite buffer onto image additively. Direct mutable access into the
+    // raw pixel buffer skips the per-pixel bounds checks of get_pixel/put_pixel.
+    let raw = img.as_mut();
+    for y in 0..size as usize {
+        let row = y * s;
+        let raw_row = y * s * 3;
+        for x in 0..s {
+            let idx = row + x;
             let ar = buf_r[idx];
             let ag = buf_g[idx];
             let ab = buf_b[idx];
             if ar <= 0.0 && ag <= 0.0 && ab <= 0.0 { continue; }
 
-            let existing = img.get_pixel(x, y);
-            let nr = (existing[0] as f32 + ar).min(255.0) as u8;
-            let ng = (existing[1] as f32 + ag).min(255.0) as u8;
-            let nb = (existing[2] as f32 + ab).min(255.0) as u8;
-            img.put_pixel(x, y, Rgb([nr, ng, nb]));
+            let raw_idx = raw_row + x * 3;
+            let nr = (raw[raw_idx] as f32 + ar).min(255.0) as u8;
+            let ng = (raw[raw_idx + 1] as f32 + ag).min(255.0) as u8;
+            let nb = (raw[raw_idx + 2] as f32 + ab).min(255.0) as u8;
+            raw[raw_idx] = nr;
+            raw[raw_idx + 1] = ng;
+            raw[raw_idx + 2] = nb;
         }
     }
 }

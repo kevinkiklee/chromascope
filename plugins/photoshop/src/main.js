@@ -1,15 +1,30 @@
 const { entrypoints } = require("uxp");
-const { imaging, core } = require("photoshop");
-const { renderGraticule, renderToBuffer, applyHarmonyOverlay, invalidateGraticuleCache } = require("./src/rendering.js");
+const { imaging } = require("photoshop");
+const { renderToBuffer, applyHarmonyOverlay, invalidateGraticuleCache } = require("./src/rendering.js");
 var testHarness = require("./src/test-harness.js");
 
-let getDocumentPixels, events, handleEditCommand;
+let getDocumentPixels, events;
 let isRefreshing = false;
 let scopeSize = 300;
 let lastPixels = null;
 var showSkinTone = false;
 
 var cachedBaseBuf = null;
+
+// Cleanup handles registered during init(), invoked from hide() to release
+// listeners, timers, and DOM nodes so a re-show starts clean.
+var cleanupFns = [];
+
+function registerCleanup(fn) {
+  cleanupFns.push(fn);
+}
+
+function runCleanup() {
+  for (var i = 0; i < cleanupFns.length; i++) {
+    try { cleanupFns[i](); } catch (e) { console.warn("Chromascope cleanup error:", e); }
+  }
+  cleanupFns = [];
+}
 
 // Encode RGBA buffer to base64 JPEG via Photoshop Imaging API and display in <img>.
 // Renders directly to RGB (3-channel) to avoid an extra RGBA→RGB copy pass.
@@ -90,7 +105,6 @@ async function init() {
   const imagingModule = require("./src/imaging.js");
   getDocumentPixels = imagingModule.getDocumentPixels;
   events = require("./src/events.js");
-  handleEditCommand = require("./src/edits.js").handleEditCommand;
 
   // 300px render buffer. The <img> CSS scales it to fill the panel.
   // 500 was visually identical but 2.8× more pixels to process and encode.
@@ -163,6 +177,10 @@ async function init() {
     var settingsRendering = false;
     var settingsDirty = false;
     var lastDensityMode = null;
+    registerCleanup(function() {
+      if (settingsTimer) { clearTimeout(settingsTimer); settingsTimer = null; }
+      if (window.__chromascope) window.__chromascope.onSettingsChanged = null;
+    });
     window.__chromascope.onSettingsChanged = function() {
       if (settingsRendering) { settingsDirty = true; return; }
       if (settingsTimer) clearTimeout(settingsTimer);
@@ -201,7 +219,7 @@ async function init() {
   // Click-to-rotate overlay
   var scopeContainer = document.getElementById("scope-canvas-container");
   if (scopeContainer && window.__chromascope) {
-    scopeContainer.addEventListener("click", function(e) {
+    var scopeClickHandler = function(e) {
       var settings = window.__chromascope.getSettings();
       if (!settings || !settings.harmony || !settings.harmony.scheme) return;
 
@@ -220,6 +238,10 @@ async function init() {
           pullStrengths: settings.harmony.pullStrengths
         }
       });
+    };
+    scopeContainer.addEventListener("click", scopeClickHandler);
+    registerCleanup(function() {
+      scopeContainer.removeEventListener("click", scopeClickHandler);
     });
   }
 
@@ -233,18 +255,27 @@ async function init() {
     stLabel.textContent = "Skin";
     stRow.appendChild(stLabel);
     var stBtn = document.createElement("button");
+    stBtn.type = "button";
     stBtn.className = "vs-btn";
     stBtn.textContent = "Skin Tone";
+    stBtn.setAttribute("aria-pressed", "false");
+    stBtn.setAttribute("aria-label", "Toggle skin tone reference line");
     stBtn.style.flex = "0 0 auto";
     stBtn.style.padding = "0 6px";
-    stBtn.addEventListener("click", function() {
+    var skinClickHandler = function() {
       showSkinTone = !showSkinTone;
       stBtn.classList.toggle("active", showSkinTone);
+      stBtn.setAttribute("aria-pressed", showSkinTone ? "true" : "false");
       cachedBaseBuf = null;
       renderScope(lastPixels, false);
-    });
+    };
+    stBtn.addEventListener("click", skinClickHandler);
     stRow.appendChild(stBtn);
     controlsEl.appendChild(stRow);
+    registerCleanup(function() {
+      stBtn.removeEventListener("click", skinClickHandler);
+      if (stRow.parentNode) stRow.parentNode.removeChild(stRow);
+    });
   }
 
   await renderScope(null);
@@ -260,10 +291,12 @@ entrypoints.setup({
       },
       hide() {
         if (events) events.stopListening();
+        runCleanup();
         lastPixels = null;
         cachedBaseBuf = null;
         invalidateGraticuleCache();
         isRefreshing = false;
+        showSkinTone = false;
       },
     },
   },

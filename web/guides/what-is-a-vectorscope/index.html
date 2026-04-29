@@ -94,7 +94,7 @@
           <section>
             <h2 id="what-a-vectorscope-shows" class="text-xl font-semibold text-zinc-200 mb-4">What a vectorscope shows</h2>
             <p class="mb-4">A vectorscope is a circular graph that displays the chrominance&mdash;the hue and saturation&mdash;of every pixel in an image. It deliberately ignores luminance. Where a histogram tells you how bright your image is, a vectorscope tells you <em>what colors are present</em> and <em>how saturated they are</em>.</p>
-            <img src="images/vectorscope-annotated.jpg" alt="Annotated vectorscope display showing the circular plot with labeled hue regions for red, yellow, green, cyan, blue, and magenta around the perimeter, and a center crosshair indicating zero saturation" class="rounded-xl w-full mb-4">
+            <img loading="lazy" decoding="async" src="images/vectorscope-annotated.jpg" alt="Annotated vectorscope display showing the circular plot with labeled hue regions for red, yellow, green, cyan, blue, and magenta around the perimeter, and a center crosshair indicating zero saturation" class="rounded-xl w-full mb-4">
             <p class="mb-4">The concept originated in broadcast television. Engineers needed an objective way to verify that color signals were within legal broadcast limits, regardless of the quality of their studio monitors. The same principle applies to photography: your eyes adapt to ambient lighting, your monitor's profile drifts, and color perception varies from person to person. A vectorscope bypasses all of that.</p>
             <p>Each dot on the plot represents one or more pixels. The position of that dot encodes two things: which color the pixel is (its hue) and how intense that color is (its saturation). The result is a map of your image's color distribution at a glance.</p>
           </section>
@@ -108,7 +108,7 @@
               <li><strong class="text-zinc-300">Distance from center</strong> represents saturation. A pixel with zero saturation (a pure gray) lands at the exact center. The more saturated the color, the farther it appears from center.</li>
             </ul>
             <p class="mb-4">This means a completely desaturated, neutral image produces a tight dot in the center of the scope. A heavily saturated sunset will produce a wide spread reaching toward the red, orange, and yellow regions. A photo of a blue sky with green grass will show two distinct clusters: one toward blue, one toward green.</p>
-            <img src="images/neutral-scope.jpg" alt="Vectorscope of a neutral gray image showing a tight cluster of dots concentrated at the center of the circular plot" class="rounded-xl w-full mb-4" loading="lazy">
+            <img loading="lazy" decoding="async" src="images/neutral-scope.jpg" alt="Vectorscope of a neutral gray image showing a tight cluster of dots concentrated at the center of the circular plot" class="rounded-xl w-full mb-4" loading="lazy">
             <p>Different color space models place the primary and secondary colors at different angles. YCbCr, CIE LUV, and HSL are common choices. The underlying geometry stays the same&mdash;angle is hue, distance is saturation&mdash;but the specific arrangement of colors around the wheel changes. This matters when comparing scope readouts across tools, so it helps to know which color space your vectorscope uses.</p>
           </section>
 
@@ -122,7 +122,7 @@
               <li><strong class="text-zinc-300">Perceptual bias.</strong> Simultaneous contrast&mdash;the effect where surrounding colors change how you perceive a color&mdash;is well documented. A gray patch looks warm next to a blue background and cool next to an orange one. A vectorscope is immune to this; it plots the value, not the perception.</li>
               <li><strong class="text-zinc-300">Consistency across devices.</strong> If you share your work or hand off files to a retoucher, the vectorscope plot looks the same on any system. It is an absolute measurement, not a subjective impression.</li>
             </ul>
-            <img src="images/cast-scope.jpg" alt="Vectorscope of an image with a visible warm color cast, showing the dot cluster shifted away from center toward the orange-yellow region" class="rounded-xl w-full mb-4" loading="lazy">
+            <img loading="lazy" decoding="async" src="images/cast-scope.jpg" alt="Vectorscope of an image with a visible warm color cast, showing the dot cluster shifted away from center toward the orange-yellow region" class="rounded-xl w-full mb-4" loading="lazy">
             <p>None of this makes monitors irrelevant. You still need your display to compose, dodge and burn, and judge the overall feel of an image. But the vectorscope acts as a second opinion&mdash;an objective one&mdash;that catches problems your eyes miss.</p>
           </section>
 
@@ -162,7 +162,7 @@
         <a href="../" class="text-zinc-500 hover:text-zinc-300 transition-colors">Guides</a>
         <a href="https://github.com/kevinkiklee/chromascope" class="text-zinc-500 hover:text-zinc-300 transition-colors">GitHub</a>
       </div>
-      <p class="text-zinc-600 text-xs">&copy; 2025 Chromascope</p>
+      <p class="text-zinc-600 text-xs">&copy; 2025&ndash;2026 Chromascope</p>
     </div>
   </footer>
 </body>

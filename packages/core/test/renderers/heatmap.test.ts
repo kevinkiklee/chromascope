@@ -46,4 +46,25 @@ describe("HeatmapRenderer", () => {
 
     expect(() => renderer.render([], ctx, size)).not.toThrow();
   });
+
+  it("ignores points outside the canvas bounds", () => {
+    const renderer = new HeatmapRenderer();
+    const size = 100;
+    const imageData = { data: new Uint8ClampedArray(size * size * 4), width: size, height: size };
+    const ctx = {
+      createImageData: vi.fn(() => imageData),
+      putImageData: vi.fn(),
+      save: vi.fn(),
+      restore: vi.fn(),
+    } as unknown as CanvasRenderingContext2D;
+
+    // Points with very large radii would map outside the canvas; ensure the
+    // renderer just drops them rather than overflowing the grid buffer.
+    const points: MappedPoint[] = [
+      { x: 5, y: 5, angle: 0, radius: 7, r: 255, g: 255, b: 255 },
+      { x: -5, y: -5, angle: Math.PI, radius: 7, r: 255, g: 255, b: 255 },
+    ];
+
+    expect(() => renderer.render(points, ctx, size)).not.toThrow();
+  });
 });

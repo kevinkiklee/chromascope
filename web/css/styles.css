@@ -96,6 +96,70 @@ input:focus, select:focus {
   box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.15);
 }
 
+/* Visible focus ring for keyboard navigation. Uses :focus-visible so mouse
+   clicks don't trigger an outline, only Tab/Shift-Tab. */
+a:focus-visible,
+button:focus-visible {
+  outline: 2px solid #818cf8;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Skip-to-main link, hidden visually until focused via keyboard. */
+.skip-link {
+  position: absolute;
+  top: -100px;
+  left: 1rem;
+  z-index: 100;
+  padding: 0.5rem 1rem;
+  background: #111111;
+  color: #f4f4f5;
+  border: 1px solid #6366f1;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  text-decoration: none;
+  transition: top 0.15s ease-out;
+}
+.skip-link:focus {
+  top: 1rem;
+  outline: 2px solid #818cf8;
+  outline-offset: 2px;
+}
+
+/* Mobile nav: tighter spacing and touch-friendly hit areas on narrow viewports */
+@media (max-width: 640px) {
+  nav .max-w-6xl {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  nav a {
+    min-height: 36px;
+    display: inline-flex;
+    align-items: center;
+  }
+}
+
+/* Hide secondary nav links on small screens (download CTA stays visible) */
+@media (max-width: 480px) {
+  nav .gap-1 a:not(.btn-primary) {
+    display: none;
+  }
+}
+
+/* Tables in docs scroll horizontally with a faint shadow indicator */
+.docs-table-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  background:
+    linear-gradient(to right, #0a0a0a 30%, rgba(10,10,10,0)),
+    linear-gradient(to right, rgba(10,10,10,0), #0a0a0a 70%) 100% 0,
+    radial-gradient(farthest-side at 0 50%, rgba(99,102,241,0.15), rgba(99,102,241,0)),
+    radial-gradient(farthest-side at 100% 50%, rgba(99,102,241,0.15), rgba(99,102,241,0)) 100% 0;
+  background-repeat: no-repeat;
+  background-size: 40px 100%, 40px 100%, 14px 100%, 14px 100%;
+  background-attachment: local, local, scroll, scroll;
+}
+
 /* Scroll-triggered animations */
 .scroll-hidden { opacity: 0; }
 

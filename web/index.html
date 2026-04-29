@@ -2,7 +2,8 @@
 <html lang="en" class="dark">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0a0a0a">
   <title>Chromascope — Professional Color Analysis</title>
   <meta name="description" content="Open-source chrominance vectorscope plugin for Adobe Photoshop and Lightroom Classic. Analyze color, check skin tones, and grade with harmony overlays.">
   <link rel="canonical" href="https://chromascope.iser.io/">
@@ -18,6 +19,8 @@
   <meta name="twitter:image" content="https://chromascope.iser.io/images/og-preview.jpg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="dns-prefetch" href="https://github.com">
+  <link rel="preload" as="style" href="/css/tailwind.css">
   <link rel="stylesheet" href="/css/tailwind.css">
   <link rel="stylesheet" href="css/styles.css">
   <script type="application/ld+json">
@@ -50,6 +53,8 @@
 </head>
 <body class="bg-zinc-950 text-zinc-100 antialiased">
 
+  <a href="#main-content" class="skip-link">Skip to main content</a>
+
   <!-- Nav -->
   <nav class="border-b border-white/[0.06] px-6 py-4">
     <div class="max-w-6xl mx-auto flex items-center justify-between">
@@ -67,7 +72,7 @@
     </div>
   </nav>
 
-  <div class="min-h-screen">
+  <main id="main-content" class="min-h-screen">
 
     <!-- Hero -->
     <section class="relative overflow-hidden">
@@ -100,7 +105,7 @@
           </div>
           <!-- Vectorscope illustration -->
           <div class="animate-hero animate-delay-300 flex-1 max-w-md relative flex items-center justify-center">
-            <svg width="280" height="280" viewBox="0 0 280 280" aria-hidden="true" class="opacity-80">
+            <svg width="280" height="280" viewBox="0 0 280 280" aria-hidden="true" class="opacity-80 w-[220px] h-[220px] sm:w-[280px] sm:h-[280px]">
               <circle cx="140" cy="140" r="130" fill="none" stroke="rgba(99,102,241,0.15)" stroke-width="1"/>
               <circle cx="140" cy="140" r="86" fill="none" stroke="rgba(99,102,241,0.08)" stroke-width="0.5" stroke-dasharray="4 4"/>
               <circle cx="140" cy="140" r="43" fill="none" stroke="rgba(99,102,241,0.06)" stroke-width="0.5" stroke-dasharray="3 4"/>
@@ -122,21 +127,21 @@
     <section class="py-24 px-6">
       <div class="max-w-2xl mx-auto flex flex-col gap-5">
         <div data-reveal="up" class="card-glass rounded-xl p-6 flex gap-4 items-start">
-          <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-violet-500/10 to-indigo-500/10 border border-violet-500/20 flex items-center justify-center flex-shrink-0 text-lg">&#127919;</div>
+          <div aria-hidden="true" class="w-10 h-10 rounded-lg bg-gradient-to-br from-violet-500/10 to-indigo-500/10 border border-violet-500/20 flex items-center justify-center flex-shrink-0 text-lg">&#127919;</div>
           <div>
             <h3 class="font-semibold text-[15px] text-zinc-200 mb-1">Stop guessing at color balance</h3>
             <p class="text-zinc-500 text-sm leading-relaxed">See exactly where your chrominance sits on the vectorscope. No more eyeballing — know your color is right.</p>
           </div>
         </div>
         <div data-reveal="up" data-reveal-delay="100" class="card-glass rounded-xl p-6 flex gap-4 items-start">
-          <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-violet-500/10 to-indigo-500/10 border border-violet-500/20 flex items-center justify-center flex-shrink-0 text-lg">&#9889;</div>
+          <div aria-hidden="true" class="w-10 h-10 rounded-lg bg-gradient-to-br from-violet-500/10 to-indigo-500/10 border border-violet-500/20 flex items-center justify-center flex-shrink-0 text-lg">&#9889;</div>
           <div>
             <h3 class="font-semibold text-[15px] text-zinc-200 mb-1">Stay in your editing workflow</h3>
             <p class="text-zinc-500 text-sm leading-relaxed">Runs inside Photoshop and Lightroom Classic on both macOS and Windows. No round-tripping, no exports, no separate windows.</p>
           </div>
         </div>
         <div data-reveal="up" data-reveal-delay="200" class="card-glass rounded-xl p-6 flex gap-4 items-start">
-          <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-violet-500/10 to-indigo-500/10 border border-violet-500/20 flex items-center justify-center flex-shrink-0 text-lg">&#128269;</div>
+          <div aria-hidden="true" class="w-10 h-10 rounded-lg bg-gradient-to-br from-violet-500/10 to-indigo-500/10 border border-violet-500/20 flex items-center justify-center flex-shrink-0 text-lg">&#128269;</div>
           <div>
             <h3 class="font-semibold text-[15px] text-zinc-200 mb-1">Catch problems before your client does</h3>
             <p class="text-zinc-500 text-sm leading-relaxed">Skin tone line, harmony zones, and density visualization reveal color issues invisible to the naked eye.</p>
@@ -231,7 +236,7 @@
       </div>
     </section>
 
-  </div>
+  </main>
 
   <!-- Footer -->
   <footer class="border-t border-white/[0.06] py-12 px-6">
@@ -246,7 +251,7 @@
         <a href="guides/" class="text-zinc-500 hover:text-zinc-300 transition-colors">Guides</a>
         <a href="https://github.com/kevinkiklee/chromascope" class="text-zinc-500 hover:text-zinc-300 transition-colors">GitHub</a>
       </div>
-      <p class="text-zinc-600 text-xs">&copy; 2025 Chromascope</p>
+      <p class="text-zinc-600 text-xs">&copy; 2025&ndash;2026 Chromascope</p>
     </div>
   </footer>
 

@@ -1,6 +1,6 @@
 // packages/core/src/protocol.ts
 
-import type { ColorSpaceId, DensityModeId, HarmonyConfig, ChromascopeSettings } from "./types.js";
+import type { ColorSpaceId, DensityModeId, HarmonyConfig } from "./types.js";
 
 // --- Messages from Host → WebView ---
 
@@ -58,6 +58,8 @@ export function sendToHost(message: ScopeMessage): void {
 }
 
 const VALID_HOST_TYPES: ReadonlySet<string> = new Set(["pixels", "highlight", "settings"]);
+const VALID_COLOR_SPACES: ReadonlySet<string> = new Set(["ycbcr", "cieluv", "hsl"]);
+const VALID_DENSITY_MODES: ReadonlySet<string> = new Set(["scatter", "bloom", "heatmap"]);
 
 export function onHostMessage(handler: (msg: HostMessage) => void): () => void {
   const listener = (event: MessageEvent) => {
@@ -68,6 +70,24 @@ export function onHostMessage(handler: (msg: HostMessage) => void): () => void {
     if (data.type === "pixels") {
       if (!Array.isArray(data.data) || typeof data.width !== "number" || typeof data.height !== "number") {
         console.warn("Chromascope: invalid pixels message — missing data, width, or height");
+        return;
+      }
+      if (data.width <= 0 || data.height <= 0 || !Number.isFinite(data.width) || !Number.isFinite(data.height)) {
+        console.warn("Chromascope: invalid pixels message — width/height must be positive finite numbers");
+        return;
+      }
+      const expected = data.width * data.height * 3;
+      if (data.data.length < expected) {
+        console.warn(`Chromascope: invalid pixels message — data length ${data.data.length} < expected ${expected}`);
+        return;
+      }
+    } else if (data.type === "settings") {
+      if (data.colorSpace !== undefined && !VALID_COLOR_SPACES.has(data.colorSpace)) {
+        console.warn(`Chromascope: invalid settings message — unknown colorSpace ${data.colorSpace}`);
+        return;
+      }
+      if (data.densityMode !== undefined && !VALID_DENSITY_MODES.has(data.densityMode)) {
+        console.warn(`Chromascope: invalid settings message — unknown densityMode ${data.densityMode}`);
         return;
       }
     }

@@ -117,7 +117,7 @@ scripts/              Build and setup automation
 | **Processor** | Rust, image crate, clap |
 | **Photoshop** | Adobe UXP, batchPlay, Imaging API |
 | **Lightroom** | Lua, LrDevelopController, LrTasks |
-| **Web** | Static HTML, Tailwind CSS via CDN |
+| **Web** | Static HTML, Tailwind CSS v4 (built) |
 
 ### Build order
 

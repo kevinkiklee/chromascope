@@ -1,8 +1,7 @@
 // packages/core/src/interaction/fit-to-scheme.ts
 
 import type { MappedPoint, HarmonyZone } from "../types.js";
-
-const TWO_PI = 2 * Math.PI;
+import { TWO_PI } from "../constants.js";
 
 function angularDistance(a: number, b: number): number {
   let d = ((b % TWO_PI) + TWO_PI) % TWO_PI - ((a % TWO_PI) + TWO_PI) % TWO_PI;

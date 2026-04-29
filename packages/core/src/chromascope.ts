@@ -41,19 +41,22 @@ export class Chromascope {
   }
 
   updateSettings(partial: Partial<ChromascopeSettings>): void {
-    const prev = { ...this.settings };
+    const prevColorSpace = this.settings.colorSpace;
+    const prevDensityMode = this.settings.densityMode;
+    const prevHarmony = this.settings.harmony;
+
     Object.assign(this.settings, partial);
 
-    if (this.settings.colorSpace !== prev.colorSpace) {
+    if (this.settings.colorSpace !== prevColorSpace) {
       this.mapper = createColorSpaceMapper(this.settings.colorSpace);
       this.remapPoints();
     }
 
-    if (this.settings.densityMode !== prev.densityMode) {
+    if (this.settings.densityMode !== prevDensityMode) {
       this.renderer = createDensityRenderer(this.settings.densityMode);
     }
 
-    if (this.settings.harmony !== prev.harmony) {
+    if (this.settings.harmony !== prevHarmony) {
       this.harmonyZones = getHarmonyZones(this.settings.harmony);
     }
   }

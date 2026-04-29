@@ -1,5 +1,5 @@
 import type { DensityRenderer, MappedPoint } from "../types.js";
-import { scopeToCanvas } from "../graticule.js";
+import { RADIUS_FACTOR } from "../constants.js";
 
 /** Cold-to-hot color ramp: black → blue → cyan → green → yellow → red → white */
 const HEATMAP_COLORS: Array<[number, number, number]> = [
@@ -43,15 +43,19 @@ export class HeatmapRenderer implements DensityRenderer {
     // Build density grid
     const grid = new Float32Array(size * size);
     let maxCount = 0;
+    const cx = size / 2;
+    const cy = size / 2;
+    const maxR = size * RADIUS_FACTOR;
 
-    for (const p of points) {
-      const { px, py } = scopeToCanvas(p.x, p.y, size);
-      const gx = Math.round(px);
-      const gy = Math.round(py);
+    for (let i = 0, len = points.length; i < len; i++) {
+      const p = points[i];
+      const gx = (cx + p.x * maxR + 0.5) | 0;
+      const gy = (cy - p.y * maxR + 0.5) | 0;
       if (gx >= 0 && gx < size && gy >= 0 && gy < size) {
         const idx = gy * size + gx;
-        grid[idx]++;
-        if (grid[idx] > maxCount) maxCount = grid[idx];
+        const next = grid[idx] + 1;
+        grid[idx] = next;
+        if (next > maxCount) maxCount = next;
       }
     }
 

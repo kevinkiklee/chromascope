@@ -62,6 +62,18 @@ function hsvToRgb(h, s, v) {
 var cachedGraticuleBuf = null;
 var cachedGraticuleSize = 0;
 
+// Brightening LUT: precomputes (c*230 + 7650) >> 8 for c in [0, 255].
+// Saves ~3 multiplies + 3 shifts per pixel in scatter/bloom inner loops
+// (16k+ pixels × 3 channels per render at slider-drag frequency).
+var BRIGHTEN_LUT = (function() {
+  var lut = new Uint8Array(256);
+  for (var i = 0; i < 256; i++) {
+    var v = (i * 230 + 7650) >> 8;
+    lut[i] = v > 255 ? 255 : v;
+  }
+  return lut;
+})();
+
 // Pooled bloom buffers — reused across renders to reduce GC pressure.
 // Only reallocated when scopeSize changes.
 var _bloomBufN = 0;
@@ -252,14 +264,17 @@ function renderToBuffer(size, pixels, densityMode, showSkinTone) {
       if (!_mapOk) continue;
       if (_mapPx >= 0 && _mapPx < size && _mapPy >= 0 && _mapPy < size) {
         var idx = (_mapPy * size + _mapPx) * 4;
-        // Brightened pixel: c*0.9+30 as integer (230/256≈0.9, 7650=30*255)
-        var pr = (data[off] * 230 + 7650) >> 8;
-        var pg = (data[off+1] * 230 + 7650) >> 8;
-        var pb = (data[off+2] * 230 + 7650) >> 8;
+        // Brightened pixel via LUT: c*0.9+30 (clamped to 255).
+        var pr = BRIGHTEN_LUT[data[off]];
+        var pg = BRIGHTEN_LUT[data[off+1]];
+        var pb = BRIGHTEN_LUT[data[off+2]];
         // Blend at α=0.9: old*(26/256) + new*(230/256) + 0.5 rounding
-        buf[idx]   = Math.min(255, (buf[idx]   * 26 + pr * 230 + 128) >> 8);
-        buf[idx+1] = Math.min(255, (buf[idx+1] * 26 + pg * 230 + 128) >> 8);
-        buf[idx+2] = Math.min(255, (buf[idx+2] * 26 + pb * 230 + 128) >> 8);
+        var br = (buf[idx]   * 26 + pr * 230 + 128) >> 8;
+        var bg = (buf[idx+1] * 26 + pg * 230 + 128) >> 8;
+        var bb = (buf[idx+2] * 26 + pb * 230 + 128) >> 8;
+        buf[idx]   = br > 255 ? 255 : br;
+        buf[idx+1] = bg > 255 ? 255 : bg;
+        buf[idx+2] = bb > 255 ? 255 : bb;
         buf[idx+3] = 255;
       }
     }
@@ -326,9 +341,9 @@ function renderToBuffer(size, pixels, densityMode, showSkinTone) {
       if (!_mapOk) continue;
       if (_mapPx >= 0 && _mapPx < size && _mapPy >= 0 && _mapPy < size) {
         var bi = _mapPy * size + _mapPx;
-        bloomR[bi] += Math.min(255, (data[off] * 230 + 7650) >> 8) * alpha;
-        bloomG[bi] += Math.min(255, (data[off+1] * 230 + 7650) >> 8) * alpha;
-        bloomB[bi] += Math.min(255, (data[off+2] * 230 + 7650) >> 8) * alpha;
+        bloomR[bi] += BRIGHTEN_LUT[data[off]] * alpha;
+        bloomG[bi] += BRIGHTEN_LUT[data[off+1]] * alpha;
+        bloomB[bi] += BRIGHTEN_LUT[data[off+2]] * alpha;
       }
     }
 
@@ -347,24 +362,25 @@ function renderToBuffer(size, pixels, densityMode, showSkinTone) {
       var dstG = pass % 2 === 0 ? tmpG : bloomG;
       var dstB = pass % 2 === 0 ? tmpB : bloomB;
 
-      // Horizontal blur
+      // Horizontal blur (separable, sliding-window box).
       var w = 2 * blurRadius + 1;
       var invW = 1.0 / w;
+      var sizeM1 = size - 1;
       for (var y = 0; y < size; y++) {
         var rowOff = y * size;
         var sumR = 0, sumG = 0, sumB = 0;
-        // Seed window
+        // Seed window. Each k clamps against [0, size-1]; avoids two Math calls per step.
         for (var k = -blurRadius; k <= blurRadius; k++) {
-          var sx = Math.max(0, Math.min(size - 1, k));
+          var sx = k < 0 ? 0 : (k > sizeM1 ? sizeM1 : k);
           sumR += srcR[rowOff + sx]; sumG += srcG[rowOff + sx]; sumB += srcB[rowOff + sx];
         }
         dstR[rowOff] = sumR * invW; dstG[rowOff] = sumG * invW; dstB[rowOff] = sumB * invW;
         for (var x = 1; x < size; x++) {
-          var addIdx = Math.min(size - 1, x + blurRadius);
-          var remIdx = Math.max(0, x - blurRadius - 1);
-          sumR += srcR[rowOff + addIdx] - srcR[rowOff + remIdx];
-          sumG += srcG[rowOff + addIdx] - srcG[rowOff + remIdx];
-          sumB += srcB[rowOff + addIdx] - srcB[rowOff + remIdx];
+          var addX = x + blurRadius; if (addX > sizeM1) addX = sizeM1;
+          var remX = x - blurRadius - 1; if (remX < 0) remX = 0;
+          sumR += srcR[rowOff + addX] - srcR[rowOff + remX];
+          sumG += srcG[rowOff + addX] - srcG[rowOff + remX];
+          sumB += srcB[rowOff + addX] - srcB[rowOff + remX];
           dstR[rowOff + x] = sumR * invW; dstG[rowOff + x] = sumG * invW; dstB[rowOff + x] = sumB * invW;
         }
       }
@@ -378,16 +394,19 @@ function renderToBuffer(size, pixels, densityMode, showSkinTone) {
       for (var x = 0; x < size; x++) {
         var sumR = 0, sumG = 0, sumB = 0;
         for (var k = -blurRadius; k <= blurRadius; k++) {
-          var sy = Math.max(0, Math.min(size - 1, k));
-          sumR += srcR[sy * size + x]; sumG += srcG[sy * size + x]; sumB += srcB[sy * size + x];
+          var sy = k < 0 ? 0 : (k > sizeM1 ? sizeM1 : k);
+          var off = sy * size + x;
+          sumR += srcR[off]; sumG += srcG[off]; sumB += srcB[off];
         }
         dstR[x] = sumR * invW; dstG[x] = sumG * invW; dstB[x] = sumB * invW;
         for (var y = 1; y < size; y++) {
-          var addIdx = Math.min(size - 1, y + blurRadius) * size + x;
-          var remIdx = Math.max(0, y - blurRadius - 1) * size + x;
-          sumR += srcR[addIdx] - srcR[remIdx];
-          sumG += srcG[addIdx] - srcG[remIdx];
-          sumB += srcB[addIdx] - srcB[remIdx];
+          var addY = y + blurRadius; if (addY > sizeM1) addY = sizeM1;
+          var remY = y - blurRadius - 1; if (remY < 0) remY = 0;
+          var addOff = addY * size + x;
+          var remOff = remY * size + x;
+          sumR += srcR[addOff] - srcR[remOff];
+          sumG += srcG[addOff] - srcG[remOff];
+          sumB += srcB[addOff] - srcB[remOff];
           var di = y * size + x;
           dstR[di] = sumR * invW; dstG[di] = sumG * invW; dstB[di] = sumB * invW;
         }
@@ -491,11 +510,15 @@ function applyHarmonyOverlay(baseBuf, size, harmonySettings) {
   ensureOverlayLut(size);
   var n = size * size;
 
-  // Build zone center angles array
+  // Build zone center angles array, pre-normalized to [-π, π] so the per-pixel
+  // diff loop only needs a single wrap step.
   var zoneCount = baseAngles.length;
   var centerAngles = new Float64Array(zoneCount);
   for (var z = 0; z < zoneCount; z++) {
-    centerAngles[z] = baseAngles[z] + rot;
+    var ca = baseAngles[z] + rot;
+    // Wrap into [-π, π]. Using ((x + π) mod 2π) - π keeps numerical stability.
+    ca = ((ca + Math.PI) % 6.283185307179586 + 6.283185307179586) % 6.283185307179586 - Math.PI;
+    centerAngles[z] = ca;
   }
 
   // Single pass over all pixels using LUT
@@ -507,9 +530,8 @@ function applyHarmonyOverlay(baseBuf, size, harmonySettings) {
     var inZone = false;
     for (var z = 0; z < zoneCount; z++) {
       var aDiff = pAngle - centerAngles[z];
-      // Normalize to [-π, π]
-      if (aDiff > Math.PI) aDiff -= 6.283185307179586;
-      else if (aDiff < -Math.PI) aDiff += 6.283185307179586;
+      // Normalize to [-π, π]. centerAngles are pre-wrapped to [-π, π], so a single
+      // pass is sufficient: aDiff lies in (-3π, 3π) at most.
       if (aDiff > Math.PI) aDiff -= 6.283185307179586;
       else if (aDiff < -Math.PI) aDiff += 6.283185307179586;
       if (Math.abs(aDiff) <= halfWidth) { inZone = true; break; }

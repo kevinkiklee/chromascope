@@ -17,7 +17,7 @@ packages/core/        TypeScript core (vectorscope math, rendering, UI controls)
 packages/processor/   Rust CLI (image decode + vectorscope JPEG render)
 plugins/photoshop/    Photoshop UXP panel plugin (JavaScript)
 plugins/lightroom/    Lightroom Classic plugin (Lua + Rust binary)
-web/                  Static marketing site (plain HTML, Tailwind CDN)
+web/                  Static marketing site (plain HTML, built Tailwind v4)
 scripts/              Build and setup automation
 ```
 
@@ -93,10 +93,18 @@ Cross-compilation requires Docker (for Windows via `cross`) and `x86_64-apple-da
 
 ## Website (`web/`)
 
-- Plain static HTML — no build step, no npm dependencies
-- Tailwind CSS via CDN + custom CSS in `web/css/styles.css`
-- Pages: `index.html` (home + features), `download/`, `docs/`
+- Plain static HTML — no JS framework, deployed via `vercel.json` from `web/`
+- Tailwind CSS v4 — `web/css/input.css` source, built to `web/css/tailwind.css`. Custom design tokens in `web/css/styles.css`
+- Pages: `index.html`, `download/`, `docs/`, `guides/`, `404.html`
 - Scroll animations via `web/js/scroll-reveal.js` (IntersectionObserver)
+- Accessibility: skip-to-main link, visible :focus-visible ring, `prefers-reduced-motion` respected
+
+## User experience hardening rules (core + plugins)
+
+1. **Lifecycle**: every event listener / timer / inserted DOM node added in a panel's init **must** have a matching cleanup in `hide()` (Photoshop) or `onClose` (Lightroom). The Photoshop plugin uses a `cleanupFns` registry — add to it, don't fork.
+2. **Protocol validation**: messages from the host go through `onHostMessage` (`packages/core/src/protocol.ts`). New message fields must be validated there before reaching the renderer.
+3. **Hot loops**: per-pixel renderers (`renderers/*.ts`, plugin `rendering.js`) must hoist scope→canvas geometry (`cx`, `cy`, `maxR`) outside the loop. Don't allocate `{ px, py }` objects inside a 16k-pixel inner loop.
+4. **Web copy edits**: must keep copyright `&copy; 2025–2026 Chromascope`, valid sitemap `lastmod`, and `aria-hidden="true"` on decorative emoji.
 
 ## Code Conventions
 

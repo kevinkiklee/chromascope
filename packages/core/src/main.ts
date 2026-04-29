@@ -67,10 +67,18 @@ const resizeObserver = new ResizeObserver(() => {
 resizeObserver.observe(container);
 window.addEventListener("beforeunload", () => resizeObserver.disconnect());
 
+// Batches redraw requests within a single animation frame so rapid setting
+// changes (slider drag, message bursts) collapse to one render per frame.
+let drawScheduled = false;
 function draw(): void {
-  const size = canvas.width;
-  if (size < 10) return;
-  scope.render(ctx, size);
+  if (drawScheduled) return;
+  drawScheduled = true;
+  requestAnimationFrame(() => {
+    drawScheduled = false;
+    const size = canvas.width;
+    if (size < 10) return;
+    scope.render(ctx, size);
+  });
 }
 
 onHostMessage((msg) => {
@@ -106,24 +114,38 @@ onHostMessage((msg) => {
 
 resize();
 
+interface ChromascopeTestHarness {
+  instance: Chromascope;
+  canvas: HTMLCanvasElement;
+  injectPixels: (rgbaData: number[], width: number, height: number) => void;
+  updateSettings: (partial: Partial<ChromascopeSettings>) => void;
+}
+
+declare global {
+  interface Window {
+    __chromascopeTest?: ChromascopeTestHarness;
+  }
+}
+
 if (new URLSearchParams(window.location.search).has("test")) {
-  (window as any).__chromascopeTest = {
+  const harness: ChromascopeTestHarness = {
     instance: scope,
-    canvas: canvas,
-    injectPixels(rgbaData: number[], width: number, height: number) {
+    canvas,
+    injectPixels(rgbaData, width, height) {
       const rgb = new Uint8Array(width * height * 3);
-      for (let i = 0; i < width * height; i++) {
-        rgb[i * 3] = rgbaData[i * 4];
-        rgb[i * 3 + 1] = rgbaData[i * 4 + 1];
-        rgb[i * 3 + 2] = rgbaData[i * 4 + 2];
+      for (let i = 0, src = 0, dst = 0; i < width * height; i++, src += 4, dst += 3) {
+        rgb[dst] = rgbaData[src];
+        rgb[dst + 1] = rgbaData[src + 1];
+        rgb[dst + 2] = rgbaData[src + 2];
       }
       scope.setPixels({ data: rgb, width, height });
       draw();
     },
-    updateSettings(partial: Record<string, any>) {
+    updateSettings(partial) {
       scope.updateSettings(partial);
       controls.update(scope.settings);
       draw();
     },
   };
+  window.__chromascopeTest = harness;
 }

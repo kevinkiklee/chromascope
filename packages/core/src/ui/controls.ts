@@ -1,6 +1,5 @@
 import type {
   ChromascopeSettings,
-  ColorSpaceId,
   DensityModeId,
   HarmonySchemeId,
 } from "../types.js";
@@ -8,12 +7,6 @@ import type {
 export interface ControlsCallbacks {
   onSettingsChange: (partial: Partial<ChromascopeSettings>) => void;
 }
-
-const COLOR_SPACES: Array<{ id: ColorSpaceId; label: string }> = [
-  { id: "ycbcr", label: "YCbCr" },
-  { id: "cieluv", label: "LUV" },
-  { id: "hsl", label: "HSL" },
-];
 
 const DENSITY_MODES: Array<{ id: DensityModeId; label: string }> = [
   { id: "scatter", label: "Scatter" },
@@ -37,25 +30,31 @@ export function createControls(
   let current = { ...initialSettings };
 
   function renderButtonGroup<T extends string>(
-    items: Array<{ id: T; label: string }>,
+    items: Array<{ id: T; label: string; title?: string }>,
     activeId: T,
     onChange: (id: T) => void,
   ): HTMLElement {
     const group = document.createElement("div");
     group.className = "vs-btn-group";
+    group.setAttribute("role", "group");
 
     for (const item of items) {
       const btn = document.createElement("button");
+      btn.type = "button";
       btn.className = `vs-btn${item.id === activeId ? " active" : ""}`;
       btn.textContent = item.label;
-      if ("title" in item && (item as any).title) {
-        btn.setAttribute("title", (item as any).title);
+      if (item.title) {
+        btn.setAttribute("title", item.title);
+        btn.setAttribute("aria-label", item.title);
       }
+      btn.setAttribute("aria-pressed", item.id === activeId ? "true" : "false");
       btn.setAttribute("data-vs-id", item.id);
       btn.addEventListener("click", () => {
         onChange(item.id);
         for (const b of group.querySelectorAll(".vs-btn")) {
-          b.classList.toggle("active", b.getAttribute("data-vs-id") === item.id);
+          const isActive = b.getAttribute("data-vs-id") === item.id;
+          b.classList.toggle("active", isActive);
+          b.setAttribute("aria-pressed", isActive ? "true" : "false");
         }
       });
       group.appendChild(btn);
