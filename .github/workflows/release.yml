@@ -57,6 +57,10 @@ jobs:
 
       - run: npm ci
       - run: npx turbo run build --filter=@chromascope/core
+      # build:lib produces packages/core/build-lib/chromascope-core.iife.js,
+      # which the photoshop plugin's bundler depends on. Without it, the
+      # @chromascope/photoshop build fails with "Core library bundle not found".
+      - run: npx turbo run build:lib --filter=@chromascope/core
       - run: npx turbo run build --filter=@chromascope/photoshop
 
       - name: Build Rust processor
